@@ -49,7 +49,19 @@ abstract class PainlessDao
      * system shutdown.
      * @var boolean     if set to TRUE, it'll be registered in the shutdown function
      */
-    protected $autoClose = FALSE;
+    protected $autoClose    = FALSE;
+
+    /**
+     * Holds the list of connection profiles for this DAO
+     * @var array       an array of connection profiles where the key is the profile ID and the value is the config array
+     */
+    protected $profiles     = array( );
+
+    /**
+     * Hold the current connection profile. Can be changed by calling useProfile( )
+     * @var string      the current connection profile used
+     */
+    protected $currProfile  = '';
 
     public function __construct( )
     { 
@@ -64,8 +76,19 @@ abstract class PainlessDao
     /**
      * lifecycle methods
      */
-    abstract public function init( );
+    abstract public function init( $profile = '' );
     abstract public function close( );
+
+    public function addProfile( $name, $config )
+    {
+        $this->profiles[$name] = $config;
+    }
+
+    public function useProfile( $name )
+    {
+        if ( isset( $this->profiles[$name] ) )
+            $this->currProfile = $name;
+    }
 
     /**
      * direct query/execution methods

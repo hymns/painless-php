@@ -363,6 +363,31 @@ class PainlessMysql extends PainlessDao
         return $this->execute( $cmd, $extra );
     }
 
+    /**
+     * A shorthand for executing SELECT statements
+     * @param string $sql   the sql query to execute
+     * @return array        the results returned from the database
+     */
+    public function select( $sql )
+    {
+        return $this->execute( $sql, $this->opSelect );
+    }
+
+    public function insert( $sql )
+    {
+        return $this->execute( $sql, $this->opInsert );
+    }
+
+    public function update( $sql )
+    {
+        return $this->execute( $sql, $this->opUpdate );
+    }
+
+    public function delete( $sql )
+    {
+        return $this->execute( $sql, $this->opDelete );
+    }
+
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
      * transactional methods
      * --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -416,7 +441,16 @@ class PainlessMysql extends PainlessDao
     public function save( $opt = array( ) )     { throw new PainlessMysqlException( 'ORM function save( ) not supported yet' ); }
     public function delete( $opt = array( ) )   { throw new PainlessMysqlException( 'ORM function delete( ) not supported yet' ); }
 
+    /**--------------------------------------------------------------------------------------------------------------------------------------------------
+     * self-sanitization
+     * --------------------------------------------------------------------------------------------------------------------------------------------------
+     */
+    protected function sanitizeForDb( ) 
+    {
+        
+    }
     
+    protected function sanitizeFromDb( ) { }
 }
 
 class PainlessMysqlException extends ErrorException { }
