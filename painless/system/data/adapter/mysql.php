@@ -44,43 +44,39 @@
 class PainlessMysql extends PainlessDao
 {
     // execute( ) $extra['return'] options
-    const RET_ROW_COUNT = 0;
-    const RET_ID        = 1;
-    const RET_ARRAY     = 2;
-    const RET_ASSOC     = 3;
-    const RET_OBJ       = 4;
-    const RET_STMT      = 5;
+    const RET_ROW_COUNT     = 0;
+    const RET_ID            = 1;
+    const RET_ARRAY         = 2;
+    const RET_ASSOC         = 3;
+    const RET_OBJ           = 4;
+    const RET_STMT          = 5;
 
     // execute( ) $extra['close'] options
-    const STMT_CLOSE    = TRUE;
-    const STMT_IGNORE   = FALSE;
+    const STMT_CLOSE        = TRUE;
+    const STMT_IGNORE       = FALSE;
 
     // execute( ) $extra option shorthands for common operations
-    protected $opInsert = array( 'return' => self::RET_ID,          'close' => self::STMT_CLOSE );
-    protected $opUpdate = array( 'return' => self::RET_ROW_COUNT,   'close' => self::STMT_CLOSE );
-    protected $opSelect = array( 'return' => self::RET_ASSOC,       'close' => self::STMT_CLOSE );
-    protected $opDelete = array( 'return' => self::RET_ROW_COUNT,   'close' => self::STMT_CLOSE );
+    protected $_opInsert    = array( 'return' => self::RET_ID,          'close' => self::STMT_CLOSE );
+    protected $_opUpdate    = array( 'return' => self::RET_ROW_COUNT,   'close' => self::STMT_CLOSE );
+    protected $_opSelect    = array( 'return' => self::RET_ASSOC,       'close' => self::STMT_CLOSE );
+    protected $_opDelete    = array( 'return' => self::RET_ROW_COUNT,   'close' => self::STMT_CLOSE );
 
-    protected $logRetData = FALSE;
+    protected $_logRetData  = FALSE;
 
-    /**
-     * @var array   $options    the connection parameters
-     */
-    protected $params = array( );
+    protected $_conn        = NULL;
 
     /**
      * @var string	$prep	the list of SQL in the last transaction
      */
-    protected $log = array( );
+    protected $_log         = array( );
 
-    protected $tranId = '';
-    protected $conn = NULL;
+    protected $_tranId      = '';
 
     public function __construct( )
     {
         // log the return data of all queries during development. This is turned
         // off in production to save memory
-        if ( 'development' === DEPLOY_PROFILE ) $this->logRetData = TRUE;
+        if ( 'development' === DEPLOY_PROFILE ) $this->_logRetData = TRUE;
     }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -96,7 +92,7 @@ class PainlessMysql extends PainlessDao
     protected function buildWhere( $criteria )
     {
         // lazy init the connection
-        if ( NULL == $this->conn ) $this->init( );
+        if ( NULL == $this->_conn ) $this->init( );
 
         $ret = '';
 
@@ -113,7 +109,7 @@ class PainlessMysql extends PainlessDao
             {
                 if ( ! is_string( $field ) )
                 {
-                    $where[] = '`' . $field . '`=' . $this->conn->quote( $cond ) . '';
+                    $where[] = '`' . $field . '`=' . $this->_conn->quote( $cond ) . '';
                 }
                 else
                 {
@@ -146,7 +142,7 @@ class PainlessMysql extends PainlessDao
     protected function buildLimit( $offset = 0, $limit = 0 )
     {
         // lazy init the connection
-        if ( NULL == $this->conn ) $this->init( );
+        if ( NULL == $this->_conn ) $this->init( );
 
         // $offset and $limit can be used in 2 ways: $limit only, or $offset +
         // $limit. This expectation is made with the use case where $offset cannot
@@ -167,7 +163,7 @@ class PainlessMysql extends PainlessDao
     protected function buildOrder( $criteria )
     {
         // lazy init the connection
-        if ( NULL == $this->conn ) $this->init( );
+        if ( NULL == $this->_conn ) $this->init( );
 
         $ret = '';
 
@@ -184,7 +180,7 @@ class PainlessMysql extends PainlessDao
             {
                 if ( ! is_string( $field ) )
                 {
-                    $where[] = '`' . $field . '`=' . $this->conn->quote( $cond ) . '';
+                    $where[] = '`' . $field . '`=' . $this->_conn->quote( $cond ) . '';
                 }
                 else
                 {
@@ -217,29 +213,48 @@ class PainlessMysql extends PainlessDao
      * Initializes the MYSQL connection via PDO
      * @return boolean      always return TRUE
      */
-    public function init( )
+    public function init( $profile = '' )
     {
-        // if there are no options set, use the defaults from config
         $config = Painless::get( 'system/common/config' );
-        $this->params = $config->get( 'database.*' );
+        $connParams = array( );
+        $prefix = 'mysql.';
+
+        // If profile is not provided, assuming that we're using the profile "default"
+        if ( empty( $profile ) )
+        {
+            $profile    = 'default';
+            $connParams = $config->get( 'mysql.*' );
+        }
+        else
+        {
+            // Get the list of profiles from the config file
+            $profiles   = $config->get( 'mysql.profiles' );
+            if ( empty( $profiles ) ) throw new PainlessMysqlException( 'Profiles not properly defined in the config file' );
+
+            // Only get the profile if there's a match
+            if ( ! array_values( $profile ) ) throw new PainlessMysqlException( "The specified profile [$profile] is not defined in the config file" );
+            $connParams = $config->get( "mysql.$profile.*" );
+            $prefix .= $profile . '.';
+        }
 
         // get the parameters
-        $host       = array_get( $this->params, 'database.host', FALSE );
-        $db         = array_get( $this->params, 'database.database', FALSE );
-        $user       = array_get( $this->params, 'database.username', FALSE );
-        $pass       = array_get( $this->params, 'database.password', FALSE );
+        $host       = array_get( $connParams, $prefix . 'host', FALSE );
+        $db         = array_get( $connParams, $prefix . 'database', FALSE );
+        $user       = array_get( $connParams, $prefix . 'username', FALSE );
+        $pass       = array_get( $connParams, $prefix . 'password', FALSE );
 
         // try to connect to the database
         $connString = 'mysql:host=' . $host . ';dbname=' . $name;
 
         // the line below might throw an exception, which should be caught by
         // the exception handler in the engine, so no point catching it here
-        $this->conn = new PDO( $connString, $user, $pass );
+        $this->addProfile( $profile, new PDO( $connString, $user, $pass ) );
+        $this->useProfile( $profile );
 
         // make sure the PDO connection throws an exception during development
         // mode
         if ( DEPLOY_PROFILE === 'development' )
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $this->_conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         return TRUE;
     }
@@ -250,7 +265,7 @@ class PainlessMysql extends PainlessDao
      */
     public function close( )
     {
-        if ( $this->isOpen( ) ) $this->conn->close( );
+        if ( ! empty( $this->_conn ) ) $this->_conn->close( );
 
         return TRUE;
     }
@@ -285,10 +300,10 @@ class PainlessMysql extends PainlessDao
     public function execute( $cmd, $extra = array( ) )
     {
         // lazy init the connection
-        if ( NULL == $this->conn ) $this->init( );
+        if ( NULL == $this->_conn ) $this->init( );
 
         // create a PDOStatement object
-        $stmt = $this->conn->query( $cmd );
+        $stmt = $this->_conn->query( $cmd );
         if ( FALSE === $stmt )
         {
             return FALSE;
@@ -306,7 +321,7 @@ class PainlessMysql extends PainlessDao
                 break;
 
             case self::RET_ID :
-                $ret = $this->conn->lastInsertId( );
+                $ret = $this->_conn->lastInsertId( );
                 break;
 
             case self::RET_ARRAY :
@@ -339,28 +354,16 @@ class PainlessMysql extends PainlessDao
         $log = array( $cmd, $extra );
 
         // save the return data if required
-        if ( $this->logRetData ) $log[] = $ret;
+        if ( $this->_logRetData ) $log[] = $ret;
 
         // if this is a transaction, group all the logged queries together. Otherwise
         // log them as single queries
-        if ( '' !== $this->tranId )
-            $this->log[$this->tranId][] = $log;
+        if ( '' !== $this->_tranId )
+            $this->_log[$this->_tranId][] = $log;
         else
-            $this->log[date( 'Y-m-d H:i:s [u]' )] = $log;
+            $this->_log[date( 'Y-m-d H:i:s [u]' )] = $log;
 
         return $ret;
-    }
-
-    /**
-     * A shorthand for execute( )
-     * @param string $cmd   the command to execute (usually a plain SQL string)
-     * @param array $extra  any extra commands to add to the execution
-     * @return mixed        varies depending on the return type specified in $extra['return']
-     */
-    public function fetch( $cmd, $extra = array( ) )
-    {
-        // fetch( ) is an alias of execute( )
-        return $this->execute( $cmd, $extra );
     }
 
     /**
@@ -370,22 +373,22 @@ class PainlessMysql extends PainlessDao
      */
     public function select( $sql )
     {
-        return $this->execute( $sql, $this->opSelect );
+        return $this->execute( $sql, $this->_opSelect );
     }
 
     public function insert( $sql )
     {
-        return $this->execute( $sql, $this->opInsert );
+        return $this->execute( $sql, $this->_opInsert );
     }
 
     public function update( $sql )
     {
-        return $this->execute( $sql, $this->opUpdate );
+        return $this->execute( $sql, $this->_opUpdate );
     }
 
     public function delete( $sql )
     {
-        return $this->execute( $sql, $this->opDelete );
+        return $this->execute( $sql, $this->_opDelete );
     }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -399,13 +402,13 @@ class PainlessMysql extends PainlessDao
     public function start( )
     {
         // lazy init the connection
-        if ( NULL == $this->conn ) $this->open( );
+        if ( NULL == $this->_conn ) $this->open( );
 
-        $this->conn->beginTransaction( );
+        $this->_conn->beginTransaction( );
 
         // log the current transaction
-        $this->tranId = date( 'Y-m-d H:i:s [u]' );
-        $this->log[$this->tranId] = array( );
+        $this->_tranId = date( 'Y-m-d H:i:s [u]' );
+        $this->_log[$this->_tranId] = array( );
     }
 
     /**
@@ -415,21 +418,21 @@ class PainlessMysql extends PainlessDao
     public function end( $rollback = FALSE )
     {
         // lazy init the connection
-        if ( NULL == $this->conn ) $this->open( );
+        if ( NULL == $this->_conn ) $this->open( );
 
         if ( ! $rollback )
         {
             // commits the data and if failed, roll it back
-            if ( ! $this->conn->commit( ) ) $this->end( TRUE );
+            if ( ! $this->_conn->commit( ) ) $this->end( TRUE );
         }
         else
         {
-            $this->conn->rollBack( );
+            $this->_conn->rollBack( );
         }
 
         // always reset the transaction ID to prevent any further changes to the
         // transaction log
-        $this->tranId = '';
+        $this->_tranId = '';
     }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -450,7 +453,10 @@ class PainlessMysql extends PainlessDao
         
     }
     
-    protected function sanitizeFromDb( ) { }
+    protected function sanitizeFromDb( )
+    {
+        
+    }
 }
 
 class PainlessMysqlException extends ErrorException { }

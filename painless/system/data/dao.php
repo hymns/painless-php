@@ -40,6 +40,15 @@
 /**
  * PainlessDao is the base class for data adapters. The class can be used in many
  * different ways, but the preferred usage is to use it as a Data Mapper.
+ *
+ * Note that the DAO class is the ONLY class in the framework that uses an
+ * underscore prefix for protected and private members. This is not a break in
+ * the convention but rather, an intended exception. Specifically, since DAOs
+ * are meant to be used like an object, where each property maps to a cell in the
+ * data store. These public properties will automatically be sanitized, which is
+ * a function provided by the DAO base class (since it applies to all DAOs), and
+ * thus adding an underscore prefix to properties that are never meant to be
+ * sanitized would provide a good mechanism to filter out unwanted operations.
  */
 
 abstract class PainlessDao
@@ -49,63 +58,96 @@ abstract class PainlessDao
      * system shutdown.
      * @var boolean     if set to TRUE, it'll be registered in the shutdown function
      */
-    protected $autoClose    = FALSE;
+    protected $_autoClose   = FALSE;
 
     /**
      * Holds the list of connection profiles for this DAO
      * @var array       an array of connection profiles where the key is the profile ID and the value is the config array
      */
-    protected $profiles     = array( );
+    protected $_profiles    = array( );
 
     /**
      * Hold the current connection profile. Can be changed by calling useProfile( )
      * @var string      the current connection profile used
      */
-    protected $currProfile  = '';
+    protected $_currProfile = '';
 
     public function __construct( )
     { 
         // if $autoClose is true, register it in the list of stuff to automatically
         // kill upon the end of the request
-        if ( $this->autoClose )
+        if ( $this->_autoClose )
         {
             register_shutdown_function( array( $this, 'close' ) );
         }
     }
 
-    /**
+    /**--------------------------------------------------------------------------------------------------------------------------------------------------
      * lifecycle methods
+     * --------------------------------------------------------------------------------------------------------------------------------------------------
      */
     abstract public function init( $profile = '' );
     abstract public function close( );
 
-    public function addProfile( $name, $config )
+    /**
+     * Adds a connection profile to the DAO
+     * @param string $name  the identifier of the profile
+     * @param mixed $conn   the connection object
+     */
+    public function addProfile( $name, $conn )
     {
-        $this->profiles[$name] = $config;
-    }
-
-    public function useProfile( $name )
-    {
-        if ( isset( $this->profiles[$name] ) )
-            $this->currProfile = $name;
+        $this->_profiles[$name] = $conn;
     }
 
     /**
+     * Switches to a new connection profile
+     * @param string $name          the identifier of the profile
+     * @param boolean $setAsCurrent if set to TRUE, it'll replace the current connection with the new connection
+     * @return mixed                returns NULL if $setAsCurrent is FALSE, or returns the connection if it's set to TRUE
+     */
+    public function useProfile( $name, $setAsCurrent = FALSE )
+    {
+        if ( ! isset( $this->_profiles[$name] ) )
+        {
+            $this->init( $name );
+
+            // If init( ) succeeds without any exceptions, assume that
+            // $this->_profile[$name] already has the connection saved to it. If
+            // this is not the case, throw an exception!
+            if ( ! isset( $this->_profiles[$name] ) && empty( $this->_profiles[$name] ) )
+                throw new PainlessDaoException( '$this->profiles does not contain the new profile. Please call addProfile( ) to add the requested profile [' . $name . '] to the DAO' );
+        }
+
+        if ( $setAsCurrent )
+        {
+            // Close the current connection
+            $this->close( );
+            $this->_conn = $this->_profiles[$name];
+            return $this->_conn;
+        }
+    }
+
+    /**--------------------------------------------------------------------------------------------------------------------------------------------------
      * direct query/execution methods
+     * --------------------------------------------------------------------------------------------------------------------------------------------------
      */
     abstract public function execute( $cmd, $extra = array( ) );
 
-    /**
+    /**--------------------------------------------------------------------------------------------------------------------------------------------------
      * DAO methods
+     * --------------------------------------------------------------------------------------------------------------------------------------------------
      */
     abstract public function add( $opt = array( ) );                            // adds a new record to the data store
     abstract public function find( $opt = array( ) );                           // finds a record from the data store
     abstract public function save( $opt = array( ) );                           // saves or updates the record into the data store
     abstract public function delete( $opt = array( ) );                         // deletes the record in the data store
 
-    /**
+    /**--------------------------------------------------------------------------------------------------------------------------------------------------
      * transactional methods
+     * --------------------------------------------------------------------------------------------------------------------------------------------------
      */
     abstract public function start( );
     abstract public function end( $rollback = FALSE );
 }
+
+class PainlessDaoException extends ErrorException { }

@@ -44,7 +44,6 @@
 
 class PainlessMemcached extends PainlessDao
 {
-    protected $params = array( );
 
     public function open( $options = array( ) )
     {
