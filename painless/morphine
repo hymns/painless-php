@@ -36,6 +36,17 @@
  * @link        http://painless-php.com
  */
 
+/**
+ * morphine [command] [options]
+ *
+ *  Commands
+ *      generate | gen  - generates source code
+ *      scaffold | sca  - generates an application scaffold
+ *      install | ins   - installs a distribution
+ *      update | upd    - updates Painless, the application, or morphine
+ *      help | hel      - opens the help document
+ */
+
 // define the current application's base path
 define( 'APP_PATH', dirname( __FILE__ ) . '/' );
 
