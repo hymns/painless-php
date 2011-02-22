@@ -146,11 +146,11 @@ class PainlessRouter
                 {
                     $params[] = $uri[$i];
                 }
-                elseif ( 'param-all' === $con )
-                {
-                    $params = array_values( array_merge( $params, array_slice( $uri, $i ) ) );
-                    break;
-                }
+            }
+            else
+            {
+                $params = array_values( array_merge( $params, array_slice( $uri, $i ) ) );
+                break;
             }
         }
 
