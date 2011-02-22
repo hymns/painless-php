@@ -84,6 +84,9 @@ class PainlessResponse
 
     public function set( $key, $data )
     {
+        // Initialize the payload array if none available
+        if ( empty( $this->payload ) ) $payload = array( );
+
         // Replace all keys with underscores
         if ( strpos( $key, '-' ) ) $key = str_replace( '-', '_', $key );
 
