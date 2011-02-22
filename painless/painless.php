@@ -87,20 +87,28 @@ class Painless
      */
     public static function bootstrap( $loader = NULL )
     {
-        // make sure all env consts are set
-        if ( !defined( 'APP_PATH' ) )
+        // Make sure all env consts are set
+        if ( ! defined( 'APP_PATH' ) )
             throw new PainlessException( 'APP_PATH is not defined', 1 );
-        if ( !defined( 'IMPL_PATH' ) )
+        if ( ! defined( 'IMPL_PATH' ) )
             throw new PainlessException( 'IMPL_PATH is not defined', 2 );
-        if ( !defined( 'IMPL_NAME' ) )
+        if ( ! defined( 'IMPL_NAME' ) )
             throw new PainlessException( 'IMPL_NAME is not defined', 3 );
 
-        // set default values for non-critical env consts if none are set
+        // Set default values for non-critical env consts if none are set
         defined( 'ERROR_REPORTING' ) or define( 'ERROR_REPORTING', E_ALL | E_STRICT );
         defined( 'DEPLOY_PROFILE' ) or define( 'DEPLOY_PROFILE', 'development' );
         defined( 'NSTOK' ) or define( 'NSTOK', '/' );
 
-        // instantitate a version of the loader first if none provided. Usually,
+        // Make sure the paths have a trailing slash
+        $appPath    = APP_PATH;
+        $implPath   = IMPL_PATH;
+        $plPath     = PL_PATH;
+        if ( $appPath[count( $appPath ) - 1] !== '/' ) $appPath .= '/';
+        if ( $implPath[count( $implPath ) - 1] !== '/' ) $implPath .= '/';
+        if ( $plPath[count( $plPath ) - 1] !== '/' ) $plPath .= '/';
+
+        // Instantitate a version of the loader first if none provided. Usually,
         // to improve performance, if the implementor decides to use their own
         // version of the loader, it would be advisable to perform the initialization
         // in index.php and pass in the loader through the parameter $loader
@@ -110,7 +118,7 @@ class Painless
             require_once PL_PATH . 'system/common/loader' . EXT;
             $loader = new PainlessLoader;
 
-            // replace itself with a proper loader
+            // Replace itself with a proper loader
             $loader = $loader->get( 'system/common/loader' );
         }
         
@@ -169,19 +177,7 @@ class Painless
 
 function array_get( $array, $key, $defaultReturn = FALSE )
 {
-    return isset( $array[$key] ) ? $array[$key] : $defaultReturn;
-}
-
-function array_get_clean( &$array, $key, $defaultReturn = FALSE )
-{
-    if ( isset( $array[$key] ) )
-    {
-        $value = $array[$key];
-        unset( $array[$key] );
-        return $value;
-    }
-
-    return $defaultReturn;
+    return isset( $array[$key] ) ?: $defaultReturn;
 }
 
 function dash_to_pascal( $string )
