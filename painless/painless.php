@@ -177,7 +177,7 @@ class Painless
 
 function array_get( $array, $key, $defaultReturn = FALSE )
 {
-    return isset( $array[$key] ) ?: $defaultReturn;
+    return isset( $array[$key] ) ? $array[$key] : $defaultReturn;
 }
 
 function dash_to_pascal( $string )

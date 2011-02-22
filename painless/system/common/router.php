@@ -123,7 +123,7 @@ class PainlessRouter
         $routes = $config->get( 'routes.uri.config' );
 
         // Use the default routing if not configured (auto-routing)
-        if ( empty( $routes ) ) $routes = $this->defaultRouteConfig;
+        if ( ! is_array( $routes ) ) $routes = $this->defaultRouteConfig;
 
         // Process the URI list
         $count = count( $uri );
@@ -165,6 +165,9 @@ class PainlessRouter
             {
                 // extract the content type from the segment
                 $contentType = substr( $last, $pos + 1 );
+
+                // Make sure the content type is valid
+                if ( empty( $contentType ) ) $contentType = 'html';
                 
                 // remove the content type from the last URI segment
                 $params[$count - 1] = substr( $last, 0, $pos );
@@ -216,7 +219,7 @@ class PainlessRouter
         {
             $woObj = Painless::get( "workflow/$module/$workflow" );
 
-            if ( empty( $woObj ) ) throw new PainlessWorkflowNotFound( "Unable to find workflow [$module/$workflow]" );
+            if ( empty( $woObj ) ) throw new PainlessWorkflowNotFoundException( "Unable to find workflow [$module/$workflow]" );
             
             $woObj->name = $workflow;
             $woObj->module = $module;

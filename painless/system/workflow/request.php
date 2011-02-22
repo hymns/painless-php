@@ -63,17 +63,17 @@ class PainlessRequest
     /**
      * Parameter style
      */
-    const PS_INDEX  = 0;            // Individual params are referenced by their index ID
+    const PS_INDEX  = 1;            // Individual params are referenced by their index ID
                                     // (e.g. $this->getParam( 0 ) on "/user/profile/page/1" would return "page")
     
-    const PS_PAIR   = 1;            // Params are paired up with the previous param being the ID
+    const PS_PAIR   = 2;            // Params are paired up with the previous param being the ID
                                     // (e.g. $this->getParam( 'page' ) on "/user/profile/page/1" would return 1)
 
-    const PS_CONFIG  = 2;           // Params are named resources defined by the routes config
+    const PS_CONFIG = 3;            // Params are named resources defined by the routes config
                                     // (e.g. if the workflow says "/:action/:page-no",
                                     // $this->getParam( 'page-no' ) on "/user/profile/page/1" would return 1)
 
-    const PS_DEFER  = -1;           // Defers the parameter parsing to the invoked workflow
+    const PS_DEFER  = 4;            // Defers the parameter parsing to the invoked workflow
 
     /**
      * The current method requested
@@ -182,6 +182,19 @@ class PainlessRequest
     }
 
     /**
+     * Sets a parameter parsing style for the request. Must be called BEFORE
+     * init( ) is called, because setParams( ) occurs within init( ).
+     * @param int $style            the parameter style to set
+     */
+    public function setParamStyle( $style )
+    {
+        // Check if the style is supported
+        if ( $style !== self::PS_INDEX && $style !== self::PS_PAIR && $style !== self::PS_CONFIG && $style !== self::PS_DEFER ) return;
+
+        $this->paramStyle = $style;
+    }
+
+    /**
      * Setter for $this->method
      * @param string $method        the invoked method
      * @return PainlessRequest      returns itself to allow function chaining
@@ -214,7 +227,7 @@ class PainlessRequest
         // parse the parameter string using PS_INDEX
         if ( $style === self::PS_INDEX )
         {
-            $params = array_values( $params );
+            $params = array_values( $params );var_dump($params);
         }
         // parse the parameter string using PS_PAIR
         elseif ( $style === self::PS_PAIR )
@@ -224,11 +237,17 @@ class PainlessRequest
             
             // make sure the size of $params is an odd number. If not, trim the last
             // element off
-            if ( ( $count % 2 ) !== 0 ) unset ( $params[ $count - 1 ] );
+            if ( ( $count % 2 ) !== 0 )
+            {
+                unset ( $params[ $count - 1 ] );
+
+                // Re-count the parameter array
+                $count = count( $params );
+            }
 
             for( $i = 0; $i < $count; $i += 2 )
             {
-                $tmp[$params[$i]] = $tmp[$params[$i + 1]];
+                $tmp[$params[$i]] = $params[$i + 1];
             }
 
             unset( $params );
@@ -242,10 +261,10 @@ class PainlessRequest
             $routes = $config->get( 'routes.uri.map' );
 
             if ( empty( $routes ) ) throw new PainlessRequestException( 'PS_CONFIG parameter parsing style can only be used if routes are properly set up (routes.uri.map)' );
-            if ( empty( $this->workflow ) ) throw new PainlessRequestException( 'PS_CONFIG will not work if the invoking workflow was not instantiated before-hand. Please ensure that the router had instantiated the workflow and set a reference to it in $this->workflow before calling init( )' );
+            if ( empty( $this->parent ) ) throw new PainlessRequestException( 'PS_CONFIG will not work if the invoking workflow was not instantiated before-hand. Please ensure that the router had instantiated the workflow and set a reference to it in $this->workflow before calling init( )' );
 
-            $module     = $this->workflow->module;
-            $workflow   = $this->workflow->name;
+            $module     = $this->parent->module;
+            $workflow   = $this->parent->name;
             $method     = $this->method;
 
             // construct the workflow key
@@ -253,16 +272,16 @@ class PainlessRequest
             $map = array( );
 
             // see if there's a mapping for that workflow
-            if ( ! isset( $routes[$key][$method] ) )
+            if ( ! isset( $routes[$method][$key] ) )
             {
-                if ( ! isset( $routes[$key]['*'] ) )
+                if ( ! isset( $routes['*'][$key] ) )
                     throw new PainlessRequestException( "The route map [$map] is not found in the routes config. Please make sure the route map exists." );
                 else
-                    $map = $routes[$key]['*'];
+                    $map = $routes['*'][$key];
             }
             else
             {
-                $map = $routes[$key][$method];
+                $map = $routes[$method][$key];
             }
 
             // start parsing the $params array by assigning them their respective keys

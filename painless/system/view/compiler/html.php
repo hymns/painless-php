@@ -75,7 +75,7 @@ class PainlessHtmlCompiler extends PainlessBaseCompiler
         $workflow   = $response->workflow;
         $method     = $response->method;
 
-        if ( FALSE === $out ) $out = "$module/tpl/$workflow.$method.tpl";
+        if ( FALSE === $out ) $out = "$module/tpl/$workflow.$method.phtml";
 
         return $out;
     }

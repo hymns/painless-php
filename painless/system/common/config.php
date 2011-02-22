@@ -55,8 +55,6 @@ class PainlessConfig
             // if so, then we should return everything that matches the particular
             // expression in the config array. First, extract the part of the
             // namespace prior to the asterisk symbol
-            // COMMENTED OUT BECAUSE WE'RE USING 5.2
-            //$partToMatch = strstr( $namespace, '*', TRUE );
             $partToMatch = substr( $namespace, 0, $pos );
 
             $matches = array( );
@@ -102,7 +100,7 @@ class PainlessConfig
 
             $configPath .= EXT;
             $aclPath    .= '.acl' . EXT;
-            $routesPath .= '.routes' . EXT;
+            $routesPath .= '.route' . EXT;
         }
 
         // check if the config path is correct
@@ -132,6 +130,7 @@ class PainlessConfig
                 throw new PainlessConfigException( 'Unable to find the ACL array in [' . $aclPath . ']' );
 
             $this->config = array_merge( $this->config, $config );
+            unset( $config );
         }
 
         // load the routes array too

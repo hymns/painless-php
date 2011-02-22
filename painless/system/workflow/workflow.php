@@ -68,6 +68,13 @@ class PainlessWorkflow
     public $response = NULL;
 
     /**
+     * A parameter parsing style to use to parse the parameter array from the
+     * request
+     * @var int                 a param style to use (see PainlessRequest::PS_*)
+     */
+    protected $paramStyle = 0;
+
+    /**
      * Creates a new request and attach to this workflow
      * @param string $method        the method/action invoked by the request
      * @param array $params         a parameter array to initialize the workflow with
@@ -77,14 +84,18 @@ class PainlessWorkflow
      */
     public function setRequest( $method, $params, $contentType = PainlessRequest::HTML, $agent = 'painless' )
     {
-        // remember to get a new instance of the request
+        // Remember to get a new instance of the request
         $request = Painless::get( 'system/workflow/request', LP_LOAD_NEW );
 
-        // use the defaults if $contentType is empty
+        // Use the defaults if $contentType is empty
         if ( empty( $contentType ) ) $contentType = PainlessRequest::HTML;
         if ( empty( $agent ) ) $agent = 'painless';
 
-        // initialize the request
+        // Set the param parsing style if it's defined
+        if ( ! empty( $this->paramStyle ) )
+            $request->setParamStyle( $this->paramStyle );
+
+        // Initialize the request
         $request->parent = & $this;
         $request->init( $method, $params, $contentType, $agent );
 
