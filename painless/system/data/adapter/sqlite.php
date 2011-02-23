@@ -536,12 +536,16 @@ class PainlessSqlite extends PainlessDao
         // Implode the two arrays into strings
         $fields = implode( ',', $fields );
 
-        // Build the insert query
+        // Build the update query
         $sql = "UPDATE `$this->_tableName` SET $fields WHERE `$this->_primaryKey` = '$pk'";
 
         return $this->update( $sql );
     }
 
+    /**
+     * Deletes a record from the DB using a primary key
+     * @param array $opt    an array of options ( NOT SUPPORTED )
+     */
     public function remove( $opt = array( ) )
     {
         if ( FALSE === $this->_tableName )
@@ -556,7 +560,13 @@ class PainlessSqlite extends PainlessDao
         if ( empty( $this->_primaryKey ) )
             throw new PainlessSqliteException( '$_primaryKey is not defined. Please set $_primaryKey to use save() and remove() functions' );
 
-        
+        $pk = $this->_primaryKey;
+        $pk = $this->$pk;
+
+        // Build the delete query
+        $sql = "DELETE FROM `$this->_tableName` WHERE `$this->_primaryKey` = '$pk' LIMIT 1";
+
+        return $this->delete( $sql );
     }
 }
 
