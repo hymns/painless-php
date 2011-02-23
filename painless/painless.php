@@ -230,11 +230,5 @@ function dash_to_underscore( $string )
 function underscore_to_pascal( $string )
 {}
 
-function dash_to_pascal( $string )
-{}
-
 function underscore_to_camel( $string )
-{}
-
-function dash_to_camel( $string )
 {}
