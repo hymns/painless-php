@@ -82,7 +82,7 @@ class PainlessWorkflow
      * @param string $agent         the invoking agent
      * @return PainlessWorkflow     returns itself to facilitate method chaining
      */
-    public function setRequest( $method, $params, $contentType = PainlessRequest::HTML, $agent = 'painless' )
+    public function request( $method, $params, $contentType = PainlessRequest::HTML, $agent = 'painless' )
     {
         // Remember to get a new instance of the request
         $request = Painless::get( 'system/workflow/request', LP_LOAD_NEW );
@@ -105,22 +105,35 @@ class PainlessWorkflow
 
     /**
      * Creates a response object. Usually called at the end of any invoked methods
-     * @param int $status       a valid HTTP/REST status code
-     * @param string $message   the message explaining the status of the response
-     * @param mixed $payload    the payload of the workflow
-     * @return PainlessResponse a response object
+     * @param int|PainlessResponse $status  a valid HTTP/REST status code
+     * @param string $message               the message explaining the status of the response
+     * @param mixed $payload                the payload of the workflow
+     * @return PainlessResponse             a response object
      */
-    public function setResponse( $status, $message, $payload = array( ) )
+    public function response( $status, $message, $payload = array( ) )
     {
-        // remember to get a new instance of the response
-        $response = Painless::get( 'system/workflow/response', LP_LOAD_NEW );
+        // Double check $status first. If it's not an INT, assume it's a response
+        // object
+        if ( ! is_int( $status ) )
+        {
+            Painless::get( 'system/workflow/response', LP_DEF_ONLY );
+            if ( ! ( $status instanceof PainlessResponse ) )
+                throw new PainlessWorkflowException( '$status must only be an int or an instance of PainlessResponse' );
 
-        $response->setWorkflow( $this );
-        $response->status = (int) $status;
-        $response->message = $message;
-        $response->payload = $payload;
+            $this->response = $status;
+        }
+        else
+        {
+            // remember to get a new instance of the response
+            $response = Painless::get( 'system/workflow/response', LP_LOAD_NEW );
 
-        $this->response = $response;
+            $response->setWorkflow( $this );
+            $response->status = (int) $status;
+            $response->message = $message;
+            $response->payload = $payload;
+
+            $this->response = $response;
+        }
         return $this;
     }
 

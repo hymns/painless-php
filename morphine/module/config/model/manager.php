@@ -1,7 +1,6 @@
 <?php
-
 /**
- * Painless PHP - the painless path to development
+ * Morphine - the command line toolkit for Painless PHP to take away the pain
  *
  * Copyright (c) 2011, Tan Long Zheng (soggie)
  * All rights reserved.
@@ -30,33 +29,38 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * @package     Painless PHP
+ * @package     Morphine
  * @author      Tan Long Zheng (soggie) <ruben@rendervault.com>
  * @copyright   2011 Tan Long Zheng (soggie) <ruben@rendervault.com>
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
 
-class PainlessModel
+class ConfigManagerModel extends PainlessModel
 {
-    const SUCCESS = 200;
-    const CREATED = 201;
-    const FAILURE = 400;
-
     /**
-     * A shorthand to return a properly formed response object to the calling
-     * workflow.
-     * @param boolean $status   TRUE if the operation is successful, FALSE if otherwise
-     * @param mixed $data       usually, either an array or a string
-     * @return array            an array where the key 'status' is TRUE or FALSE, and 'data' is the returned data
+     * Retrieves the value of a config key
+     * @return void
      */
-    protected function response( $status, $data )
+    public function getConfig( $key )
     {
-        return array( 'status' => $status, 'data' => $data );
+        
     }
 
-    protected function validateNull( $v )                  { return empty( $v ); }
-    protected function validateEmail( $v )                 { return ( filter_var( $v, FILTER_VALIDATE_EMAIL ) !== FALSE ); }
-    protected function validateEquals( $v1, $v2 )          { return ( $v1 == $v2 ); }
-    protected function validateIdentical( $v1, $v2 )       { return ( $v1 === $v2 ); }
+    /**
+     * Adds a new config key into morphine
+     * @return void
+     */
+    public function addConfig( $key, $value )
+    { 
+    }
+
+    /**
+     * Edits a config key in morphine
+     * @return void
+     */
+    public function updateConfig( $key, $value )
+    {
+        
+    }
 }

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Painless PHP - the painless path to development
  *
@@ -37,26 +36,24 @@
  * @link        http://painless-php.com
  */
 
-class PainlessModel
+class MorphineConsole extends PainlessConsole
 {
-    const SUCCESS = 200;
-    const CREATED = 201;
-    const FAILURE = 400;
+    
 
-    /**
-     * A shorthand to return a properly formed response object to the calling
-     * workflow.
-     * @param boolean $status   TRUE if the operation is successful, FALSE if otherwise
-     * @param mixed $data       usually, either an array or a string
-     * @return array            an array where the key 'status' is TRUE or FALSE, and 'data' is the returned data
-     */
-    protected function response( $status, $data )
+    protected function help( )
     {
-        return array( 'status' => $status, 'data' => $data );
-    }
+        $output = <<<HELP
+Usage:
+  php morphine [generate|scaffold|update|install|test]
 
-    protected function validateNull( $v )                  { return empty( $v ); }
-    protected function validateEmail( $v )                 { return ( filter_var( $v, FILTER_VALIDATE_EMAIL ) !== FALSE ); }
-    protected function validateEquals( $v1, $v2 )          { return ( $v1 == $v2 ); }
-    protected function validateIdentical( $v1, $v2 )       { return ( $v1 === $v2 ); }
+Runtime options:
+  -f,[--force]      # Resolve conflicts by overwrting the old data (mutually exclusive with -s)
+  -s,[--skip]       # Resolve conflicts by skipping the new one data (mutually exclusive with -f)
+  -v,[--verbose]    # Prints out all status messages (mutually exclusive with -q)
+  -q,[--quiet]      # Surpresses all status messages (mutually exclusive with -v)
+  -h,[--help]       # Shows the help file
+
+HELP;
+        return $this->write( $output );
+    }
 }

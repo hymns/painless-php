@@ -225,7 +225,7 @@ class PainlessRouter
             $woObj->module = $module;
 
             // construct the workflow
-            $woObj->setRequest( $method, $params, $contentType, $agent );
+            $woObj->request( $method, $params, $contentType, $agent );
 
             $woObj->$method( );
             $response = $woObj->response;

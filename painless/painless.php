@@ -89,11 +89,11 @@ class Painless
     {
         // Make sure all env consts are set
         if ( ! defined( 'APP_PATH' ) )
-            throw new PainlessException( 'APP_PATH is not defined', 1 );
+            throw new ErrorException( 'APP_PATH is not defined', 1 );
         if ( ! defined( 'IMPL_PATH' ) )
-            throw new PainlessException( 'IMPL_PATH is not defined', 2 );
+            throw new ErrorException( 'IMPL_PATH is not defined', 2 );
         if ( ! defined( 'IMPL_NAME' ) )
-            throw new PainlessException( 'IMPL_NAME is not defined', 3 );
+            throw new ErrorException( 'IMPL_NAME is not defined', 3 );
 
         // Set default values for non-critical env consts if none are set
         defined( 'ERROR_REPORTING' ) or define( 'ERROR_REPORTING', E_ALL | E_STRICT );
