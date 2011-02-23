@@ -75,6 +75,26 @@ class Painless
         $log->info( $message );
     }
 
+    public static function package( $name, $path = '' )
+    {
+        // Convert the dash delimited $name into a pascal case
+        $cn = dash_to_pascal( $name );
+
+        // If no path is provided, or the file specified by the $path does not
+        // exists, use the default convention instead
+        if ( empty( $path ) || ! file_exists( $path ) )
+        {
+            $path = IMPL_PATH . '../' . $name . '/' . $name . '.php';
+        }
+
+        require $path;
+
+        if ( ! class_exists( $cn ) )
+            throw new ErrorException( "$cn not defined inside [$path]" );
+
+        
+    }
+
     /**
      * Bootstraps this service locator and initializes the engine. Always call this
      * function first before attempting to run any services or components from
@@ -196,3 +216,15 @@ function dash_to_underscore( $string )
 {
     return str_replace( '-', '_', $string );
 }
+
+function underscore_to_pascal( $string )
+{}
+
+function dash_to_pascal( $string )
+{}
+
+function underscore_to_camel( $string )
+{}
+
+function dash_to_camel( $string )
+{}
