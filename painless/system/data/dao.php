@@ -140,7 +140,7 @@ abstract class PainlessDao
     abstract public function add( $opt = array( ) );                            // adds a new record to the data store
     abstract public function find( $opt = array( ) );                           // finds a record from the data store
     abstract public function save( $opt = array( ) );                           // saves or updates the record into the data store
-    abstract public function delete( $opt = array( ) );                         // deletes the record in the data store
+    abstract public function remove( $opt = array( ) );                         // deletes the record in the data store
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
      * transactional methods

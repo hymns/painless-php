@@ -442,7 +442,7 @@ class PainlessMysql extends PainlessDao
     public function add( $opt = array( ) )      { throw new PainlessMysqlException( 'ORM function add( ) not supported yet' ); }
     public function find( $opt = array( ) )     { throw new PainlessMysqlException( 'ORM function find( ) not supported yet' ); }
     public function save( $opt = array( ) )     { throw new PainlessMysqlException( 'ORM function save( ) not supported yet' ); }
-    public function delete( $opt = array( ) )   { throw new PainlessMysqlException( 'ORM function delete( ) not supported yet' ); }
+    public function remove( $opt = array( ) )   { throw new PainlessMysqlException( 'ORM function delete( ) not supported yet' ); }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
      * self-sanitization
