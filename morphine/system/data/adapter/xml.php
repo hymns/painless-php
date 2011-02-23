@@ -36,7 +36,7 @@
  * @link        http://painless-php.com
  */
 
-class MorphineXml
+class MorphineXml extends PainlessDao
 {
 	
 }

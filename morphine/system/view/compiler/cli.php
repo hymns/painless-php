@@ -40,5 +40,6 @@ class MorphineCliCompiler extends PainlessBaseCompiler
 {
 	public function process( $view )
 	{
+        
 	}
 }
