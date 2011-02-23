@@ -231,4 +231,28 @@ function underscore_to_pascal( $string )
 {}
 
 function underscore_to_camel( $string )
-{}
+{
+    if ( FALSE !== strpos( $string, '_' ) )
+    {
+        $arr = explode( '_', $string );
+        $count = count( $arr );
+        $string = '';
+        for( $i = 0; $i < $count; $i++ )
+        {
+            if ( $i !== 0 ) $arr[$i] = ucwords( $arr[$i] );
+            $string .= $arr[$i];
+        }
+    }
+
+    return $string;
+}
+
+function camel_to_underscore( $string )
+{
+    return strtolower( preg_replace( "/([a-z])([A-Z]{1})/", "$1_$2", $string ) );
+}
+
+function camel_to_dash( $string )
+{
+    return strtolower( preg_replace( "/([a-z])([A-Z]{1})/", "$1\-$2", $string ) );
+}

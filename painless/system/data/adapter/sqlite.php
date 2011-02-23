@@ -442,7 +442,6 @@ class PainlessSqlite extends PainlessDao
      * default ORM methods
      * --------------------------------------------------------------------------------------------------------------------------------------------------
      */
-
     /**
      * Adds a record into the database
      * @param array $opt    an array of options ( NOT SUPPORTED )
@@ -482,21 +481,82 @@ class PainlessSqlite extends PainlessDao
     }
 
     /**
+     * Gets a record in the database
+     * @param array $opt    an array of options, each an associative array where:
+     *                      options:
+     *                          where (assoc array)
+     *                              - key           = the name of the field to search for
+     *                              - value         = the value of the field to search for
+     */
+    public function get( $opt = array( ) )
+    {
+        // lazy init the connection
+        if ( NULL == $this->_conn ) $this->init( );
+
+        if ( FALSE === $this->_tableName )
+            throw new PainlessSqliteException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+
+        if ( empty( $this->_tableName ) )
+            throw new PainlessSqliteException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+
+        // Build the WHERE, LIMIT and ORDER query
+        $where = $this->buildWhere( array_get( $opt, 'where', array( ) ) );
+
+        $fields = get_object_vars( $this );
+
+        // Convert all properties from camel case to underscore convention
+        foreach( $fields as $i => $f )
+        {
+            if ( $i[0] === '_' )
+            {
+                unset( $fields[$i] );
+                continue;
+            }
+
+            $fields[$i] = '`' . camel_to_underscore( $i ) . '`';
+        }
+
+        $fields = implode( ',', $fields );
+
+        // Build the SELECT query
+        $sql = "SELECT $fields FROM `$this->_tableName` $where LIMIT 1";
+
+        $results = $this->select( $sql );
+        if ( ! empty( $results ) )
+        {
+            $results = $results[0];
+
+            foreach( $results as $field => $value )
+            {
+                $field = underscore_to_camel( $field );
+                $this->$field = $value;
+            }
+
+            $results = $this;
+        }
+
+        return $results;
+    }
+
+    /**
      * Searches for a record in the database
      * @param array $opt    an array of options, each an associative array where:
      *                      options:
      *                          where (assoc array)
-     *                              - key   = the name of the field to search for
-     *                              - value = the value of the field to search for
+     *                              - key           = the name of the field to search for
+     *                              - value         = the value of the field to search for
      *                          limit (indexed array)
-     *                              - 0     = the offset
-     *                              - 1     = the max
+     *                              - 0             = the offset
+     *                              - 1             = the max
      *                          order (assoc array)
-     *                              - key   = the field to order by
-     *                              - value = either DESC or ASC
+     *                              - key           = the field to order by
+     *                              - value         = either DESC or ASC
      */
     public function find( $opt = array( ) )
     {
+        // lazy init the connection
+        if ( NULL == $this->_conn ) $this->init( );
+
         if ( FALSE === $this->_tableName )
             throw new PainlessSqliteException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
 
@@ -514,7 +574,13 @@ class PainlessSqlite extends PainlessDao
         // Convert all properties from camel case to underscore convention
         foreach( $fields as $i => $f )
         {
-            $fields[$i] = $this->_conn->quoteInto( camel_to_underscore( $f ) );
+            if ( $i[0] === '_' )
+            {
+                unset( $fields[$i] );
+                continue;
+            }
+
+            $fields[$i] = '`' . camel_to_underscore( $i ) . '`';
         }
 
         $fields = implode( ',', $fields );
@@ -522,22 +588,7 @@ class PainlessSqlite extends PainlessDao
         // Build the SELECT query
         $sql = "SELECT $fields FROM `$this->_tableName` $where $order $limit";
 
-        $results = $this->select( $sql );
-        if ( ! empty( $results ) )
-        {
-            if ( count( $results ) == 1 )
-            {
-                foreach( $results as $field => $value )
-                {
-                    $field = underscore_to_camel( $field );
-                    $this->$field = $value;
-                }
-
-                $results = $this;
-            }
-        }
-
-        return $results;
+        return $this->select( $sql );
     }
 
     /**
@@ -546,6 +597,9 @@ class PainlessSqlite extends PainlessDao
      */
     public function save( $opt = array( ) )
     {
+        // lazy init the connection
+        if ( NULL == $this->_conn ) $this->init( );
+
         if ( FALSE === $this->_tableName )
             throw new PainlessSqliteException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
 
@@ -569,7 +623,7 @@ class PainlessSqlite extends PainlessDao
         {
             if ( ! empty( $p ) && $p[0] !== '_' && $p !== $this->_primaryKey )
             {
-                $fields[] = "`$p` = " . $this->_conn->quoteInto( $this->$p );
+                $fields[] = "`$p` = " . $this->_conn->quote( $this->$p );
             }
             elseif( $p === $this->_primaryKey )
             {
@@ -611,6 +665,21 @@ class PainlessSqlite extends PainlessDao
         $sql = "DELETE FROM `$this->_tableName` WHERE `$this->_primaryKey` = '$pk' LIMIT 1";
 
         return $this->delete( $sql );
+    }
+
+    /**--------------------------------------------------------------------------------------------------------------------------------------------------
+     * self-sanitization
+     * --------------------------------------------------------------------------------------------------------------------------------------------------
+     */
+    protected function sanitizeForDb( )
+    {
+        // lazy init the connection
+        if ( NULL == $this->_conn ) $this->init( );
+
+        foreach( $this as $field => $value )
+        {
+            $value = $this->_conn->quote( $value );
+        }
     }
 }
 

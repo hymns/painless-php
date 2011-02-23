@@ -102,10 +102,9 @@ abstract class PainlessDao
     /**
      * Switches to a new connection profile
      * @param string $name          the identifier of the profile
-     * @param boolean $setAsCurrent if set to TRUE, it'll replace the current connection with the new connection
      * @return mixed                returns NULL if $setAsCurrent is FALSE, or returns the connection if it's set to TRUE
      */
-    public function useProfile( $name, $setAsCurrent = FALSE )
+    public function useProfile( $name )
     {
         if ( ! isset( $this->_profiles[$name] ) )
         {
@@ -117,14 +116,11 @@ abstract class PainlessDao
             if ( ! isset( $this->_profiles[$name] ) && empty( $this->_profiles[$name] ) )
                 throw new PainlessDaoException( '$this->profiles does not contain the new profile. Please call addProfile( ) to add the requested profile [' . $name . '] to the DAO' );
         }
-
-        if ( $setAsCurrent )
-        {
-            // Close the current connection
-            $this->close( );
-            $this->_conn = $this->_profiles[$name];
-            return $this->_conn;
-        }
+        
+        // Close the current connection
+        $this->close( );
+        $this->_conn = $this->_profiles[$name];
+        return $this->_conn;
     }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -138,6 +134,7 @@ abstract class PainlessDao
      * --------------------------------------------------------------------------------------------------------------------------------------------------
      */
     abstract public function add( $opt = array( ) );                            // adds a new record to the data store
+    abstract public function get( $opt = array( ) );
     abstract public function find( $opt = array( ) );                           // finds a record from the data store
     abstract public function save( $opt = array( ) );                           // saves or updates the record into the data store
     abstract public function remove( $opt = array( ) );                         // deletes the record in the data store

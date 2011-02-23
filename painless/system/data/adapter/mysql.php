@@ -107,7 +107,7 @@ class PainlessMysql extends PainlessDao
             $where = array( );
             foreach ( $criteria as $field => $cond )
             {
-                if ( ! is_string( $field ) )
+                if ( is_string( $field ) )
                 {
                     $where[] = '`' . $field . '`=' . $this->_conn->quote( $cond ) . '';
                 }
@@ -141,6 +141,8 @@ class PainlessMysql extends PainlessDao
      */
     protected function buildLimit( $offset = 0, $limit = 0 )
     {
+        if ( FALSE === $offset && FALSE === $limit ) return '';
+
         // lazy init the connection
         if ( NULL == $this->_conn ) $this->init( );
 
@@ -242,7 +244,7 @@ class PainlessMysql extends PainlessDao
         $pass       = array_get( $connParams, $prefix . 'password', FALSE );
 
         // try to connect to the database
-        $connString = 'mysql:host=' . $host . ';dbname=' . $name;
+        $connString = 'mysql:host=' . $host . ';dbname=' . $db;
 
         // the line below might throw an exception, which should be caught by
         // the exception handler in the engine, so no point catching it here
@@ -443,11 +445,14 @@ class PainlessMysql extends PainlessDao
      */
     public function add( $opt = array( ) )
     {
+        // lazy init the connection
+        if ( NULL == $this->_conn ) $this->init( );
+        
         if ( FALSE === $this->_tableName )
-            throw new PainlessSqliteException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new PainlessSqliteException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         // Get the list of public properties of this DAO
         $props = get_object_vars( $this );
@@ -458,10 +463,12 @@ class PainlessMysql extends PainlessDao
         // Create the fields and values array
         foreach( $props as $p )
         {
-            if ( ! empty( $p ) && $p[0] !== '_' )
+            $v = $this->_conn->quote( $this->$p );
+            $p = camel_to_underscore( $p );
+            if ( ( ! empty( $p ) && $p[0] !== '_' ) || $p !== $this->_primaryKey )
             {
                 $fields[] = $p;
-                $values[] = $this->$p;
+                $values[] = $v;
             }
         }
 
@@ -471,8 +478,66 @@ class PainlessMysql extends PainlessDao
 
         // Build the insert query
         $sql = "INSERT INTO `$this->_tableName` ( $fields ) VALUES ( $values )";
-
+var_dump($sql);die;
         return $this->insert( $sql );
+    }
+
+    /**
+     * Gets a record in the database
+     * @param array $opt    an array of options, each an associative array where:
+     *                      options:
+     *                          where (assoc array)
+     *                              - key           = the name of the field to search for
+     *                              - value         = the value of the field to search for
+     */
+    public function get( $opt = array( ) )
+    {
+        // lazy init the connection
+        if ( NULL == $this->_conn ) $this->init( );
+
+        if ( FALSE === $this->_tableName )
+            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+
+        if ( empty( $this->_tableName ) )
+            throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+
+        // Build the WHERE, LIMIT and ORDER query
+        $where = $this->buildWhere( array_get( $opt, 'where', array( ) ) );
+
+        $fields = get_object_vars( $this );
+
+        // Convert all properties from camel case to underscore convention
+        foreach( $fields as $i => $f )
+        {
+            if ( $i[0] === '_' )
+            {
+                unset( $fields[$i] );
+                continue;
+            }
+
+            $fields[$i] = '`' . camel_to_underscore( $i ) . '`';
+        }
+
+        $fields = implode( ',', $fields );
+
+        // Build the SELECT query
+        $sql = "SELECT $fields FROM `$this->_tableName` $where LIMIT 1";
+
+        $results = $this->select( $sql );
+        if ( ! empty( $results ) )
+        {
+            $results = $results[0];
+
+            foreach( $results as $field => $value )
+            {
+                $field = underscore_to_camel( $field );
+                $this->$field = $value;
+            }
+
+            $results = $this;
+        }
+
+        return $results;
     }
 
     /**
@@ -480,22 +545,25 @@ class PainlessMysql extends PainlessDao
      * @param array $opt    an array of options, each an associative array where:
      *                      options:
      *                          where (assoc array)
-     *                              - key   = the name of the field to search for
-     *                              - value = the value of the field to search for
+     *                              - key           = the name of the field to search for
+     *                              - value         = the value of the field to search for
      *                          limit (indexed array)
-     *                              - 0     = the offset
-     *                              - 1     = the max
+     *                              - 0             = the offset
+     *                              - 1             = the max
      *                          order (assoc array)
-     *                              - key   = the field to order by
-     *                              - value = either DESC or ASC
+     *                              - key           = the field to order by
+     *                              - value         = either DESC or ASC
      */
     public function find( $opt = array( ) )
     {
+        // lazy init the connection
+        if ( NULL == $this->_conn ) $this->init( );
+        
         if ( FALSE === $this->_tableName )
-            throw new PainlessSqliteException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new PainlessSqliteException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         // Build the WHERE, LIMIT and ORDER query
         $where = $this->buildWhere( array_get( $opt, 'where', array( ) ) );
@@ -507,8 +575,14 @@ class PainlessMysql extends PainlessDao
 
         // Convert all properties from camel case to underscore convention
         foreach( $fields as $i => $f )
-        {
-            $fields[$i] = $this->_conn->quoteInto( camel_to_underscore( $f ) );
+        {   
+            if ( $i[0] === '_' )
+            {
+                unset( $fields[$i] );
+                continue;
+            }
+
+            $fields[$i] = '`' . camel_to_underscore( $i ) . '`';
         }
 
         $fields = implode( ',', $fields );
@@ -519,15 +593,17 @@ class PainlessMysql extends PainlessDao
         $results = $this->select( $sql );
         if ( ! empty( $results ) )
         {
-            if ( count( $results ) == 1 )
+            foreach( $results as $i => $row )
             {
-                foreach( $results as $field => $value )
+                $obj = new $this;
+                foreach( $row as $field => $value )
                 {
                     $field = underscore_to_camel( $field );
-                    $this->$field = $value;
+                    $obj->$field = $value;
                 }
 
-                $results = $this;
+                $results[$i] = $obj;
+                unset( $obj );
             }
         }
 
@@ -540,17 +616,20 @@ class PainlessMysql extends PainlessDao
      */
     public function save( $opt = array( ) )
     {
+        // lazy init the connection
+        if ( NULL == $this->_conn ) $this->init( );
+        
         if ( FALSE === $this->_tableName )
-            throw new PainlessSqliteException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new PainlessSqliteException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         if ( FALSE === $this->_primaryKey )
-            throw new PainlessSqliteException( 'When $_primaryKey is set to FALSE, ActiveRecord functions save() and remove() cannot be used' );
+            throw new PainlessMysqlException( 'When $_primaryKey is set to FALSE, ActiveRecord functions save() and remove() cannot be used' );
 
         if ( empty( $this->_primaryKey ) )
-            throw new PainlessSqliteException( '$_primaryKey is not defined. Please set $_primaryKey to use save() and remove() functions' );
+            throw new PainlessMysqlException( '$_primaryKey is not defined. Please set $_primaryKey to use save() and remove() functions' );
 
         // Get the list of public properties of this DAO
         $props = get_object_vars( $this );
@@ -563,7 +642,7 @@ class PainlessMysql extends PainlessDao
         {
             if ( ! empty( $p ) && $p[0] !== '_' && $p !== $this->_primaryKey )
             {
-                $fields[] = "`$p` = " . $this->_conn->quoteInto( $this->$p );
+                $fields[] = "`$p` = " . $this->_conn->quote( $this->$p );
             }
             elseif( $p === $this->_primaryKey )
             {
@@ -587,16 +666,16 @@ class PainlessMysql extends PainlessDao
     public function remove( $opt = array( ) )
     {
         if ( FALSE === $this->_tableName )
-            throw new PainlessSqliteException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new PainlessSqliteException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         if ( FALSE === $this->_primaryKey )
-            throw new PainlessSqliteException( 'When $_primaryKey is set to FALSE, ActiveRecord functions save() and remove() cannot be used' );
+            throw new PainlessMysqlException( 'When $_primaryKey is set to FALSE, ActiveRecord functions save() and remove() cannot be used' );
 
         if ( empty( $this->_primaryKey ) )
-            throw new PainlessSqliteException( '$_primaryKey is not defined. Please set $_primaryKey to use save() and remove() functions' );
+            throw new PainlessMysqlException( '$_primaryKey is not defined. Please set $_primaryKey to use save() and remove() functions' );
 
         $pk = $this->_primaryKey;
         $pk = $this->$pk;
@@ -613,12 +692,13 @@ class PainlessMysql extends PainlessDao
      */
     protected function sanitizeForDb( ) 
     {
+        // lazy init the connection
+        if ( NULL == $this->_conn ) $this->init( );
         
-    }
-    
-    protected function sanitizeFromDb( )
-    {
-        
+        foreach( $this as $field => $value )
+        {
+            $value = $this->_conn->quote( $value );
+        }
     }
 }
 
