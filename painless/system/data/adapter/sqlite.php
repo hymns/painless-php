@@ -51,6 +51,16 @@ class PainlessSqlite extends PainlessDao
     const STMT_CLOSE        = TRUE;
     const STMT_IGNORE       = FALSE;
 
+    // The name of the table that this DAO is associated with. Set to FALSE if
+    // this is a DataMapper object (add(), find(), save() and remove() won't work
+    // if that is the case)
+    protected $_tableName   = FALSE;
+
+    // The name of the primary key field that this DAO is associated with. Set
+    // to FALSE if this is a DataMapper object (save() and remove() won't work if
+    // that is the case)
+    protected $_primaryKey  = FALSE;
+
     // execute( ) $extra option shorthands for common operations
     protected $_opInsert    = array( 'return' => self::RET_ID,          'close' => self::STMT_CLOSE );
     protected $_opUpdate    = array( 'return' => self::RET_ROW_COUNT,   'close' => self::STMT_CLOSE );
@@ -433,16 +443,121 @@ class PainlessSqlite extends PainlessDao
 
     /**
      * Adds a record into the database
-     * @param array $opt    an array of options
+     * @param array $opt    an array of options ( NOT SUPPORTED )
      */
     public function add( $opt = array( ) )
     {
+        if ( FALSE === $this->_tableName )
+            throw new PainlessSqliteException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+
+        if ( empty( $this->_tableName ) )
+            throw new PainlessSqliteException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+
+        // Get the list of public properties of this DAO
+        $props = get_object_vars( $this );
+
+        $fields = array( );
+        $values = array( );
+
+        // Create the fields and values array
+        foreach( $props as $p )
+        {
+            if ( ! empty( $p ) && $p[0] !== '_' )
+            {
+                $fields[] = $p;
+                $values[] = $this->$p;
+            }
+        }
+
+        // Implode the two arrays into strings
+        $fields = implode( ',', $fields );
+        $values = implode( ',', $values );
+
+        // Build the insert query
+        $sql = "INSERT INTO `$this->_tableName` ( $fields ) VALUES ( $values )";
+
+        return $this->insert( $sql );
+    }
+
+    /**
+     * Searches for a record in the database
+     * @param array $opt    an array of options:
+     *                      - field = the name of the field to search for (must specify `index` too)
+     *                      - index = the value of the field to search for (must specify `field`)
+     */
+    public function find( $opt = array( ) )
+    {
+        if ( FALSE === $this->_tableName )
+            throw new PainlessSqliteException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+
+        if ( empty( $this->_tableName ) )
+            throw new PainlessSqliteException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+
         
     }
-    
-    public function find( $opt = array( ) )     { throw new PainlessSqliteException( 'ORM function find( ) not supported yet' ); }
-    public function save( $opt = array( ) )     { throw new PainlessSqliteException( 'ORM function save( ) not supported yet' ); }
-    public function remove( $opt = array( ) )   { throw new PainlessSqliteException( 'ORM function delete( ) not supported yet' ); }
+
+    /**
+     * Updates the database with a record.
+     * @param array $opt    an array of options ( NOT SUPPORTED )
+     */
+    public function save( $opt = array( ) )
+    {
+        if ( FALSE === $this->_tableName )
+            throw new PainlessSqliteException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+
+        if ( empty( $this->_tableName ) )
+            throw new PainlessSqliteException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+
+        if ( FALSE === $this->_primaryKey )
+            throw new PainlessSqliteException( 'When $_primaryKey is set to FALSE, ActiveRecord functions save() and remove() cannot be used' );
+
+        if ( empty( $this->_primaryKey ) )
+            throw new PainlessSqliteException( '$_primaryKey is not defined. Please set $_primaryKey to use save() and remove() functions' );
+
+        // Get the list of public properties of this DAO
+        $props = get_object_vars( $this );
+
+        $fields = array( );
+        $pk = '';
+
+        // Create the fields and values array
+        foreach( $props as $p )
+        {
+            if ( ! empty( $p ) && $p[0] !== '_' && $p !== $this->_primaryKey )
+            {
+                $fields[] = "`$p` = " . $this->_conn->quoteInto( $this->$p );
+            }
+            elseif( $p === $this->_primaryKey )
+            {
+                $pk = $this->$p;
+            }
+        }
+
+        // Implode the two arrays into strings
+        $fields = implode( ',', $fields );
+
+        // Build the insert query
+        $sql = "UPDATE `$this->_tableName` SET $fields WHERE `$this->_primaryKey` = '$pk'";
+
+        return $this->update( $sql );
+    }
+
+    public function remove( $opt = array( ) )
+    {
+        if ( FALSE === $this->_tableName )
+            throw new PainlessSqliteException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+
+        if ( empty( $this->_tableName ) )
+            throw new PainlessSqliteException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+
+        if ( FALSE === $this->_primaryKey )
+            throw new PainlessSqliteException( 'When $_primaryKey is set to FALSE, ActiveRecord functions save() and remove() cannot be used' );
+
+        if ( empty( $this->_primaryKey ) )
+            throw new PainlessSqliteException( '$_primaryKey is not defined. Please set $_primaryKey to use save() and remove() functions' );
+
+        
+    }
 }
 
 class PainlessSqliteException extends ErrorException { }

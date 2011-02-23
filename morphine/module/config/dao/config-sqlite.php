@@ -38,6 +38,9 @@
 
 class ConfigConfigSqlite extends PainlessSqlite
 {
+    protected $_tableName = 'config';
+    protected $_primaryKey = 'id';
+
     public $id      = 0;
     public $key     = '';
     public $value   = '';
