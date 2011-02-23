@@ -145,8 +145,10 @@ class PainlessSqlite extends PainlessDao
      * @param int $limit    the limit of records to search for.
      * @return string       the LIMIT clause
      */
-    protected function buildLimit( $offset = 0, $limit = 0 )
+    protected function buildLimit( $offset = FALSE, $limit = FALSE )
     {
+        if ( $offset === FALSE && $limit === FALSE ) return '';
+
         // lazy init the connection
         if ( NULL == $this->_conn ) $this->init( );
 
@@ -481,9 +483,17 @@ class PainlessSqlite extends PainlessDao
 
     /**
      * Searches for a record in the database
-     * @param array $opt    an array of options:
-     *                      - field = the name of the field to search for (must specify `index` too)
-     *                      - index = the value of the field to search for (must specify `field`)
+     * @param array $opt    an array of options, each an associative array where:
+     *                      options:
+     *                          where (assoc array)
+     *                              - key   = the name of the field to search for
+     *                              - value = the value of the field to search for
+     *                          limit (indexed array)
+     *                              - 0     = the offset
+     *                              - 1     = the max
+     *                          order (assoc array)
+     *                              - key   = the field to order by
+     *                              - value = either DESC or ASC
      */
     public function find( $opt = array( ) )
     {
@@ -493,7 +503,26 @@ class PainlessSqlite extends PainlessDao
         if ( empty( $this->_tableName ) )
             throw new PainlessSqliteException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
-        
+        // Build the WHERE, LIMIT and ORDER query
+        $where = $this->buildWhere( array_get( $opt, 'where', array( ) ) );
+        list( $limit, $offset ) = array_get( $opt, 'limit', array( FALSE, FALSE ) );
+        $limit = $this->buildLimit( $limit, $offset );
+        $order = $this->buildOrder( array_get( $opt, 'order', array( ) ) );
+
+        $fields = get_object_vars( $this );
+
+        // Convert all properties from camel case to underscore convention
+        foreach( $fields as $i => $f )
+        {
+            $fields[$i] = $this->_conn->quoteInto( camel_to_underscore( $f ) );
+        }
+
+        $fields = implode( ',', $fields );
+
+        // Build the SELECT query
+        $sql = "SELECT $fields FROM `$this->_tableName` $where $order $limit";
+
+        return $this->select( $sql );
     }
 
     /**
