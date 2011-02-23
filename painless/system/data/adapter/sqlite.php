@@ -522,7 +522,22 @@ class PainlessSqlite extends PainlessDao
         // Build the SELECT query
         $sql = "SELECT $fields FROM `$this->_tableName` $where $order $limit";
 
-        return $this->select( $sql );
+        $results = $this->select( $sql );
+        if ( ! empty( $results ) )
+        {
+            if ( count( $results ) == 1 )
+            {
+                foreach( $results as $field => $value )
+                {
+                    $field = underscore_to_camel( $field );
+                    $this->$field = $value;
+                }
+
+                $results = $this;
+            }
+        }
+
+        return $results;
     }
 
     /**

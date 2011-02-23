@@ -437,10 +437,175 @@ class PainlessMysql extends PainlessDao
      * default ORM methods
      * --------------------------------------------------------------------------------------------------------------------------------------------------
      */
-    public function add( $opt = array( ) )      { throw new PainlessMysqlException( 'ORM function add( ) not supported yet' ); }
-    public function find( $opt = array( ) )     { throw new PainlessMysqlException( 'ORM function find( ) not supported yet' ); }
-    public function save( $opt = array( ) )     { throw new PainlessMysqlException( 'ORM function save( ) not supported yet' ); }
-    public function remove( $opt = array( ) )   { throw new PainlessMysqlException( 'ORM function delete( ) not supported yet' ); }
+    /**
+     * Adds a record into the database
+     * @param array $opt    an array of options ( NOT SUPPORTED )
+     */
+    public function add( $opt = array( ) )
+    {
+        if ( FALSE === $this->_tableName )
+            throw new PainlessSqliteException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+
+        if ( empty( $this->_tableName ) )
+            throw new PainlessSqliteException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+
+        // Get the list of public properties of this DAO
+        $props = get_object_vars( $this );
+
+        $fields = array( );
+        $values = array( );
+
+        // Create the fields and values array
+        foreach( $props as $p )
+        {
+            if ( ! empty( $p ) && $p[0] !== '_' )
+            {
+                $fields[] = $p;
+                $values[] = $this->$p;
+            }
+        }
+
+        // Implode the two arrays into strings
+        $fields = implode( ',', $fields );
+        $values = implode( ',', $values );
+
+        // Build the insert query
+        $sql = "INSERT INTO `$this->_tableName` ( $fields ) VALUES ( $values )";
+
+        return $this->insert( $sql );
+    }
+
+    /**
+     * Searches for a record in the database
+     * @param array $opt    an array of options, each an associative array where:
+     *                      options:
+     *                          where (assoc array)
+     *                              - key   = the name of the field to search for
+     *                              - value = the value of the field to search for
+     *                          limit (indexed array)
+     *                              - 0     = the offset
+     *                              - 1     = the max
+     *                          order (assoc array)
+     *                              - key   = the field to order by
+     *                              - value = either DESC or ASC
+     */
+    public function find( $opt = array( ) )
+    {
+        if ( FALSE === $this->_tableName )
+            throw new PainlessSqliteException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+
+        if ( empty( $this->_tableName ) )
+            throw new PainlessSqliteException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+
+        // Build the WHERE, LIMIT and ORDER query
+        $where = $this->buildWhere( array_get( $opt, 'where', array( ) ) );
+        list( $limit, $offset ) = array_get( $opt, 'limit', array( FALSE, FALSE ) );
+        $limit = $this->buildLimit( $limit, $offset );
+        $order = $this->buildOrder( array_get( $opt, 'order', array( ) ) );
+
+        $fields = get_object_vars( $this );
+
+        // Convert all properties from camel case to underscore convention
+        foreach( $fields as $i => $f )
+        {
+            $fields[$i] = $this->_conn->quoteInto( camel_to_underscore( $f ) );
+        }
+
+        $fields = implode( ',', $fields );
+
+        // Build the SELECT query
+        $sql = "SELECT $fields FROM `$this->_tableName` $where $order $limit";
+
+        $results = $this->select( $sql );
+        if ( ! empty( $results ) )
+        {
+            if ( count( $results ) == 1 )
+            {
+                foreach( $results as $field => $value )
+                {
+                    $field = underscore_to_camel( $field );
+                    $this->$field = $value;
+                }
+
+                $results = $this;
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Updates the database with a record.
+     * @param array $opt    an array of options ( NOT SUPPORTED )
+     */
+    public function save( $opt = array( ) )
+    {
+        if ( FALSE === $this->_tableName )
+            throw new PainlessSqliteException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+
+        if ( empty( $this->_tableName ) )
+            throw new PainlessSqliteException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+
+        if ( FALSE === $this->_primaryKey )
+            throw new PainlessSqliteException( 'When $_primaryKey is set to FALSE, ActiveRecord functions save() and remove() cannot be used' );
+
+        if ( empty( $this->_primaryKey ) )
+            throw new PainlessSqliteException( '$_primaryKey is not defined. Please set $_primaryKey to use save() and remove() functions' );
+
+        // Get the list of public properties of this DAO
+        $props = get_object_vars( $this );
+
+        $fields = array( );
+        $pk = '';
+
+        // Create the fields and values array
+        foreach( $props as $p )
+        {
+            if ( ! empty( $p ) && $p[0] !== '_' && $p !== $this->_primaryKey )
+            {
+                $fields[] = "`$p` = " . $this->_conn->quoteInto( $this->$p );
+            }
+            elseif( $p === $this->_primaryKey )
+            {
+                $pk = $this->$p;
+            }
+        }
+
+        // Implode the two arrays into strings
+        $fields = implode( ',', $fields );
+
+        // Build the update query
+        $sql = "UPDATE `$this->_tableName` SET $fields WHERE `$this->_primaryKey` = '$pk'";
+
+        return $this->update( $sql );
+    }
+
+    /**
+     * Deletes a record from the DB using a primary key
+     * @param array $opt    an array of options ( NOT SUPPORTED )
+     */
+    public function remove( $opt = array( ) )
+    {
+        if ( FALSE === $this->_tableName )
+            throw new PainlessSqliteException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+
+        if ( empty( $this->_tableName ) )
+            throw new PainlessSqliteException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+
+        if ( FALSE === $this->_primaryKey )
+            throw new PainlessSqliteException( 'When $_primaryKey is set to FALSE, ActiveRecord functions save() and remove() cannot be used' );
+
+        if ( empty( $this->_primaryKey ) )
+            throw new PainlessSqliteException( '$_primaryKey is not defined. Please set $_primaryKey to use save() and remove() functions' );
+
+        $pk = $this->_primaryKey;
+        $pk = $this->$pk;
+
+        // Build the delete query
+        $sql = "DELETE FROM `$this->_tableName` WHERE `$this->_primaryKey` = '$pk' LIMIT 1";
+
+        return $this->delete( $sql );
+    }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
      * self-sanitization
