@@ -56,6 +56,25 @@ define( 'LP_CORE_ONLY', 21 );       // short for LP_DEF_CORE | LP_CACHE_CORE | L
 
 class PainlessLoader
 {
+    protected $name = IMPL_NAME;
+    protected $base = PL_PATH;
+    protected $impl = IMPL_PATH;
+
+    protected static $cache = array( );
+
+    /**
+     * Provides the loader a different set of base paths to load from
+     * @param string $base      the base path to search for core components
+     * @param string $implName  the implementor's dash delimited name
+     * @param string $implPath  the path of the implementor
+     */
+    public function init( $base, $implName, $implPath )
+    {
+        $this->base = $base;
+        $this->name = $implName;
+        $this->impl = $implPath;
+    }
+
     /**
      * Loads a component
      * @param string $ns    the component's namespace
@@ -66,8 +85,8 @@ class PainlessLoader
     {
         // If LP_LOAD_NEW is not defined, try to see if the component has already
         // been cached and return that instead if so
-        if ( ! empty( $ns ) && isset( Painless::$cache[$ns] ) && ! ( $opt & LP_SKIP_CACHE_LOAD ) )
-            return Painless::$cache[$ns];
+        if ( ! empty( $ns ) && isset( self::$cache[$ns] ) && ! ( $opt & LP_SKIP_CACHE_LOAD ) )
+            return self::$cache[$ns];
 
         // Explode the namespace string into an array to make it easier to work
         // with
@@ -95,34 +114,34 @@ class PainlessLoader
         if ( FALSE !== $meta['base_path']
                 && file_exists( $meta['base_path'] )
                 && $isDefCore
-                && ! class_exists( $meta['base_obj'] ) )
+                && ! class_exists( $meta['base_obj'], FALSE ) )
             require_once $meta['base_path'];
 
         // Instantiate the core class
-        if ( class_exists( $meta['base_obj'] ) && ( $isRetCore || $isCacheCore ) )
+        if ( class_exists( $meta['base_obj'], FALSE ) && ( $isRetCore || $isCacheCore ) )
         {
             $comBase = new $meta['base_obj'];
 
             // If caching is required (by enabling the LP_CACHE_CORE flag), save
             // the instantiated object into Painless's central cache
-            if ( $isCacheCore ) Painless::$cache[$ns] = $comBase;
+            if ( $isCacheCore ) self::$cache[$ns] = $comBase;
         }
 
         // Load the definition of the ext class, if possible
         if ( file_exists( $meta['load_path'] ) 
                 && $isDefExt
-                && ! class_exists( $meta['load_obj'] ) )
+                && ! class_exists( $meta['load_obj'], FALSE ) )
             require_once $meta['load_path'];
 
         // Instantiate the ext class
-        if ( class_exists( $meta['load_obj'] ) && ( $isRetExt || $isCacheExt ) )
+        if ( class_exists( $meta['load_obj'], FALSE ) && ( $isRetExt || $isCacheExt ) )
         {
             $comExt = new $meta['load_obj'];
 
             // If caching is required (by enabling the LP_CACHE_EXT flag), save
             // the instantiated object into Painless's central cache (overwrite
             // LP_CACHE_CORE if possible
-            if ( $isCacheExt ) Painless::$cache[$ns] = $comExt;
+            if ( $isCacheExt ) self::$cache[$ns] = $comExt;
         }
 
         // Now that we have done all the loading bit, figure out what to return.
@@ -162,10 +181,10 @@ class PainlessLoader
             throw new PainlessLoaderException( 'Data adapters and DAO base classes (PainlessDao, PainlessMysql, etc) cannot be directly instantiated because they are all abstract classes. Please extend them and use Painless::get( \'dao/[module]/[dao-name]/[adapter-type]\') instead.' );
 
         return array(            
-            'load_path' => IMPL_PATH . $ns . EXT,
-            'load_obj'  => ucwords( IMPL_NAME ) . $cn,
+            'load_path' => $this->impl . $ns . EXT,
+            'load_obj'  => ucwords( $this->implName ) . $cn,
             
-            'base_path' => PL_PATH . $ns . EXT,
+            'base_path' => $this->base . $ns . EXT,
             'base_obj'  => 'Painless' . $cn,
         );
     }
@@ -183,10 +202,10 @@ class PainlessLoader
         $cn = dash_to_pascal( $fn );
 
         return array(
-            'load_path' => IMPL_PATH . $ns . '/' . $fn . EXT,
-            'load_obj'  => ucwords( IMPL_NAME ) . $cn,
+            'load_path' => $this->impl . $ns . '/' . $fn . EXT,
+            'load_obj'  => ucwords( $this->implName ) . $cn,
 
-            'base_path' => PL_PATH . $ns . '/' . $fn . EXT,
+            'base_path' => $this->base . $ns . '/' . $fn . EXT,
             'base_obj'  => 'Painless' . $cn,
         );
     }
@@ -211,7 +230,7 @@ class PainlessLoader
         Painless::get( 'system/workflow/module', LP_DEF_ONLY );
 
         return array(            
-            'load_path' => IMPL_PATH . 'module/' . $ns . '/module' . EXT,
+            'load_path' => $this->impl . 'module/' . $ns . '/module' . EXT,
             'load_obj'  => $cn . 'Module',
 
             'base_path' => FALSE,
@@ -243,7 +262,7 @@ class PainlessLoader
         Painless::get( 'system/workflow/workflow', LP_DEF_ONLY );
 
         return array(
-            'load_path' => IMPL_PATH . 'module/' . $module . '/workflow/' . $workflow . EXT,
+            'load_path' => $this->impl . 'module/' . $module . '/workflow/' . $workflow . EXT,
             'load_obj'  => $cn . 'Workflow',
 
             'base_path' => FALSE,
@@ -273,7 +292,7 @@ class PainlessLoader
         Painless::get( 'system/workflow/model', LP_DEF_ONLY );
 
         return array(
-            'load_path' => IMPL_PATH . 'module/' . $module . '/model/' . $model . EXT,
+            'load_path' => $this->impl . 'module/' . $module . '/model/' . $model . EXT,
             'load_obj'  => $cn . 'Model',
 
             'base_path' => FALSE,
@@ -303,7 +322,7 @@ class PainlessLoader
         Painless::get( 'system/view/view', LP_DEF_ONLY );
 
         return array(
-            'load_path' => IMPL_PATH . 'view/' . $module . '/' . $view . EXT,
+            'load_path' => $this->impl . 'view/' . $module . '/' . $view . EXT,
             'load_obj'  => $cn . 'View',
 
             'base_path' => FALSE,
@@ -330,10 +349,10 @@ class PainlessLoader
         Painless::get( 'system/view/compiler/base', LP_DEF_ONLY );
 
         return array(
-            'load_path' => IMPL_PATH . 'system/view/compiler/' . $type . EXT,
-            'load_obj'  => ucwords( IMPL_NAME ) . $cn . 'Compiler',
+            'load_path' => $this->impl . 'system/view/compiler/' . $type . EXT,
+            'load_obj'  => ucwords( $this->name ) . $cn . 'Compiler',
 
-            'base_path' => PL_PATH . 'system/view/compiler/' . $type . EXT,
+            'base_path' => $this->base . 'system/view/compiler/' . $type . EXT,
             'base_obj'  => 'Painless' . $cn . 'Compiler',
         );
     }
@@ -364,7 +383,7 @@ class PainlessLoader
         $cn = dash_to_pascal( $module . CNTOK . $dao . CNTOK . $adapter );
 
         return array(
-            'load_path' => IMPL_PATH . 'module/' . $module . '/dao/' . $dao . CNTOK . $adapter . EXT,
+            'load_path' => $this->impl . 'module/' . $module . '/dao/' . $dao . CNTOK . $adapter . EXT,
             'load_obj'  => $cn,
 
             'base_path' => FALSE,

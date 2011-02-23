@@ -52,8 +52,6 @@ define( 'PL_VERSION', '1.0' );
  */
 class Painless
 {
-    public static $cache = array( );
-
     public static $core = NULL;
     public static $loader = NULL;
 
@@ -88,7 +86,7 @@ class Painless
         $cn = dash_to_pascal( $name );
 
         // No point including the file if the class already exists
-        if ( ! class_exists( $cn ) )
+        if ( ! class_exists( $cn, FALSE ) )
         {
 
             // If no path is provided, or the file specified by the $path does not
@@ -100,8 +98,11 @@ class Painless
 
             require_once $path;
 
-            if ( ! class_exists( $cn ) ) throw new ErrorException( "$cn not defined inside [$path]" );
+            if ( ! class_exists( $cn, FALSE ) ) throw new ErrorException( "$cn not defined inside [$path]" );
         }
+
+        // Bootstrap the package itself
+        $cn::bootstrap( );
     }
 
     /**
