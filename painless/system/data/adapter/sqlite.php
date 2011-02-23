@@ -142,7 +142,7 @@ class PainlessSqlite extends PainlessDao
 
         // $offset and $limit can be used in 2 ways: $limit only, or $offset +
         // $limit. This expectation is made with the use case where $offset cannot
-        // execute without a $limit. This is similar to how Mysql handles the
+        // execute without a $limit. This is similar to how SQLite handles the
         // LIMIT clause.
         if ( $limit === 0 && $offset !== 0 )
         {
@@ -156,6 +156,11 @@ class PainlessSqlite extends PainlessDao
         return $ret;
     }
 
+    /**
+     * Builds a ORDER query string from an associative array
+     * @param array $criteria   an associative array containing the list of criterias
+     * @return string           the ORDER query string
+     */
     protected function buildOrder( $criteria )
     {
         // lazy init the connection
@@ -171,23 +176,16 @@ class PainlessSqlite extends PainlessDao
             // convert $criteria, an associative array whose key is the field name and
             // value is the actual value, into an indexed array that can be imploded
             // into a WHERE query string
-            $where = array( );
-            foreach ( $criteria as $field => $cond )
+            $order = array( );
+            foreach ( $criteria as $field )
             {
-                if ( ! is_string( $field ) )
-                {
-                    $where[] = '`' . $field . '`=' . $this->_conn->quote( $cond ) . '';
-                }
-                else
-                {
-                    $where[] = $cond;
-                }
+                $order[] = $this->_conn->quote( $field );
             }
 
             // create the WHERE query string here
-            if ( !empty( $where ) )
+            if ( !empty( $order ) )
             {
-                $ret = ' ORDER BY ' . implode( ' AND ', $where );
+                $ret = ' ORDER BY ' . implode( ', ', $order );
             }
         }
         else
@@ -206,7 +204,7 @@ class PainlessSqlite extends PainlessDao
      */
 
     /**
-     * Initializes the MYSQL connection via PDO
+     * Initializes the SQLite connection via PDO
      * @return boolean      always return TRUE
      */
     public function init( $profile = '' )
@@ -225,10 +223,10 @@ class PainlessSqlite extends PainlessDao
         {
             // Get the list of profiles from the config file
             $profiles   = $config->get( 'sqlite.profiles' );
-            if ( empty( $profiles ) ) throw new PainlessMysqlException( 'Profiles not properly defined in the config file' );
+            if ( empty( $profiles ) ) throw new PainlessSqliteException( 'Profiles not properly defined in the config file' );
 
             // Only get the profile if there's a match
-            if ( ! array_values( $profile ) ) throw new PainlessMysqlException( "The specified profile [$profile] is not defined in the config file" );
+            if ( ! array_values( $profile ) ) throw new PainlessSqliteException( "The specified profile [$profile] is not defined in the config file" );
             $connParams = $config->get( "sqlite.$profile.*" );
             $prefix .= $profile . '.';
         }
@@ -432,7 +430,16 @@ class PainlessSqlite extends PainlessDao
      * default ORM methods
      * --------------------------------------------------------------------------------------------------------------------------------------------------
      */
-    public function add( $opt = array( ) )      { throw new PainlessSqliteException( 'ORM function add( ) not supported yet' ); }
+
+    /**
+     * Adds a record into the database
+     * @param array $opt    an array of options
+     */
+    public function add( $opt = array( ) )
+    {
+        
+    }
+    
     public function find( $opt = array( ) )     { throw new PainlessSqliteException( 'ORM function find( ) not supported yet' ); }
     public function save( $opt = array( ) )     { throw new PainlessSqliteException( 'ORM function save( ) not supported yet' ); }
     public function remove( $opt = array( ) )   { throw new PainlessSqliteException( 'ORM function delete( ) not supported yet' ); }

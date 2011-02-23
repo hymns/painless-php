@@ -160,6 +160,11 @@ class PainlessMysql extends PainlessDao
         return $ret;
     }
 
+    /**
+     * Builds a ORDER query string from an associative array
+     * @param array $criteria   an associative array containing the list of criterias
+     * @return string           the ORDER query string
+     */
     protected function buildOrder( $criteria )
     {
         // lazy init the connection
@@ -175,23 +180,16 @@ class PainlessMysql extends PainlessDao
             // convert $criteria, an associative array whose key is the field name and
             // value is the actual value, into an indexed array that can be imploded
             // into a WHERE query string
-            $where = array( );
-            foreach ( $criteria as $field => $cond )
+            $order = array( );
+            foreach ( $criteria as $field )
             {
-                if ( ! is_string( $field ) )
-                {
-                    $where[] = '`' . $field . '`=' . $this->_conn->quote( $cond ) . '';
-                }
-                else
-                {
-                    $where[] = $cond;
-                }
+                $order[] = $this->_conn->quote( $field );
             }
 
             // create the WHERE query string here
-            if ( !empty( $where ) )
+            if ( !empty( $order ) )
             {
-                $ret = ' ORDER BY ' . implode( ' AND ', $where );
+                $ret = ' ORDER BY ' . implode( ', ', $order );
             }
         }
         else
