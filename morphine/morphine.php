@@ -38,6 +38,9 @@
 
 class Morphine extends Painless
 {
+    public static $core = NULL;
+    public static $loader = NULL;
+
     /**
      * Bootstraps this service locator and initializes the engine. Always call this
      * function first before attempting to run any services or components from
@@ -50,23 +53,15 @@ class Morphine extends Painless
      */
     public static function bootstrap( $loader = NULL )
     {
-        define( 'IMPL_PATH', dirname( __FILE__ ) );
-        define( 'IMPL_NAME', 'morphine' );
-
         // Set default values for non-critical env consts if none are set
         defined( 'ERROR_REPORTING' ) or define( 'ERROR_REPORTING', E_ALL | E_STRICT );
         defined( 'DEPLOY_PROFILE' ) or define( 'DEPLOY_PROFILE', 'development' );
         defined( 'NSTOK' ) or define( 'NSTOK', '/' );
 
-        // Make sure the paths have a trailing slash
-        $implPath   = IMPL_PATH;
-        $plPath     = PL_PATH;
-        if ( $implPath[count( $implPath ) - 1] !== '/' ) $implPath .= '/';
-        if ( $plPath[count( $plPath ) - 1] !== '/' ) $plPath .= '/';
-
         // Instantitate morphine's own loader
         require_once IMPL_PATH . 'system/common/loader' . EXT;
         $loader = new MorphineLoader;
+        $loader->init( PL_PATH, 'morphine', dirname( __FILE__ ) );
 
         self::$loader = $loader;
         self::$core = $loader->get( 'system/common/core' );
