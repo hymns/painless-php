@@ -75,24 +75,33 @@ class Painless
         $log->info( $message );
     }
 
+    /**
+     * Loads a package to be used
+     * @static
+     * @author  Ruben Tan Long Zheng <ruben@rendervault.com>
+     * @param string $name  the dash delimited name of the package to load
+     * @param string $path  (optional) the absolute path of where the package is
+     */
     public static function package( $name, $path = '' )
     {
         // Convert the dash delimited $name into a pascal case
         $cn = dash_to_pascal( $name );
 
-        // If no path is provided, or the file specified by the $path does not
-        // exists, use the default convention instead
-        if ( empty( $path ) || ! file_exists( $path ) )
-        {
-            $path = IMPL_PATH . '../' . $name . '/' . $name . '.php';
-        }
-
-        require $path;
-
+        // No point including the file if the class already exists
         if ( ! class_exists( $cn ) )
-            throw new ErrorException( "$cn not defined inside [$path]" );
+        {
 
-        
+            // If no path is provided, or the file specified by the $path does not
+            // exists, use the default convention instead
+            if ( empty( $path ) || ! file_exists( $path ) )
+            {
+                $path = IMPL_PATH . '../' . $name . '/' . $name . '.php';
+            }
+
+            require_once $path;
+
+            if ( ! class_exists( $cn ) ) throw new ErrorException( "$cn not defined inside [$path]" );
+        }
     }
 
     /**

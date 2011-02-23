@@ -44,6 +44,9 @@ class ConfigManagerModel extends PainlessModel
      */
     public function getConfig( $key )
     {
+        // Get the config DAO
+        $dao = Painless::get( 'dao/config/config/sqlite' );
+
         
     }
 
@@ -52,7 +55,22 @@ class ConfigManagerModel extends PainlessModel
      * @return void
      */
     public function addConfig( $key, $value )
-    { 
+    {
+        // Get the config DAO
+        $dao = Painless::get( 'dao/config/config/sqlite' );
+
+        // Set the values
+        $dao->key   = $key;
+        $dao->value = $value;
+
+        $id = $dao->new( );
+
+        if ( empty( $id ) )
+        {
+            return $this->response( 400, "Unable to create new config key-value item for `$key` (value = $value)" );
+        }
+
+        return $this->response( 200, 'OK', array( 'id' => $id ) );
     }
 
     /**

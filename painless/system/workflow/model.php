@@ -46,13 +46,18 @@ class PainlessModel
     /**
      * A shorthand to return a properly formed response object to the calling
      * workflow.
-     * @param boolean $status   TRUE if the operation is successful, FALSE if otherwise
+     * @param int $status       the HTTP status of the response object
+     * @param string $message   a message to return to the caller
      * @param mixed $data       usually, either an array or a string
      * @return array            an array where the key 'status' is TRUE or FALSE, and 'data' is the returned data
      */
-    protected function response( $status, $data )
+    protected function response( $status, $message, $data = array( ) )
     {
-        return array( 'status' => $status, 'data' => $data );
+        $response = Painless::get( 'system/workflow/response', LP_LOAD_NEW );
+        $response->status   = $status;
+        $response->message  = $message;
+        $response->data     = $data;
+        return $response;
     }
 
     protected function validateNull( $v )                  { return empty( $v ); }
