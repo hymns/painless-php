@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-class MorphineLoader extends PainlessLoader
+class MorphineGenerateOperation
 {
     
 }

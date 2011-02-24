@@ -1,6 +1,6 @@
 <?php
 /**
- * Painless PHP - the painless path to development
+ * Morphine - the command line toolkit for Painless PHP to take away the pain
  *
  * Copyright (c) 2011, Tan Long Zheng (soggie)
  * All rights reserved.
@@ -29,43 +29,70 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * @package     Painless PHP
+ * @package     Morphine
  * @author      Tan Long Zheng (soggie) <ruben@rendervault.com>
  * @copyright   2011 Tan Long Zheng (soggie) <ruben@rendervault.com>
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
 
-class PainlessError
+class MorphineCore extends PainlessCore
 {
-    public function handleError( $errNo, $errStr, $errFile, $errLine )
+    public $argv = array( );
+
+    protected $ops = array(
+        'create',
+
+        'test'
+    );
+
+    protected function processArgs( )
     {
-        var_dump($errNo, $errStr, $errFile, $errLine);die;
+        // Localize the variable
+        $argv = $this->argv;
+
+        // Extract the operation from there
+        $operation = strtolower( array_get( $argv, 1, FALSE ) );
+
+        // If there's no operation, show the help file by default
+        if ( empty( $operation ) ) $operation = 'help';
+
+        // Check if it's a valid operation
+        
+
+        return $operation;
     }
 
-    public function handleException( $exception )
+    public function dispatch( )
     {
-        // load the renderer
+        // check and load the router
+        $router = Painless::get( 'system/common/router' );
+
+        $uri = $this->processArgs( );
+var_dump($uri);
+        try
+        {
+            // let the router process the business logic
+            $response = $router->process( );
+        }
+        catch( PainlessWorkflowNotFoundException $e )
+        {
+            // construct a 404 response
+            $response = Painless::get( 'system/workflow/response', LP_LOAD_NEW );
+            $response->status = 404;
+            $response->message = 'Unable to locate workflow';
+        }
+        catch( ErrorException $e )
+        {
+            $response = Painless::get( 'system/workflow/response', LP_LOAD_NEW );
+            $response->status = 500;
+            $response->message = $e->getMessage( );
+        }
+
+        // pass the control to the renderer
         $render = Painless::get( 'system/common/render' );
+        $output = $render->process( $response );
 
-        var_dump( $exception ); die;
-    }
-
-    protected function generateRequest( )
-    {
-        return array(
-            'params' => array( ),
-            'agent' => '',
-            'type' => '',
-        );
-    }
-
-    protected function generateResponse( )
-    {
-        return array(
-            'code' => 500,
-            'message' => 'Fatal system error',
-            'payload' => array( )
-        );
+        return $output;
     }
 }

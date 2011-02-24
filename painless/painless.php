@@ -120,8 +120,10 @@ class Painless
         // Make sure all env consts are set
         if ( ! defined( 'APP_PATH' ) )
             throw new ErrorException( 'APP_PATH is not defined', 1 );
+        
         if ( ! defined( 'IMPL_PATH' ) )
             throw new ErrorException( 'IMPL_PATH is not defined', 2 );
+        
         if ( ! defined( 'IMPL_NAME' ) )
             throw new ErrorException( 'IMPL_NAME is not defined', 3 );
 
@@ -129,14 +131,6 @@ class Painless
         defined( 'ERROR_REPORTING' ) or define( 'ERROR_REPORTING', E_ALL | E_STRICT );
         defined( 'DEPLOY_PROFILE' ) or define( 'DEPLOY_PROFILE', 'dev' );
         defined( 'NSTOK' ) or define( 'NSTOK', '/' );
-
-        // Make sure the paths have a trailing slash
-        $appPath    = APP_PATH;
-        $implPath   = IMPL_PATH;
-        $plPath     = CORE_PATH;
-        if ( $appPath[count( $appPath ) - 1] !== '/' ) $appPath .= '/';
-        if ( $implPath[count( $implPath ) - 1] !== '/' ) $implPath .= '/';
-        if ( $plPath[count( $plPath ) - 1] !== '/' ) $plPath .= '/';
 
         // Instantitate a version of the loader first if none provided. Usually,
         // to improve performance, if the implementor decides to use their own
