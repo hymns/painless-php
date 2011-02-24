@@ -40,10 +40,25 @@ class MorphineCore extends PainlessCore
 {
     public $argv = array( );
 
-    protected $ops = array(
-        'create',
+    protected $alias = array(
+        'con'           => 'config',
+        'conf'          => 'config',
+        'gen'           => 'generate',
+        'ex'            => 'execute',
+        'up'            => 'update',
+        'in'            => 'install',
+        '--help'        => 'help',
+        '/?'            => 'help',
+    );
 
-        'test'
+    protected $ops = array(
+        'config'        => 'GET config/main',       // Get/set morphine's configuration
+        'generate'      => 'GET generate/main',     // Generate modules, workflows, configs, etc
+        'execute'       => 'GET execute/main',      // Executes packages and workflows
+        'update'        => 'GET update/main',       // Updates the system from the package server
+        'install'       => 'GET install/main',      // Installs packages
+        'test'          => 'GET test/main',         // Runs the test suite
+        'help'          => 'GET help/main',         // Shows the help file
     );
 
     protected function processArgs( )
@@ -58,9 +73,25 @@ class MorphineCore extends PainlessCore
         if ( empty( $operation ) ) $operation = 'help';
 
         // Check if it's a valid operation
-        
+        $legalOps = array_keys( $this->ops );
+        $alias = array_keys( $this->alias );
+        if ( ! in_array( $operation, $legalOps ) && ! in_array( $operation, $alias ) )
+        {
+            $operation = 'help';
+        }
+        elseif ( in_array( $operation, $alias ) )
+        {
+            $operation = $this->alias[$operation];
+        }
 
-        return $operation;
+        // Now that we have the proper operation, map it to the proper process
+        $process = $this->ops[$operation];
+
+        // Append the rest of the arguments into the process string
+        if ( count( $argv ) > 2 )
+            $process .= implode( '/', $argv );
+
+        return $process;
     }
 
     public function dispatch( )
@@ -69,7 +100,7 @@ class MorphineCore extends PainlessCore
         $router = Painless::get( 'system/common/router' );
 
         $uri = $this->processArgs( );
-var_dump($uri);
+var_dump($uri);die;
         try
         {
             // let the router process the business logic

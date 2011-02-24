@@ -36,24 +36,10 @@
  * @link        http://painless-php.com
  */
 
-class MorphineLoader extends PainlessLoader
+class ConfigMainWorkflow extends PainlessWorkflow
 {
-    /**
-     * Loads an operation
-     * @param array $nsa    an array of tokens from the namespace string
-     * @param string $ns    the namespace string in full
-     * @return array        the meta data on how to load the component
-     */
-    protected function operation( $nsa, $ns )
+    public function get( )
     {
-        $cn = dash_to_pascal( end( $nsa ) );
-
-        return array(
-            'load_path' => $this->impl . $ns . EXT,
-            'load_obj'  => ucwords( $this->name ) . $cn . 'Operation',
-
-            'base_path' => FALSE,
-            'base_obj'  => FALSE,
-        );
+        
     }
 }
