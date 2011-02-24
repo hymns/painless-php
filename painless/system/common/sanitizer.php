@@ -258,13 +258,7 @@ class PainlessSanitizer
      */
     public function xssClean( $str, $isImage = FALSE )
     {
-        $engine = Painless::get( );
-
-        // Make sure the engine exists
-        if ( !isset( $engine ) )
-        {
-            return FALSE;
-        }
+        $engine = Painless::get( 'system/common/core' );
         
         // Is the string an array?
         if ( is_array( $str ) )
