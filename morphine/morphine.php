@@ -61,7 +61,7 @@ class Morphine extends Painless
         // Instantitate morphine's own loader
         require_once IMPL_PATH . 'system/common/loader' . EXT;
         $loader = new MorphineLoader;
-        $loader->init( PL_PATH, 'morphine', dirname( __FILE__ ) );
+        $loader->init( CORE_PATH, 'morphine', dirname( __FILE__ ) );
 
         self::$loader = $loader;
         self::$core = $loader->get( 'system/common/core' );

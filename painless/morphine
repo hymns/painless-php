@@ -54,12 +54,12 @@ define( 'IMPL_NAME', 'morphine' );
 define( 'ERROR_LEVEL', E_ALL | E_STRICT ); // Set to 0 for 'production', set to E_ALL for 'development'
 define( 'DEPLOY_PROFILE', 'development' );
 define( 'IMPL_PATH', dirname( __FILE__ ) . '/../morphine/' );
-define( 'PL_PATH', dirname( __FILE__ ) . '/' );
+define( 'CORE_PATH', dirname( __FILE__ ) . '/' );
 
 date_default_timezone_set( 'UTC' );
 
 // DO NOT CHANGE THIS LINE!!!!!!!!!!!!!!!!!!!!!
-include PL_PATH . 'painless.php';
+include CORE_PATH . 'painless.php';
 
 // create the workfloo object and define a distribution
 $app = Painless::bootstrap( );

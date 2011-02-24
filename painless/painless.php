@@ -127,13 +127,13 @@ class Painless
 
         // Set default values for non-critical env consts if none are set
         defined( 'ERROR_REPORTING' ) or define( 'ERROR_REPORTING', E_ALL | E_STRICT );
-        defined( 'DEPLOY_PROFILE' ) or define( 'DEPLOY_PROFILE', 'development' );
+        defined( 'DEPLOY_PROFILE' ) or define( 'DEPLOY_PROFILE', 'dev' );
         defined( 'NSTOK' ) or define( 'NSTOK', '/' );
 
         // Make sure the paths have a trailing slash
         $appPath    = APP_PATH;
         $implPath   = IMPL_PATH;
-        $plPath     = PL_PATH;
+        $plPath     = CORE_PATH;
         if ( $appPath[count( $appPath ) - 1] !== '/' ) $appPath .= '/';
         if ( $implPath[count( $implPath ) - 1] !== '/' ) $implPath .= '/';
         if ( $plPath[count( $plPath ) - 1] !== '/' ) $plPath .= '/';
@@ -145,7 +145,7 @@ class Painless
         // rather than leaving it as a NULL
         if ( NULL === $loader )
         {
-            require_once PL_PATH . 'system/common/loader' . EXT;
+            require_once CORE_PATH . 'system/common/loader' . EXT;
             $loader = new PainlessLoader;
 
             // Replace itself with a proper loader
