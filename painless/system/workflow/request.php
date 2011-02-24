@@ -201,7 +201,8 @@ class PainlessRequest
      */
     protected function setMethod( $method )
     {
-        $this->method = $method;
+        if ( ! empty( $method ) )
+            $this->method = $method;
         return $this;
     }
 

@@ -47,7 +47,7 @@
 
 class PainlessRouter
 {
-    
+
     /**
      * The stack of workflows that had been loaded by this router
      * @var array   an array of PainlessWorkflow instances
@@ -71,13 +71,88 @@ class PainlessRouter
         $module         = '';
         $workflow       = '';
         $method         = '';
-        $agent          = $_SERVER['HTTP_USER_AGENT'];
+        $agent          = '';
         $contentType    = '';
         $params         = array( );
 
-        // Grab dependencies
-        $config = Painless::get( 'system/common/config' );
+        // Note that the $uri that is passed in can come in two formats:
+        //
+        // [method] [param]/[param]/[param]     e.g. GET user/profile
+        // or
+        // [param]/[param]/[param]              e.g. user/profile
+        //
+        // We need the $uri to be the latter, so we split the string now
+        $pos = strpos( $uri, ' ' );
+        if ( FALSE !== $pos )
+        {
+            $method = strtolower( substr( $uri, 0, $pos ) );
+            $uri = trim( substr( $uri, $pos + 1 ) );
+        }
 
+        // This process call came from CLI or CRON
+        if ( ! isset( $_SERVER['HTTP_HOST'] ) )
+        {
+            $agent = PHP_SAPI;
+
+            // In CLI mode, $uri CANNOT be empty
+            if ( empty( $uri ) )
+                throw new PainlessRouterException( '$uri that is passed into process( ) cannot be NULL when Painless is running in CLI mode' );
+
+            // In CLI mode, $uri MUST be a string
+            if ( ! is_string( $uri ) )
+                throw new PainlessRouterException( '$uri that is passed into process( ) must be a string when Painless is running in CLI mode' );            
+        }
+        // This process call came from HTTP or REST
+        else
+        {
+            $agent = $_SERVER['HTTP_USER_AGENT'];
+
+            // Make sure to get the method from REQUEST_METHOD if none is provided
+            // in $uri
+            if ( empty( $method ) ) $method = $_SERVER['REQUEST_METHOD'];
+        }
+
+        // Process the URI into an array
+        $uri = $this->getUri( $uri );
+
+        // Process the URI to find out the module, workflow, content type and the parameter string
+        $params = $this->processUri( $uri, $module, $workflow, $contentType );
+
+        // At this point we have a $method, $agent, $module, $workflow, $contentType and $params
+        return $this->dispatch( $method, $module, $workflow, $contentType, $params, $agent );
+    }
+
+    /**
+     * Dispatches to the workflow directly
+     * @param string $method        GET, POST, PUT, etc
+     * @param string $module        the name of the module to dispatch to
+     * @param string $workflow      the workflow to dispatch to
+     * @param string $contentType   the type of the content invoked
+     * @param string $params        the parameter string/array to save into the request
+     * @param string $agent         the invoking agent
+     * @return PainlessResponse     returns an instance of the PainlessResponse object
+     */
+    public function dispatch( $method, $module, $workflow, $contentType, $params, $agent )
+    {
+        $woObj = Painless::get( "workflow/$module/$workflow" );
+
+        if ( empty( $woObj ) ) throw new PainlessWorkflowNotFoundException( "Unable to find workflow [$module/$workflow]" );
+
+        $woObj->name = $workflow;
+        $woObj->module = $module;
+
+        // construct the workflow
+        $woObj->request( $method, $params, $contentType, $agent );
+
+        $woObj->$method( );
+        $response = $woObj->response;
+        if ( ! ( $response instanceof PainlessResponse ) ) throw new PainlessRouterException( "Invalid return type from the workflow dispatch" );
+
+        return $response;
+    }
+
+    protected function getUri( $uri = '' )
+    {
         // If $uri is not passed in, assume that this is an external routing call,
         // meaning the agent is either an RPC, a REST call or an HTTP agent.
         if ( empty( $uri ) )
@@ -96,28 +171,23 @@ class PainlessRouter
 
                 $uri[] = $requestURI[$i];
             }
-
-            // This is a long function so clean up in case of variable scope
-            // overflow
-            unset( $count );
-            unset( $requestURI );
-            unset( $scriptName );
         }
         // If $uri is not empty but isn't an array either, we assume that it is
         // a string
-        elseif ( ! is_array( $uri ) )
+        elseif ( is_string( $uri ) )
         {
-            // There are two ways to pass in a URI:
-            // 1 - [method] [params] or
-            // 2 - [params]
-            $pos = strpos( $uri, ' ' );
-            if ( FALSE !== $pos )
-            {
-                $method = strtolower( substr( $uri, 0, $pos ) );
-                $uri = trim( substr( $uri, $pos + 1 ) );
-            }
             $uri = explode( '/', $uri );
         }
+
+        return $uri;
+    }
+
+    protected function processUri( $uri, & $module, & $workflow, & $contentType )
+    {
+        // Grab dependencies
+        $config = Painless::get( 'system/common/config' );
+
+        $params = array( );
 
         // Load the URI format from the routes config
         $routes = $config->get( 'routes.uri.config' );
@@ -168,7 +238,7 @@ class PainlessRouter
 
                 // Make sure the content type is valid
                 if ( empty( $contentType ) ) $contentType = 'html';
-                
+
                 // remove the content type from the last URI segment
                 $params[$count - 1] = substr( $last, 0, $pos );
             }
@@ -189,69 +259,7 @@ class PainlessRouter
         // Join the URI back into a string
         $params = implode( '/', $params );
 
-        // Get the request method from the $_SERVER super var if none provided.
-        // Normally, if at this point $method is specified, we can safely
-        // conclude that the caller of this process must be an internal process.
-        if ( empty( $method ) ) $method = strtolower( $_SERVER['REQUEST_METHOD'] );
-
-        // At this point we have a $method, $agent, $module, $workflow, $contentType and $params
-        return $this->dispatch( $method, $module, $workflow, $contentType, $params, $agent );
-    }
-
-    /**
-     * Dispatches to the workflow directly
-     * @param string $method        GET, POST, PUT, etc
-     * @param string $module        the name of the module to dispatch to
-     * @param string $workflow      the workflow to dispatch to
-     * @param string $contentType   the type of the content invoked
-     * @param string $params        the parameter string/array to save into the request
-     * @param string $agent         the invoking agent
-     * @return PainlessResponse     returns an instance of the PainlessResponse object
-     */
-    public function dispatch( $method, $module, $workflow, $contentType, $params, $agent )
-    {
-        // preDispatch( ) returns either a TRUE or a response, where TRUE means
-        // it's okay to proceed with the dispatching, while if a response is
-        // returned instead, it means that the user is not allowed to directly
-        // proceed with the dispatching.
-        $response = $this->preDispatch( $method, $module, $workflow, $contentType, $params, $agent );
-        if ( TRUE === $response )
-        {
-            $woObj = Painless::get( "workflow/$module/$workflow" );
-
-            if ( empty( $woObj ) ) throw new PainlessWorkflowNotFoundException( "Unable to find workflow [$module/$workflow]" );
-            
-            $woObj->name = $workflow;
-            $woObj->module = $module;
-
-            // construct the workflow
-            $woObj->request( $method, $params, $contentType, $agent );
-
-            $woObj->$method( );
-            $response = $woObj->response;
-            if ( ! ( $response instanceof PainlessResponse ) ) throw new PainlessRouterException( "Invalid return type from the workflow dispatch" );
-        }
-        elseif ( ! ( $response instanceof PainlessResponse ) )
-        {
-            throw new PainlessRouterException( "Invalid response object returned from preDispatch( )" );
-        }
-
-        return $response;
-    }
-
-    /**
-     * Pre-processes the dispatch parameters
-     * @param string $method        GET, POST, PUT, etc
-     * @param string $module        the name of the module to dispatch to
-     * @param string $workflow      the workflow to dispatch to
-     * @param string $contentType   the type of the content invoked
-     * @param string $params        the parameter string/array to save into the request
-     * @param string $agent         the invoking agent
-     * @return PainlessResponse     returns an instance of the PainlessResponse object or TRUE if able to continue with dispatching
-     */
-    protected function preDispatch( $method, $module, $workflow, $contentType, $params, $agent )
-    {
-        return TRUE;
+        return $params;
     }
 }
 

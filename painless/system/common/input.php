@@ -37,7 +37,64 @@
  * @link        http://painless-php.com
  */
 
-// TODO: Credit Codeigniter in copyright notice
+/**
+ * PainlessInput is inspired by CodeIgniter's (http://www.codeigniter.com) input
+ * class, using the same access structure. Here's Ellis Lab's copyright notice
+ * over "usage" of their code in a modified way:
+
+    CodeIgniter License Agreement
+
+    Copyright (c) 2008 - 2011, EllisLab, Inc.
+    All rights reserved.
+
+    This license is a legal agreement between you and EllisLab Inc. for the use of
+    CodeIgniter Software (the "Software"). By obtaining the Software you agree to
+    comply with the terms and conditions of this license.
+
+    Permitted Use
+
+    You are permitted to use, copy, modify, and distribute the Software and its
+    documentation, with or without modification, for any purpose, provided that the
+    following conditions are met:
+
+    * A copy of this license agreement must be included with the distribution.
+    * Redistributions of source code must retain the above copyright notice in all
+      source code files.
+    * Redistributions in binary form must reproduce the above copyright notice in
+      the documentation and/or other materials provided with the distribution.
+    * Any files that have been modified must carry notices stating the nature of
+      the change and the names of those who changed them.
+    * Products derived from the Software must include an acknowledgment that they
+      are derived from CodeIgniter in their documentation and/or other materials
+      provided with the distribution.
+    * Products derived from the Software may not be called "CodeIgniter", nor may
+      "CodeIgniter" appear in their name, without prior written permission from
+      EllisLab, Inc.
+
+    Indemnity
+
+    You agree to indemnify and hold harmless the authors of the Software and any
+    contributors for any direct, indirect, incidental, or consequential third-party
+    claims, actions or suits, as well as any related expenses, liabilities, damages,
+    settlements or fees arising from your use or misuse of the Software, or a
+    violation of any terms of this license.
+
+    Disclaimer of Warranty
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESSED OR
+    IMPLIED, INCLUDING, BUT NOT LIMITED TO, WARRANTIES OF QUALITY, PERFORMANCE,
+    NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
+
+    Limitations of Liability
+
+    YOU ASSUME ALL RISK ASSOCIATED WITH THE INSTALLATION AND USE OF THE SOFTWARE.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS OF THE SOFTWARE BE LIABLE FOR
+    CLAIMS, DAMAGES OR OTHER LIABILITY ARISING FROM, OUT OF, OR IN CONNECTION WITH
+    THE SOFTWARE. LICENSE HOLDERS ARE SOLELY RESPONSIBLE FOR DETERMINING THE
+    APPROPRIATENESS OF USE AND ASSUME ALL RISKS ASSOCIATED WITH ITS USE, INCLUDING
+    BUT NOT LIMITED TO THE RISKS OF PROGRAM ERRORS, DAMAGE TO EQUIPMENT, LOSS OF
+    DATA OR SOFTWARE PROGRAMS, OR UNAVAILABILITY OR INTERRUPTION OF OPERATIONS.
+ */
 
 class PainlessInput
 {
@@ -74,81 +131,78 @@ class PainlessInput
 
     public function init( )
     {
-        if ( !$this->isInit )
-        {
-            $this->sanitizer = Painless::get( 'system/common/sanitizer' );
-            $config = Painless::get( 'system/common/config' );
+        $this->sanitizer = Painless::get( 'system/common/sanitizer' );
+        $config = Painless::get( 'system/common/config' );
 
-            $this->useXssClean = ( $config->get( 'system.input.useXssFiltering' ) === TRUE ) ? TRUE : FALSE;
-            $this->sanitizeGlobals( );
+        $this->useXssClean = ( $config->get( 'system.input.useXssFiltering' ) === TRUE ) ? TRUE : FALSE;
+        $this->sanitizeGlobals( );
 
-            $this->isInit = TRUE;
-        }
+        $this->isInit = TRUE;
     }
 
     /**
      * Fetch an item from the GET array
      *
-     * @param string $index an key to search for in the array (none will return the entire array)
-     * @param boolean $xssClean set to TRUE to clean up XSS
-     * @return value/array return a value or the entire array
+     * @param string $index     an key to search for in the array (none will return the entire array)
+     * @param boolean $default  the default value to return
+     * @return value/array      return a value or the entire array
      */
-    public function get( $index = '', $xssClean = FALSE )
+    public function get( $index = '', $default = FALSE )
     {
-        $this->init( );
-        return $this->fetchFromArray( $_GET, $index, $xssClean );
+        if ( !$this->isInit ) $this->init( );
+        return $this->fetchFromArray( $_GET, $index, $default );
     }
 
     /**
      * Fetch an item from the POST array
      *
-     * @param string $index an key to search for in the array (none will return the entire array)
-     * @param boolean $xssClean set to TRUE to clean up XSS
-     * @return value/array return a value or the entire array
+     * @param string $index     an key to search for in the array (none will return the entire array)
+     * @param boolean $default  the default value to return
+     * @return value/array      return a value or the entire array
      */
-    public function post( $index = '', $xssClean = FALSE )
+    public function post( $index = '', $default = FALSE )
     {
-        $this->init( );
-        return $this->fetchFromArray( $_POST, $index, $xssClean );
+        if ( !$this->isInit ) $this->init( );
+        return $this->fetchFromArray( $_POST, $index, $default );
     }
 
     /**
      * Fetch an item from the FILE array
      *
-     * @param string $index an key to search for in the array (none will return the entire array)
-     * @param boolean $xssClean set to TRUE to clean up XSS
-     * @return value/array return a value or the entire array
+     * @param string $index     an key to search for in the array (none will return the entire array)
+     * @param boolean $default  the default value to return
+     * @return value/array      return a value or the entire array
      */
-    public function file( $index = '', $xssClean = FALSE )
+    public function file( $index = '', $default = FALSE )
     {
-        $this->init( );
-        return $this->fetchFromArray( $_FILES, $index, $xssClean );
+        if ( !$this->isInit ) $this->init( );
+        return $this->fetchFromArray( $_FILES, $index, $default );
     }
 
     /**
      * Fetch an item from the REQUEST array
      *
-     * @param string $index an key to search for in the array (none will return the entire array)
-     * @param boolean $xssClean set to TRUE to clean up XSS
-     * @return value/array return a value or the entire array
+     * @param string $index     an key to search for in the array (none will return the entire array)
+     * @param boolean $default  the default value to return
+     * @return value/array      return a value or the entire array
      */
-    public function request( $index = '', $xssClean = FALSE )
+    public function request( $index = '', $default = FALSE )
     {
-        $this->init( );
-        return $this->fetchFromArray( $_REQUEST, $index, $xssClean );
+        if ( !$this->isInit ) $this->init( );
+        return $this->fetchFromArray( $_REQUEST, $index, $default );
     }
 
     /**
      * Fetch an item from the SERVER array
      *
-     * @param string $index an key to search for in the array (none will return the entire array)
-     * @param boolean $xssClean set to TRUE to clean up XSS
-     * @return value/array return a value or the entire array
+     * @param string $index     an key to search for in the array (none will return the entire array)
+     * @param boolean $default  the default value to return
+     * @return value/array      return a value or the entire array
      */
-    public function server( $index = '', $xss_clean = FALSE )
+    public function server( $index = '', $default = FALSE )
     {
-        $this->init( );
-        return $this->fetchFromArray( $_SERVER, $index, $xss_clean );
+        if ( !$this->isInit ) $this->init( );
+        return $this->fetchFromArray( $_SERVER, $index, $default );
     }
 
     /**
@@ -159,7 +213,7 @@ class PainlessInput
      */
     public function ipAddress( )
     {
-        $this->init( );
+        if ( !$this->isInit ) $this->init( );
 
         if ( $this->ipAddress !== FALSE )
         {
@@ -211,7 +265,7 @@ class PainlessInput
      */
     public function userAgent( )
     {
-        $this->init( );
+        if ( !$this->isInit ) $this->init( );
 
         if ( $this->userAgent !== FALSE )
         {
@@ -328,8 +382,11 @@ class PainlessInput
      * @param	bool
      * @return	string
      */
-    protected function fetchFromArray( $array, $index = '', $xssClean = FALSE )
+    protected function fetchFromArray( $array, $index = '', $default = FALSE )
     {
+        $xssClean = $this->xssClean;
+        $return = FALSE;
+
         // return an entire array if no index is specified
         if ( empty( $index ) )
         {
@@ -340,20 +397,20 @@ class PainlessInput
                     $array[$index] = $this->sanitizer->xssClean( $value );
                 }
             }
-            return $array;
-        }
 
-        if ( !isset( $array[$index] ) )
+            $return = $array;
+        }
+        else
         {
-            return NULL;
+            $return = array_get( $array, $index, $default );
         }
 
         if ( $xssClean === TRUE )
         {
-            return $this->sanitizer->xssClean( $array[$index] );
+            $return = $this->sanitizer->xssClean( $return );
         }
 
-        return $array[$index];
+        return $return;
     }
 
 }
