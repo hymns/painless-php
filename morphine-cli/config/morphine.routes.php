@@ -35,3 +35,48 @@
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
+
+/**
+ * The config option routes.uri-init tells the param parser which token is the
+ * module and which one is the workflow.
+ *
+ * module       - the module namespace
+ * workflow     - the workflow namespace
+ * param        - a parameter segment
+ * param-all    - parse the rest of the URI string as a param array
+ */
+
+/**
+ * routes.uri.default.module    - the default module to load if none is specified (no URI string)
+ * routes.uri.default.workflow  - the default workflow to load if none is specified (no URI string)
+ */
+$config['routes.uri.default.module']    = 'help';
+$config['routes.uri.default.workflow']  = 'main';
+
+/**
+ * routes.uri.config            - how to parse the original URI string. This array will determine which
+ *                                token refers to what.
+ *
+ *                                currently, 4 kinds of tokens are supported:
+ *                                  * module    - maps to a module
+ *                                  * workflow  - maps to a workflow in a module
+ *                                  * param     - designates a single parameter token (which will be
+ *                                                amended to the final param array
+ *                                  * alias     - maps to an alias in routes.alias. WARNING: YOU CAN'T
+ *                                                USE module AND workflow IF USING alias! An exception
+ *                                                will be thrown if that is the case
+ *
+ *                                Example: http://foo.com/bar/so/fine/now
+ *                                         1. array( 'module', 'workflow' );
+ *                                              - module = bar
+ *                                              - workflow = so
+ *                                              - params = array( 'fine', 'now' )
+ *                                         2. array( 'param', 'module', 'workflow' );
+ *                                              - module = so
+ *                                              - workflow = fine
+ *                                              - params = array( 'bar', 'now' )
+ *                                         3. array( 'param', 'alias' )
+ *                                              - alias = so
+ *                                              - params = array( 'bar', 'fine', 'now' )
+ */
+$config['routes.uri.config']            = array( 'module', 'workflow' );
