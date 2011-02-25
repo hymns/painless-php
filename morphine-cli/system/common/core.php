@@ -85,16 +85,18 @@ class MorphineCore extends PainlessCore
         }
 
         // Now that we have the proper operation, map it to the proper process
-        $process = $this->ops[$operation] . '/';
+        $process = $this->ops[$operation];
 
         // Append the rest of the arguments into the process string
         if ( count( $argv ) > 2 )
         {
+            // Append a backslash at the end of the process
+            $process .= '/';
+
             // Remove the first two elements
             $argv = array_splice( $argv, 2 );
 
             // Strip any backslashes from the argument array
-            $sanitizer = Painless::get( 'system/common/sanitizer' );
             foreach( $argv as $i => $v )
             {
                 if ( FALSE !== strpos( $v, '/' ) )
@@ -113,7 +115,7 @@ class MorphineCore extends PainlessCore
         $router = Painless::get( 'system/common/router' );
 
         $uri = $this->processArgs( );
-var_dump($uri);
+
         try
         {
             // let the router process the business logic

@@ -38,8 +38,28 @@
 
 class HelpTopicModel extends PainlessModel
 {
+    /**
+     * Searches a topic from the help topic template directory
+     *  - 200 -> topic found
+     *  - 404 -> topic not found
+     * @param string $topic     the name of the topic to search for
+     * @return PainlessResponse a response object detailing the status of the operation
+     */
     public function findTopic( $topic )
     {
-        
+        // Try to get the topic
+        try
+        {
+            ob_start( );
+            Painless::get( "tpl/help/$topic", LP_DEF_ONLY );
+            $topic = ob_end_flush( );
+        }
+        catch( ErrorException $e )
+        {
+            // Return a topic not found
+            return $this->response( 404, $topic . ' not found' );
+        }
+
+        return $this->response( 200, 'Found', array( 'help' => $topic ) );
     }
 }

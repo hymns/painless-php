@@ -38,6 +38,10 @@
 
 class Morphine extends Painless
 {
+    public static $CORE_PATH = '';
+    public static $IMPL_PATH = '';
+    public static $IMPL_NAME = '';
+
     /**
      * Bootstraps this service locator and initializes the engine. Always call this
      * function first before attempting to run any services or components from

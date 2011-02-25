@@ -35,3 +35,5 @@
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
+
+$config['test'] = 'Nothing';

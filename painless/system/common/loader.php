@@ -56,9 +56,9 @@ define( 'LP_CORE_ONLY', 21 );       // short for LP_DEF_CORE | LP_CACHE_CORE | L
 
 class PainlessLoader
 {
-    protected $name = IMPL_NAME;
-    protected $base = CORE_PATH;
-    protected $impl = IMPL_PATH;
+    public $name = IMPL_NAME;
+    public $base = CORE_PATH;
+    public $impl = IMPL_PATH;
 
     protected static $cache = array( );
 

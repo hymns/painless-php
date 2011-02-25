@@ -42,6 +42,6 @@ class HelpMainView extends PainlessView
     {
         $response = $this->response;
 
-        
+        var_dump($response);die;
     }
 }
