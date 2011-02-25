@@ -47,7 +47,7 @@ class MorphineLoader extends PainlessLoader
         $tpl    = $nsa[2];
 
         return array(
-            'load_path' => $this->impl . 'module/' . $module . '/view/tpl/' . $tpl . EXT,
+            'load_path' => $this->impl . 'module/' . $module . '/view/tpl/' . $tpl . '.tpl',
             'load_obj'  => FALSE,
 
             'base_path' => FALSE,

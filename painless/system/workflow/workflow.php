@@ -79,8 +79,8 @@ class PainlessWorkflow
      * and after dispatching. These hooks are useful for writing in general
      * behaviors to the workflow that applies to all methods.
      */
-    protected function before( ) {}
-    protected function after( ) {}
+    public function before( ) {}
+    public function after( ) {}
 
     /**
      * Creates a new request and attach to this workflow
@@ -118,7 +118,7 @@ class PainlessWorkflow
      * @param mixed $payload                the payload of the workflow
      * @return PainlessResponse             a response object
      */
-    public function response( $status, $message, $payload = array( ) )
+    public function response( $status, $message = '', $payload = array( ) )
     {
         // Double check $status first. If it's not an INT, assume it's a response
         // object
@@ -142,7 +142,8 @@ class PainlessWorkflow
 
             $this->response = $response;
         }
-        return $this;
+        
+        return $this->response;
     }
 
     /**

@@ -46,13 +46,13 @@ class HelpTopicModel extends PainlessModel
      * @return PainlessResponse a response object detailing the status of the operation
      */
     public function getTopic( $topic )
-    {
+    { 
         // Try to get the topic
         try
         {
             ob_start( );
             Painless::get( "tpl/help/$topic", LP_DEF_ONLY );
-            $topic = ob_end_flush( );
+            $topic = ob_get_flush( );
         }
         catch( ErrorException $e )
         {

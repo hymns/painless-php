@@ -43,6 +43,8 @@ class PainlessModel
     const CREATED = 201;
     const FAILURE = 400;
 
+    protected $response = NULL;
+    
     /**
      * A shorthand to return a properly formed response object to the calling
      * workflow.
@@ -51,13 +53,29 @@ class PainlessModel
      * @param mixed $data       usually, either an array or a string
      * @return array            an array where the key 'status' is TRUE or FALSE, and 'data' is the returned data
      */
-    protected function response( $status, $message, $data = array( ) )
+    protected function response( $status, $message = '', $data = array( ) )
     {
-        $response = Painless::get( 'system/workflow/response', LP_LOAD_NEW );
-        $response->status   = $status;
-        $response->message  = $message;
-        $response->data     = $data;
-        return $response;
+        // Double check $status first. If it's not an INT, assume it's a response
+        // object
+        if ( ! is_int( $status ) )
+        {
+            Painless::get( 'system/workflow/response', LP_DEF_ONLY );
+            if ( ! ( $status instanceof PainlessResponse ) )
+                throw new PainlessWorkflowException( '$status must only be an int or an instance of PainlessResponse' );
+
+            $this->response = $status;
+        }
+        else
+        {
+            // remember to get a new instance of the response
+            $response = Painless::get( 'system/workflow/response', LP_LOAD_NEW );
+            $response->status = (int) $status;
+            $response->message = $message;
+            $response->payload = $data;
+
+            $this->response = $response;
+        }
+        return $this->response;
     }
 
     protected function validateNull( $v )                  { return empty( $v ); }

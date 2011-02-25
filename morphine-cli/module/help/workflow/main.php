@@ -42,11 +42,15 @@ class HelpMainWorkflow extends PainlessWorkflow
     {
         // See what help is being requested
         $topic = $this->request->getParam( 'help' );
+        if ( empty( $topic ) )
+        {
+            $topic = 'help';
+        }
 
         // Check if the topic is supported
         $model = Painless::get( 'model/help/topic' );
         $response = $model->getTopic( $topic );
-
+ 
         // Do nothing because there's no logic to handle. Let view handle it.
         $this->response( $response );
     }

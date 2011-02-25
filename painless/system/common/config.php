@@ -143,9 +143,7 @@ class PainlessConfig
                 $this->config = array_merge( $this->config, $config );
             }
         }
-        
     }
-    
 }
 
 class PainlessConfigException extends ErrorException { }
