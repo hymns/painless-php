@@ -36,7 +36,10 @@
  * @link        http://painless-php.com
  */
 
-class HelpMorphineWorkflow extends PainlessWorkflow
+class HelpTopicModel extends PainlessModel
 {
-	
+    public function findTopic( $topic )
+    {
+        
+    }
 }

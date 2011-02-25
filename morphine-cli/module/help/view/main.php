@@ -1,6 +1,6 @@
 <?php
 /**
- * Painless PHP - the painless path to development
+ * Morphine - the command line toolkit for Painless PHP to take away the pain
  *
  * Copyright (c) 2011, Tan Long Zheng (soggie)
  * All rights reserved.
@@ -29,31 +29,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * @package     Painless PHP
+ * @package     Morphine
  * @author      Tan Long Zheng (soggie) <ruben@rendervault.com>
  * @copyright   2011 Tan Long Zheng (soggie) <ruben@rendervault.com>
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
 
-class MorphineConsole extends PainlessConsole
+class HelpMainView extends PainlessView
 {
-    
-
-    protected function help( )
+    public function get( )
     {
-        $output = <<<HELP
-Usage:
-  php morphine [generate|scaffold|update|install|test]
+        $response = $this->response;
 
-Runtime options:
-  -f,[--force]      # Resolve conflicts by overwrting the old data (mutually exclusive with -s)
-  -s,[--skip]       # Resolve conflicts by skipping the new one data (mutually exclusive with -f)
-  -v,[--verbose]    # Prints out all status messages (mutually exclusive with -q)
-  -q,[--quiet]      # Surpresses all status messages (mutually exclusive with -v)
-  -h,[--help]       # Shows the help file
-
-HELP;
-        return $this->write( $output );
+        
     }
 }
