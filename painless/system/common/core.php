@@ -52,22 +52,6 @@ class PainlessCore
 
     public function __construct( $useCustomExceptionPage = TRUE, $useCustomErrorPage = TRUE )
     {
-        // save the base dir for the templates
-        // protocol-agnostic URL is temporarily disabled until we have full HTTPS support.
-        //$base_url = '//' . $_SERVER['HTTP_HOST'];
-
-        $base_root = (isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] == 'on' ) ? 'https' : 'http';
-        $base_url = $base_root . '://' . $_SERVER['HTTP_HOST'];
-
-        // $_SERVER['SCRIPT_NAME'] can, in contrast to $_SERVER['PHP_SELF'], not
-        // be modified by a visitor.
-        if ( $dir = trim( dirname( $_SERVER['SCRIPT_NAME'] ), '\,/' ) )
-        {
-            $base_url .= "/$dir";
-        }
-
-        define( 'APP_URL', $base_url . '/' );
-
         // set the error reporting level to highest
         if ( !defined( 'ERROR_LEVEL' ) )
         {

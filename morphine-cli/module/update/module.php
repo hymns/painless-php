@@ -35,3 +35,8 @@
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
+
+class UpdateModule extends PainlessModule
+{
+
+}

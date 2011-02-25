@@ -105,6 +105,21 @@ class PainlessRouter
         // This process call came from HTTP or REST
         else
         {
+            // save the base dir for the templates
+            $baseRoot = (isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] == 'on' ) ? 'https' : 'http';
+            $baseUrl = $baseRoot . '://' . $_SERVER['HTTP_HOST'];
+
+            // $_SERVER['SCRIPT_NAME'] can, in contrast to $_SERVER['PHP_SELF'], not
+            // be modified by a visitor.
+            if ( $dir = trim( dirname( $_SERVER['SCRIPT_NAME'] ), '\,/' ) )
+            {
+                $baseUrl .= "/$dir";
+            }
+
+            define( 'APP_URL', $baseUrl . '/' );
+            unset( $baseRoot );
+            unset( $baseUrl );
+
             $agent = $_SERVER['HTTP_USER_AGENT'];
 
             // Make sure to get the method from REQUEST_METHOD if none is provided

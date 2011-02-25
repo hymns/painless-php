@@ -678,7 +678,7 @@ class PainlessSqlite extends PainlessDao
 
         foreach( $this as $field => $value )
         {
-            $value = $this->_conn->quote( $value );
+            $this->$field = $this->_conn->quote( $value );
         }
     }
 }

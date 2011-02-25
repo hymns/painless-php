@@ -1,6 +1,6 @@
 <?php
 /**
- * Painless PHP - the painless path to development
+ * Morphine - the command line toolkit for Painless PHP to take away the pain
  *
  * Copyright (c) 2011, Tan Long Zheng (soggie)
  * All rights reserved.
@@ -29,43 +29,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * @package     Painless PHP
+ * @package     Morphine
  * @author      Tan Long Zheng (soggie) <ruben@rendervault.com>
  * @copyright   2011 Tan Long Zheng (soggie) <ruben@rendervault.com>
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
 
-class PainlessError
+class Morphine extends Painless
 {
-    public function handleError( $errNo, $errStr, $errFile, $errLine )
+    /**
+     * Bootstraps this service locator and initializes the engine. Always call this
+     * function first before attempting to run any services or components from
+     * Painless.
+     *
+     * @static
+     * @author	Ruben Tan Long Zheng <ruben@rendervault.com>
+     * @copyright   Copyright (c) 2009, Rendervault Solutions
+     * @return	object	the component that is requested
+     */
+    public static function bootstrap( $loader = NULL )
     {
-        var_dump($errNo, $errStr, $errFile, $errLine);die;
-    }
+        // Set default values for non-critical env consts if none are set
+        defined( 'ERROR_REPORTING' ) or define( 'ERROR_REPORTING', E_ALL | E_STRICT );
+        defined( 'DEPLOY_PROFILE' ) or define( 'DEPLOY_PROFILE', 'development' );
+        defined( 'NSTOK' ) or define( 'NSTOK', '/' );
 
-    public function handleException( $exception )
-    {
-        // load the renderer
-        $render = Painless::get( 'system/common/render' );
+        require_once CORE_PATH . 'system/common/loader' . EXT;
+        $loader = new PainlessLoader;
+        $loader->init( CORE_PATH, 'morphine', dirname( __FILE__ ) . '/' );
 
-        var_dump( $exception ); die;
-    }
+        self::$loader = $loader;
+        self::$core = $loader->get( 'system/common/core' );
 
-    protected function generateRequest( )
-    {
-        return array(
-            'params' => array( ),
-            'agent' => '',
-            'type' => '',
-        );
-    }
-
-    protected function generateResponse( )
-    {
-        return array(
-            'code' => 500,
-            'message' => 'Fatal system error',
-            'payload' => array( )
-        );
+        return self::$core;
     }
 }

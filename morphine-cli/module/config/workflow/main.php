@@ -36,36 +36,10 @@
  * @link        http://painless-php.com
  */
 
-class Morphine extends Painless
+class ConfigMainWorkflow extends PainlessWorkflow
 {
-    public static $core = NULL;
-    public static $loader = NULL;
-
-    /**
-     * Bootstraps this service locator and initializes the engine. Always call this
-     * function first before attempting to run any services or components from
-     * Painless.
-     *
-     * @static
-     * @author	Ruben Tan Long Zheng <ruben@rendervault.com>
-     * @copyright   Copyright (c) 2009, Rendervault Solutions
-     * @return	object	the component that is requested
-     */
-    public static function bootstrap( $loader = NULL )
+    public function get( )
     {
-        // Set default values for non-critical env consts if none are set
-        defined( 'ERROR_REPORTING' ) or define( 'ERROR_REPORTING', E_ALL | E_STRICT );
-        defined( 'DEPLOY_PROFILE' ) or define( 'DEPLOY_PROFILE', 'development' );
-        defined( 'NSTOK' ) or define( 'NSTOK', '/' );
-
-        // Instantitate morphine's own loader
-        require_once IMPL_PATH . 'system/common/loader' . EXT;
-        $loader = new MorphineLoader;
-        $loader->init( CORE_PATH, 'morphine', dirname( __FILE__ ) );
-
-        self::$loader = $loader;
-        self::$core = $loader->get( 'system/common/core' );
-
-        return self::$core;
+        
     }
 }

@@ -151,10 +151,11 @@ class PainlessWorkflow
         // If they don't exist, simply remove them from the method list and then
         // return the result. This would give the caller a good idea of what kind
         // of functions that particular workflow supports.
+        $supported = array( );
         foreach( $methods as $i => $method )
         {
             if ( ! method_exists( $this, $method ) )
-                unset( $methods[$i] );
+                $supported[] = $methods[$i];
         }
 
         return $methods;
