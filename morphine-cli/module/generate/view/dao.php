@@ -36,7 +36,7 @@
  * @link        http://painless-php.com
  */
 
-class HelpMorphineView extends PainlessView
+class GenerateDaoView extends PainlessView
 {
-	
+
 }

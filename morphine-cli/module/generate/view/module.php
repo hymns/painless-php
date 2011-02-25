@@ -36,7 +36,7 @@
  * @link        http://painless-php.com
  */
 
-class GenerateDataView extends PainlessView
+class GenerateModuleView extends PainlessView
 {
-	
+
 }

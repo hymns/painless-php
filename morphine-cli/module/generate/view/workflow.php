@@ -36,8 +36,7 @@
  * @link        http://painless-php.com
  */
 
-
 class GenerateWorkflowView extends PainlessView
 {
-	
+
 }

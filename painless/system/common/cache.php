@@ -1,6 +1,6 @@
 <?php
 /**
- * Morphine - the command line toolkit for Painless PHP to take away the pain
+ * Painless PHP - the painless path to development
  *
  * Copyright (c) 2011, Tan Long Zheng (soggie)
  * All rights reserved.
@@ -29,14 +29,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * @package     Morphine
+ * @package     Painless PHP
  * @author      Tan Long Zheng (soggie) <ruben@rendervault.com>
  * @copyright   2011 Tan Long Zheng (soggie) <ruben@rendervault.com>
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
 
-class GenerateViewView extends PainlessView
+class PainlessCache
 {
-	
 }
