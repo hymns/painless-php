@@ -155,7 +155,7 @@ class PainlessRequest
         // if no key is specified, return the entire array. Useful for functions
         // that need to access the parameter array heavily, as reading from a
         // local variable is much faster than invoking a function call
-        if ( empty( $key ) )
+        if ( empty( $key ) && 0 !== $key )
             return $this->params;
 
         // if the key cannot be found in the parameter array, return $default
@@ -228,7 +228,7 @@ class PainlessRequest
         // parse the parameter string using PS_INDEX
         if ( $style === self::PS_INDEX )
         {
-            $params = array_values( $params );var_dump($params);
+            $params = array_values( $params );
         }
         // parse the parameter string using PS_PAIR
         elseif ( $style === self::PS_PAIR )

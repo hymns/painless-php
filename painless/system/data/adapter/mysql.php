@@ -478,7 +478,7 @@ class PainlessMysql extends PainlessDao
 
         // Build the insert query
         $sql = "INSERT INTO `$this->_tableName` ( $fields ) VALUES ( $values )";
-var_dump($sql);die;
+
         return $this->insert( $sql );
     }
 

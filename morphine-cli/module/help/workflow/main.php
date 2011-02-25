@@ -41,7 +41,7 @@ class HelpMainWorkflow extends PainlessWorkflow
     public function get( )
     {
         // See what help is being requested
-        $topic = $this->request->getParam( 'help' );
+        $topic = $this->request->getParam( 0 );var_dump($topic);
         if ( empty( $topic ) )
         {
             $topic = 'help';

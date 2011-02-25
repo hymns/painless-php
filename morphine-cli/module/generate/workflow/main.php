@@ -38,5 +38,23 @@
 
 class GenerateMainWorkflow extends PainlessWorkflow
 {
-    
+    protected $operations = array( );
+
+    public function before( )
+    {
+        // Get the list of arguments
+        $params = $this->request->getParam( );
+
+        // Check if there's a help command
+        if ( in_array( 'help', $params ) || in_array( '--help', $params ) )
+        {
+            // Forward the call to the help module
+            $this->operations[] = 'GET help/main/';
+        }
+    }
+
+    public function get( )
+    {
+        
+    }
 }
