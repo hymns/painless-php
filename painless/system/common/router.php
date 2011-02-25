@@ -159,13 +159,21 @@ class PainlessRouter
         // construct the workflow
         $woObj->request( $method, $params, $contentType, $agent );
 
+        $woObj->before( );
         $woObj->$method( );
+        $woObj->after( );
         $response = $woObj->response;
         if ( ! ( $response instanceof PainlessResponse ) ) throw new PainlessRouterException( "Invalid return type from the workflow dispatch" );
 
         return $response;
     }
 
+    /**
+     * Tries to build the URI array either from the parameter or from the request
+     * headers
+     * @param string $uri   the URI string to pass in for processing
+     * @return array        the URI broken down into an array
+     */
     protected function getUri( $uri = '' )
     {
         // If $uri is not passed in, assume that this is an external routing call,
@@ -197,6 +205,15 @@ class PainlessRouter
         return $uri;
     }
 
+    /**
+     * Processes the URI and returns the parameter array, as well as mapping out
+     * module, workflow, and content type
+     * @param array $uri            the URI in an array
+     * @param string $module        the module to map to
+     * @param string $workflow      the workflow to map to
+     * @param string $contentType   the content type of this request
+     * @return array                an array of parameters
+     */
     protected function processUri( $uri, & $module, & $workflow, & $contentType )
     {
         // Grab dependencies

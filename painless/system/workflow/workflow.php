@@ -75,6 +75,14 @@ class PainlessWorkflow
     protected $paramStyle = 0;
 
     /**
+     * before( ) and after( ) are called by the router both before dispatching
+     * and after dispatching. These hooks are useful for writing in general
+     * behaviors to the workflow that applies to all methods.
+     */
+    protected function before( ) {}
+    protected function after( ) {}
+
+    /**
      * Creates a new request and attach to this workflow
      * @param string $method        the method/action invoked by the request
      * @param array $params         a parameter array to initialize the workflow with
