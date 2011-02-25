@@ -318,7 +318,7 @@ class PainlessLoader
         Painless::get( 'system/view/view', LP_DEF_ONLY );
 
         return array(
-            'load_path' => $this->impl . 'view/' . $module . '/' . $view . EXT,
+            'load_path' => $this->impl . $module . '/view/' . $view . EXT,
             'load_obj'  => $cn . 'View',
 
             'base_path' => FALSE,
