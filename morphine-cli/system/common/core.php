@@ -42,13 +42,11 @@ class MorphineCore extends PainlessCore
 
     protected $alias = array(
         'con'           => 'config',
-        'conf'          => 'config',
         'gen'           => 'generate',
-        'ex'            => 'execute',
-        'up'            => 'update',
-        'in'            => 'install',
+        'exe'           => 'execute',
+        'upd'           => 'update',
+        'ins'           => 'install',
         '--help'        => 'help',
-        '/?'            => 'help',
     );
 
     protected $ops = array(
