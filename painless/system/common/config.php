@@ -90,11 +90,11 @@ class PainlessConfig
             $profile = DEPLOY_PROFILE;
 
         // get the engine's implementor path if possible
-        if ( defined( 'IMPL_PATH' ) )
+        if ( ! empty( Painless::$IMPL_PATH ) )
         {
-            $configPath = IMPL_PATH . 'config/' . strtolower( IMPL_NAME );
-            $aclPath    = IMPL_PATH . 'config/' . strtolower( IMPL_NAME );
-            $routesPath = IMPL_PATH . 'config/' . strtolower( IMPL_NAME );
+            $configPath = Painless::$IMPL_PATH . 'config/' . Painless::$IMPL_NAME;
+            $aclPath    = Painless::$IMPL_PATH . 'config/' . Painless::$IMPL_NAME;
+            $routesPath = Painless::$IMPL_PATH . 'config/' . Painless::$IMPL_NAME;
 
             if ( $profile ) $configPath .= '.' . $profile;
 
@@ -126,11 +126,11 @@ class PainlessConfig
         {
             require_once( $aclPath );
 
-            if ( ! isset( $config ) )
-                throw new PainlessConfigException( 'Unable to find the ACL array in [' . $aclPath . ']' );
-
-            $this->config = array_merge( $this->config, $config );
-            unset( $config );
+            if ( isset( $config ) )
+            {
+                $this->config = array_merge( $this->config, $config );
+                unset( $config );
+            }
         }
 
         // load the routes array too
@@ -138,13 +138,14 @@ class PainlessConfig
         {
             require_once( $routesPath );
 
-            if ( ! isset( $config ) )
-                throw new PainlessConfigException( 'Unable to find the routes array in [' . $routesPath . ']' );
-
-            $this->config = array_merge( $this->config, $config );
+            if ( isset( $config ) )
+            {
+                $this->config = array_merge( $this->config, $config );
+            }
         }
+        
     }
-
+    
 }
 
 class PainlessConfigException extends ErrorException { }

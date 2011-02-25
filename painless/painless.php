@@ -55,6 +55,10 @@ class Painless
     public static $core = NULL;
     public static $loader = NULL;
 
+    public static $CORE_PATH = '';
+    public static $IMPL_PATH = '';
+    public static $IMPL_NAME = '';
+
     /**
      * -------------------------------------------------------------------------
      * PainlessException codes:
@@ -79,7 +83,7 @@ class Painless
      * @author  Ruben Tan Long Zheng <ruben@rendervault.com>
      * @param string $name  the dash delimited name of the package to load
      * @param string $path  (optional) the absolute path of where the package is
-     */
+     *DISABLED BECAUSE NOT SURE WHAT TO DO WITH THIS
     public static function package( $name, $path = '' )
     {
         // Convert the dash delimited $name into a pascal case
@@ -93,7 +97,7 @@ class Painless
             // exists, use the default convention instead
             if ( empty( $path ) || ! file_exists( $path ) )
             {
-                $path = IMPL_PATH . '../' . $name . '/' . $name . '.php';
+                $path = self::$IMPL_PATH . '../' . $name . '/' . $name . '.php';
             }
 
             require_once $path;
@@ -101,9 +105,10 @@ class Painless
             if ( ! class_exists( $cn, FALSE ) ) throw new ErrorException( "$cn not defined inside [$path]" );
         }
 
-        // Bootstrap the package itself
+        // Bootstrap the package itself? First and second argument difficult to determine!
         $cn::bootstrap( );
     }
+    */
 
     /**
      * Bootstraps this service locator and initializes the engine. Always call this
@@ -115,22 +120,24 @@ class Painless
      * @copyright   Copyright (c) 2009, Rendervault Solutions
      * @return	object	the component that is requested
      */
-    public static function bootstrap( $loader = NULL )
+    public static function bootstrap( $implName, $implPath, $loader = NULL )
     {
-        // Make sure all env consts are set
-        if ( ! defined( 'APP_PATH' ) )
-            throw new ErrorException( 'APP_PATH is not defined', 1 );
+        // Make sure all env consts are set        
+        if ( empty( $implPath ) )
+            throw new ErrorException( 'Implementor\'s path is not defined', 2 );
         
-        if ( ! defined( 'IMPL_PATH' ) )
-            throw new ErrorException( 'IMPL_PATH is not defined', 2 );
-        
-        if ( ! defined( 'IMPL_NAME' ) )
-            throw new ErrorException( 'IMPL_NAME is not defined', 3 );
+        if ( empty( $implName ) )
+            throw new ErrorException( 'Implementor\'s name is not defined', 3 );
 
         // Set default values for non-critical env consts if none are set
         defined( 'ERROR_REPORTING' ) or define( 'ERROR_REPORTING', E_ALL | E_STRICT );
         defined( 'DEPLOY_PROFILE' ) or define( 'DEPLOY_PROFILE', 'dev' );
         defined( 'NSTOK' ) or define( 'NSTOK', '/' );
+
+        // Set the system paths
+        self::$CORE_PATH = dirname( __FILE__ );
+        self::$IMPL_PATH = $implPath;
+        self::$IMPL_NAME = $implName;
 
         // Instantitate a version of the loader first if none provided. Usually,
         // to improve performance, if the implementor decides to use their own
@@ -139,7 +146,7 @@ class Painless
         // rather than leaving it as a NULL
         if ( NULL === $loader )
         {
-            require_once CORE_PATH . 'system/common/loader' . EXT;
+            require_once self::$CORE_PATH . 'system/common/loader' . EXT;
             $loader = new PainlessLoader;
 
             // Replace itself with a proper loader

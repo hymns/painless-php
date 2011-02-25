@@ -38,10 +38,6 @@
 
 class Morphine extends Painless
 {
-    public static $CORE_PATH = '';
-    public static $IMPL_PATH = '';
-    public static $IMPL_NAME = '';
-
     /**
      * Bootstraps this service locator and initializes the engine. Always call this
      * function first before attempting to run any services or components from
@@ -52,16 +48,20 @@ class Morphine extends Painless
      * @copyright   Copyright (c) 2009, Rendervault Solutions
      * @return	object	the component that is requested
      */
-    public static function bootstrap( $loader = NULL )
+    public static function bootstrap( $implName, $implPath, $loader = NULL )
     {
         // Set default values for non-critical env consts if none are set
         defined( 'ERROR_REPORTING' ) or define( 'ERROR_REPORTING', E_ALL | E_STRICT );
-        defined( 'DEPLOY_PROFILE' ) or define( 'DEPLOY_PROFILE', 'development' );
+        defined( 'DEPLOY_PROFILE' ) or define( 'DEPLOY_PROFILE', 'dev' );
         defined( 'NSTOK' ) or define( 'NSTOK', '/' );
 
-        require_once CORE_PATH . 'system/common/loader' . EXT;
+        // Reset the core, impl path and name
+        self::$CORE_PATH = dirname( __FILE__ ) . '/../painless/';
+        self::$IMPL_PATH = dirname( __FILE__ ) . '/';
+        self::$IMPL_NAME = 'morphine';
+
+        require_once self::$CORE_PATH . 'system/common/loader' . EXT;
         $loader = new PainlessLoader;
-        $loader->init( CORE_PATH, 'morphine', dirname( __FILE__ ) . '/' );
 
         self::$loader = $loader;
         self::$core = $loader->get( 'system/common/core' );

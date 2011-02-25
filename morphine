@@ -36,35 +36,20 @@
  * @link        http://painless-php.com
  */
 
-/**
- * morphine [command] [options]
- *
- *  Commands
- *      generate | gen  - generates source code
- *      scaffold | sca  - generates an application scaffold
- *      install | ins   - installs a distribution
- *      update | upd    - updates Painless, the application, or morphine
- *      help | hel      - opens the help document
- */
-
-// define the implementor name
-define( 'IMPL_NAME', 'morphine' );
-
 // define the deployment profile
 define( 'ERROR_LEVEL', E_ALL | E_STRICT ); // Set to 0 for 'production', set to E_ALL for 'development'
-define( 'DEPLOY_PROFILE', 'development' );
-define( 'APP_PATH', '' );
-define( 'IMPL_PATH', dirname( __FILE__ ) . '/morphine-cli/' );
-define( 'CORE_PATH', dirname( __FILE__ ) . '/painless/' );
+define( 'DEPLOY_PROFILE', 'dev' );
 
 date_default_timezone_set( 'UTC' );
 
 // DO NOT CHANGE THIS LINE!!!!!!!!!!!!!!!!!!!!!
-include CORE_PATH . 'painless.php';
-include IMPL_PATH . 'morphine.php';
+$CORE = dirname( __FILE__ ) . '/painless/';
+$IMPL = dirname( __FILE__ ) . '/morphine-cli/';
+include $CORE . 'painless.php';
+include $IMPL . 'morphine.php';
 
 // create the workfloo object and define a distribution
-$app = Morphine::bootstrap( );
+$app = Morphine::bootstrap( 'morphine', $IMPL );
 $app->argv = $argv;
 echo $app->dispatch( );
 ?>

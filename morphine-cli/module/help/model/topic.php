@@ -39,13 +39,13 @@
 class HelpTopicModel extends PainlessModel
 {
     /**
-     * Searches a topic from the help topic template directory
+     * Retrieves a topic from the help topic template directory
      *  - 200 -> topic found
      *  - 404 -> topic not found
      * @param string $topic     the name of the topic to search for
      * @return PainlessResponse a response object detailing the status of the operation
      */
-    public function findTopic( $topic )
+    public function getTopic( $topic )
     {
         // Try to get the topic
         try

@@ -56,23 +56,18 @@ define( 'LP_CORE_ONLY', 21 );       // short for LP_DEF_CORE | LP_CACHE_CORE | L
 
 class PainlessLoader
 {
-    public $name = IMPL_NAME;
-    public $base = CORE_PATH;
-    public $impl = IMPL_PATH;
+    public $name = '';
+    public $base = '';
+    public $impl = '';
 
     protected static $cache = array( );
 
-    /**
-     * Provides the loader a different set of base paths to load from
-     * @param string $base      the base path to search for core components
-     * @param string $implName  the implementor's dash delimited name
-     * @param string $implPath  the path of the implementor
-     */
-    public function init( $base, $implName, $implPath )
+    public function __construct( )
     {
-        $this->base = $base;
-        $this->name = $implName;
-        $this->impl = $implPath;
+        // Set the system paths here for reference
+        $this->base = Painless::$CORE_PATH;
+        $this->impl = Painless::$IMPL_PATH;
+        $this->name = Painless::$IMPL_NAME;
     }
 
     /**
