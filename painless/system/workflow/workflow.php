@@ -91,6 +91,25 @@ class PainlessWorkflow
     }
 
     /**
+     * Runs the workflow depending on the method requested
+     * @return PainlessResponse     the response object returned by the method function
+     */
+    public function run( )
+    {
+        // Don't run if there is no request set
+        if ( empty( $this->request ) )
+            throw new PainlessWorkflowException ( 'No request set for this workflow. You cannot run a workflow if there\'s no request set in it. See request( ) for more infor.' );
+
+        $method = $this->request->method;
+
+        $this->before( );
+        $this->response = $this->$method;
+        $this->after( );
+
+        return $this->response;
+    }
+
+    /**
      * Creates a new request and attach to this workflow
      * @param string $method        the method/action invoked by the request
      * @param array $params         a parameter array to initialize the workflow with
@@ -145,7 +164,7 @@ class PainlessWorkflow
 
             $this->response = $response;
         }
-        
+
         return $this->response;
     }
 

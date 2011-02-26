@@ -38,7 +38,7 @@
  */
 
 /**
- * One router, many workflows. 
+ * One router, many workflows.
  *
  * Each router records a list of workflows run in succession, and allow these
  * workflows to share a common data domain. This is to say these workflows can
@@ -64,8 +64,9 @@ class PainlessRouter
      * Processes the request and automatically discover the method, module, workflow, parameter string
      * and the invoking agent.
      * @param string $uri       an optional URI string. If nothing is passed in, it'll assume its a HTTP request call
+     * @param boolean $dispatch set to TRUE (default) to proceed with dispatching, FALSE to return the processed values
      */
-    public function process( $uri = '' )
+    public function process( $uri = '', $dispatch = TRUE )
     {
         // Pre-define the variables
         $module         = '';
@@ -100,7 +101,7 @@ class PainlessRouter
 
             // In CLI mode, $uri MUST be a string
             if ( ! is_string( $uri ) )
-                throw new PainlessRouterException( '$uri that is passed into process( ) must be a string when Painless is running in CLI mode' );            
+                throw new PainlessRouterException( '$uri that is passed into process( ) must be a string when Painless is running in CLI mode' );
         }
         // This process call came from HTTP or REST
         else
@@ -134,7 +135,10 @@ class PainlessRouter
         $params = $this->processUri( $uri, $module, $workflow, $contentType );
 
         // At this point we have a $method, $agent, $module, $workflow, $contentType and $params
-        return $this->dispatch( $method, $module, $workflow, $contentType, $params, $agent );
+        if ( $dispatch )
+            return $this->dispatch( $method, $module, $workflow, $contentType, $params, $agent );
+        else
+            return array( $method, $module, $workflow, $contentType, $params, $agent );
     }
 
     /**
@@ -156,11 +160,7 @@ class PainlessRouter
 
         // construct the workflow
         $woObj->request( $method, $params, $contentType, $agent );
-
-        $woObj->before( );
-        $woObj->$method( );
-        $woObj->after( );
-        $response = $woObj->response;
+        $response = $woObj->run( );
         if ( ! ( $response instanceof PainlessResponse ) ) throw new PainlessRouterException( "Invalid return type from the workflow dispatch" );
 
         return $response;
