@@ -83,3 +83,5 @@ class PainlessModel
     protected function validateEquals( $v1, $v2 )          { return ( $v1 == $v2 ); }
     protected function validateIdentical( $v1, $v2 )       { return ( $v1 === $v2 ); }
 }
+
+class PainlessModelException extends ErrorException { }
