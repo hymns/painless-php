@@ -143,10 +143,6 @@ class PainlessWorkflow
         // object
         if ( ! is_int( $status ) )
         {
-            Painless::get( 'system/workflow/response', LP_DEF_ONLY );
-            if ( ! ( $status instanceof PainlessResponse ) )
-                throw new PainlessWorkflowException( '$status must only be an int or an instance of PainlessResponse' );
-
             $this->response = $status;
         }
         else
