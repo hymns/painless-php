@@ -40,6 +40,12 @@ class GenerateMainWorkflow extends PainlessWorkflow
 {
     protected $operations = array( );
 
+    public function init( $module, $workflow )
+    {
+        parent::init( $module, $workflow );
+        $this->request->setParamStyle( PainlessRequest::PS_INDEX );
+    }
+
     public function before( )
     {
         // Get the list of arguments
@@ -49,12 +55,23 @@ class GenerateMainWorkflow extends PainlessWorkflow
         if ( in_array( 'help', $params ) || in_array( '--help', $params ) )
         {
             // Forward the call to the help module
-            $this->operations[] = 'GET help/main/';
+            $this->operations[] = 'GET help/main/generate';
+        }
+        else
+        {
+            
         }
     }
 
     public function get( )
     {
-        
+        if ( ! empty( $this->operations ) )
+        {
+            // Run the workflows
+            foreach( $this->operations as $operation )
+            {
+                $response = Painless::exec( $operation );
+            }
+        }
     }
 }

@@ -110,7 +110,7 @@ class PainlessConsole
             $input = $this->read( $output, $options );
         }
 
-        return fread( STDIN );
+        return $input;
     }
 
     /**

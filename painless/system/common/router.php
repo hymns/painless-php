@@ -152,9 +152,7 @@ class PainlessRouter
         $woObj = Painless::get( "workflow/$module/$workflow" );
 
         if ( empty( $woObj ) ) throw new PainlessWorkflowNotFoundException( "Unable to find workflow [$module/$workflow]" );
-
-        $woObj->name = $workflow;
-        $woObj->module = $module;
+        $woObj->init( $module, $workflow );
 
         // construct the workflow
         $woObj->request( $method, $params, $contentType, $agent );

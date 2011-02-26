@@ -148,7 +148,7 @@ class PainlessCore
         $module         = $uri[0];
         $workflow       = $uri[1];
         $params         = ( count( $uri ) > 2 ) ? array_slice( $uri, 2 ) : array( );
-        $contentType    = 'html';
+        $contentType    = 'none';
         $agent          = 'painless';
 
         $router = Painless::get( 'system/common/router' );

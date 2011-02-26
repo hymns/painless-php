@@ -38,10 +38,16 @@
 
 class HelpMainWorkflow extends PainlessWorkflow
 {
+    public function init( $module, $workflow )
+    {
+        parent::init( $module, $workflow );
+        $this->request->setParamStyle( PainlessRequest::PS_INDEX );
+    }
+
     public function get( )
     {
         // See what help is being requested
-        $topic = $this->request->getParam( 0 );var_dump($topic);
+        $topic = $this->request->getParam( 0 );
         if ( empty( $topic ) )
         {
             $topic = 'help';

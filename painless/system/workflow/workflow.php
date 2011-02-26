@@ -68,19 +68,27 @@ class PainlessWorkflow
     public $response = NULL;
 
     /**
-     * A parameter parsing style to use to parse the parameter array from the
-     * request
-     * @var int                 a param style to use (see PainlessRequest::PS_*)
-     */
-    protected $paramStyle = 0;
-
-    /**
      * before( ) and after( ) are called by the router both before dispatching
      * and after dispatching. These hooks are useful for writing in general
      * behaviors to the workflow that applies to all methods.
      */
-    public function before( ) {}
-    public function after( ) {}
+    public function preRequest( )   { }
+    public function before( )       { }
+    public function after( )        { }
+
+    /**
+     * Initializes the workflow. Override this to use a custom parameter parsing
+     * style for the request.
+     */
+    public function init( $module, $workflow )
+    {
+        $this->name = $workflow;
+        $this->module = $module;
+
+        // Remember to get a new instance of the request
+        $request = Painless::get( 'system/workflow/request', LP_LOAD_NEW );
+        $this->request = $request;
+    }
 
     /**
      * Creates a new request and attach to this workflow
@@ -92,16 +100,11 @@ class PainlessWorkflow
      */
     public function request( $method, $params, $contentType = PainlessRequest::HTML, $agent = 'painless' )
     {
-        // Remember to get a new instance of the request
-        $request = Painless::get( 'system/workflow/request', LP_LOAD_NEW );
+        $request = $this->request;
 
         // Use the defaults if $contentType is empty
         if ( empty( $contentType ) ) $contentType = PainlessRequest::HTML;
         if ( empty( $agent ) ) $agent = 'painless';
-
-        // Set the param parsing style if it's defined
-        if ( ! empty( $this->paramStyle ) )
-            $request->setParamStyle( $this->paramStyle );
 
         // Initialize the request
         $request->parent = & $this;
