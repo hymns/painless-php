@@ -96,11 +96,8 @@ class PainlessWorkflow
      */
     public function run( )
     {
-        // Don't run if there is no request set
-        if ( empty( $this->request ) )
-            throw new PainlessWorkflowException ( 'No request set for this workflow. You cannot run a workflow if there\'s no request set in it. See request( ) for more infor.' );
-
-        $method = $this->request->method;
+        // Check if the method exists or not
+        if ( ! method_exists( $this, $method ) ) return $this->response( 405, 'Method not supported' );
 
         $this->before( );
         $this->response = $this->$method;
