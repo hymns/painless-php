@@ -15,6 +15,7 @@ Options:
   -a                - Adapter driver
   -u                - Database username
   --smart           - Smart generation mode
+  --dumb            - Dumb generation mode (default)
   --scaff           - Scaffolding mode
 
 Examples:
