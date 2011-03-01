@@ -47,18 +47,17 @@
 
 class PainlessRouter
 {
-
     /**
-     * The stack of workflows that had been loaded by this router
-     * @var array   an array of PainlessWorkflow instances
+     * The queue of URI that is saved and checked to prevent redundancy
+     * @var array   the key is the URI segment called, while the value is the full URI with the method
      */
-    public $workflows = array( );
+    protected $uri = array( );
 
     /**
      * The default way to parse the URI
      * @var array   a default array of URI parameter
      */
-    protected $defaultRouteConfig = array( 'module', 'workflow', 'param-all' );
+    protected $defaultRoute = array( 'module', 'workflow', 'param-all' );
 
     /**
      * Processes the request and automatically discover the method, module, workflow, parameter string
@@ -102,6 +101,9 @@ class PainlessRouter
             // In CLI mode, $uri MUST be a string
             if ( ! is_string( $uri ) )
                 throw new PainlessRouterException( '$uri that is passed into process( ) must be a string when Painless is running in CLI mode' );
+
+            // If no method is provided, default to get
+            if ( empty( $method ) ) $method = 'get';
         }
         // This process call came from HTTP or REST
         else
@@ -125,7 +127,7 @@ class PainlessRouter
 
             // Make sure to get the method from REQUEST_METHOD if none is provided
             // in $uri
-            if ( empty( $method ) ) $method = $_SERVER['REQUEST_METHOD'];
+            if ( empty( $method ) ) $method = strtolower( $_SERVER['REQUEST_METHOD'] );
         }
 
         // Process the URI into an array
@@ -133,6 +135,9 @@ class PainlessRouter
 
         // Process the URI to find out the module, workflow, content type and the parameter string
         $params = $this->processUri( $uri, $module, $workflow, $contentType );
+
+        // Save the URI into the router to keep track of the routes
+        $this->saveUri( $uri, $method, $params );
 
         // At this point we have a $method, $agent, $module, $workflow, $contentType and $params
         if ( $dispatch )
@@ -223,7 +228,7 @@ class PainlessRouter
         $routes = $config->get( 'routes.uri.config' );
 
         // Use the default routing if not configured (auto-routing)
-        if ( ! is_array( $routes ) ) $routes = $this->defaultRouteConfig;
+        if ( ! is_array( $routes ) ) $routes = $this->defaultRoute;
 
         // Process the URI list
         $count = count( $uri );
@@ -318,6 +323,22 @@ class PainlessRouter
         if ( isset( $routes[$alias] ) ) return $routes[$alias];
 
         return array( FALSE, FALSE );
+    }
+
+    protected function saveUri( $uri, $method, $params )
+    {
+        // Rebuild the URI string
+        $uri = implode( '/', $uri );
+        if ( ! empty( $params ) )
+            $uri .= '/' . implode( '/', $params );
+        
+        $this->uri[$uri] = "$method $uri";
+    }
+
+    public function getOrigin( )
+    {
+        // TODO: Don't use array_shift!
+        return array_shift( $this->uri );
     }
 }
 

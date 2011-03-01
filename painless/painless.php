@@ -39,7 +39,12 @@
 
 defined( 'EXT' ) or define( 'EXT', '.php' );
 
-define( 'PL_VERSION', '1.0' );
+define( 'CORE_VERSION', '1.0' );
+
+define( 'DEV', 'dev' );
+define( 'LIVE', 'live' );
+define( 'TEST', 'test' );
+define( 'STAGE', 'stage' );
 
 /**
  * The class Painless is built as a concept of a singleton registry, where it is
@@ -58,6 +63,12 @@ class Painless
     public static $CORE_PATH = '';
     public static $IMPL_PATH = '';
     public static $IMPL_NAME = '';
+
+    /**
+     * The original command that invoked this HTTP Request/REST Call/CLI Process
+     * @var string  this will stay empty until the first call to $router builds it
+     */
+    public static $origin = '';
 
     public static function log( $message )
     {
