@@ -37,7 +37,7 @@
  */
 
 // define the deployment profile
-define( 'ERROR_LEVEL', E_ALL | E_STRICT ); // Set to 0 for 'production', set to E_ALL for 'development'
+define( 'ERROR_REPORTING', E_ALL | E_STRICT ); // Set to 0 for 'production', set to E_ALL for 'development'
 define( 'DEPLOY_PROFILE', 'dev' );
 
 date_default_timezone_set( 'UTC' );
