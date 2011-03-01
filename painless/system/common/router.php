@@ -234,12 +234,28 @@ class PainlessRouter
             if ( isset( $routes[$i] ) )
             {
                 $con = $routes[$i];
-                if ( 'module' === $con )
+                if ( 'alias' === $con )
                 {
+                    // Get the workflow and module mapping, and then append the
+                    // rest of the URI into the params array. No point proceeding
+                    // further as alias don't play well with module and workflow
+                    list( $module, $workflow ) = $this->mapAlias( $uri[$i] );
+
+                    // Only do this if this is not the end of the URI array
+                    if ( $i !== $count )
+                    {
+                        $params = array_values( array_merge( $params, array_slice( $uri, $i + 1 ) ) );
+                        break;
+                    }
+                }
+                elseif ( 'module' === $con )
+                {
+                    // Grab the module
                     $module = $uri[$i];
                 }
                 elseif ( 'workflow' === $con )
                 {
+                    // Grab the workflow
                     $workflow = $uri[$i];
                 }
                 elseif ( 'param' === $con )
@@ -290,6 +306,18 @@ class PainlessRouter
         $params = implode( '/', $params );
 
         return $params;
+    }
+
+    protected function mapAlias( $alias )
+    {
+        // Grab the dependencies
+        $config = Painless::get( 'system/common/config' );
+
+        // Grab the routes
+        $routes = $config->get( 'routes.alias' );
+        if ( isset( $routes[$alias] ) ) return $routes[$alias];
+
+        return array( FALSE, FALSE );
     }
 }
 

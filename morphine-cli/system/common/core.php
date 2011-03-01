@@ -50,13 +50,13 @@ class MorphineCore extends PainlessCore
     );
 
     protected $ops = array(
-        'config'        => 'GET config/main',       // Get/set morphine's configuration
-        'generate'      => 'GET generate/main',     // Generate modules, workflows, configs, etc
-        'execute'       => 'GET execute/main',      // Executes packages and workflows
-        'update'        => 'GET update/main',       // Updates the system from the package server
-        'install'       => 'GET install/main',      // Installs packages
-        'test'          => 'GET test/main',         // Runs the test suite
-        'help'          => 'GET help/main',         // Shows the help file
+        'config'        => 'GET config',       // Get/set morphine's configuration
+        'generate'      => 'GET generate',     // Generate modules, workflows, configs, etc
+        'execute'       => 'GET execute',      // Executes packages and workflows
+        'update'        => 'GET update',       // Updates the system from the package server
+        'install'       => 'GET install',      // Installs packages
+        'test'          => 'GET test',         // Runs the test suite
+        'help'          => 'GET help',         // Shows the help file
     );
 
     protected function processArgs( )

@@ -57,7 +57,7 @@ class PainlessSanitizer
         "expression\s*\(" => '[removed]', // CSS and IE
         "Redirect\s+302" => '[removed]'
     );
-    
+
     protected $xssHash;
 
     public function validURI( $uriArray )
@@ -84,7 +84,7 @@ class PainlessSanitizer
         $n = preg_replace( '/[^\d.]+/', '', $string );
         return sprintf( '%01.2f', $n );
     }
-    
+
     public function cleanAlphaNumerics( $string )
     {
         $string = trim( $string );
@@ -228,7 +228,7 @@ class PainlessSanitizer
             ( function_exists( 'mb_strtolower' ) ) ? mb_strtolower( $clean, 'UTF-8' ) :
             strtolower( $clean ) : $clean;
     }
-    
+
     // --------------------------------------------------------------------
     /**
      * XSS Clean
@@ -259,7 +259,7 @@ class PainlessSanitizer
     public function xssClean( $str, $isImage = FALSE )
     {
         $engine = Painless::get( 'system/common/core' );
-        
+
         // Is the string an array?
         if ( is_array( $str ) )
         {
@@ -270,13 +270,13 @@ class PainlessSanitizer
 
             return $str;
         }
-        
+
         // Remove Invisible Characters
         $str = $this->removeInvisibleCharacters( $str );
 
-        /*
+/* 
          * Protect GET variables in URLs
-         */
+ */
 
         // 901119URL5918AMP18930PROTECT8198
 
@@ -324,7 +324,7 @@ class PainlessSanitizer
          */
         $str = preg_replace_callback( "/[a-z]+=([\'\"]).*?\\1/si", array( $this, 'convertAttribute' ), $str );
         $str = preg_replace_callback( "/<\w+.*?(?=>|<|$)/si", array( $this, 'htmlEntityDecodeCallback' ), $str );
-        
+
         // Remove Invisible Characters Again!
         $str = $this->removeInvisibleCharacters( $str );
 
@@ -564,7 +564,7 @@ class PainlessSanitizer
                 '/%1[4-9]/', '/%2[0-9]/', '/%3[0-1]/', // url encoded 14-31
                 '/[\x0e-\x1f]/' );      // 14-31
         }
-        
+
         do
         {
             $cleaned = $str;

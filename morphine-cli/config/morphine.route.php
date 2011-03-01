@@ -79,4 +79,13 @@ $config['routes.uri.default.workflow']  = 'main';
  *                                              - alias = so
  *                                              - params = array( 'bar', 'fine', 'now' )
  */
-$config['routes.uri.config']            = array( 'module', 'workflow' );
+$config['routes.uri.config']            = array( 'alias' );
+
+$config['routes.alias']['execute']      = array( 'execute', 'main' );
+$config['routes.alias']['config']       = array( 'config', 'main' );
+$config['routes.alias']['generate']     = array( 'generate', 'main' );
+$config['routes.alias']['install']      = array( 'install', 'main' );
+$config['routes.alias']['update']       = array( 'update', 'main' );
+$config['routes.alias']['test']         = array( 'test', 'main' );
+$config['routes.alias']['help']         = array( 'help', 'main' );
+$config['routes.alias']['*']            = array( 'help', 'main' );
