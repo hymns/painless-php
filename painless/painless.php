@@ -59,16 +59,6 @@ class Painless
     public static $IMPL_PATH = '';
     public static $IMPL_NAME = '';
 
-    /**
-     * -------------------------------------------------------------------------
-     * PainlessException codes:
-     *
-     * 1 - APP_PATH is not defined
-     * 2 - IMPL_PATH is not defined
-     * 3 - IMPL_NAME is not defined
-     * 4 - PHP version is less than 5.1.2
-     * -------------------------------------------------------------------------
-     */
     public static function log( $message )
     {
         if ( ! isset( self::$loader ) ) return FALSE;
@@ -135,7 +125,7 @@ class Painless
         defined( 'NSTOK' ) or define( 'NSTOK', '/' );
 
         // Set the system paths
-        self::$CORE_PATH = dirname( __FILE__ );
+        self::$CORE_PATH = dirname( __FILE__ ) . '/';
         self::$IMPL_PATH = $implPath;
         self::$IMPL_NAME = $implName;
 

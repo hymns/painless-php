@@ -115,6 +115,7 @@ class PainlessLoader
         // Instantiate the core class
         if ( class_exists( $meta['base_obj'], FALSE ) && ( $isRetCore || $isCacheCore ) )
         {
+            var_dump($meta);
             $comBase = new $meta['base_obj'];
 
             // If caching is required (by enabling the LP_CACHE_CORE flag), save
