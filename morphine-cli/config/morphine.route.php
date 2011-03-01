@@ -80,3 +80,6 @@ $config['routes.uri.default.workflow']  = 'main';
  *                                              - params = array( 'bar', 'fine', 'now' )
  */
 $config['routes.uri.config']            = array( 'module', 'workflow' );
+
+$config['routes.uri.path']['* /'] = 'help/main';
+$config['routes.uri.path']['GET /execute/*'] = 'GET execute/model/:module/:name/:params(compress)';
