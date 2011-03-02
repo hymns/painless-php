@@ -113,7 +113,8 @@ class PainlessInput
 
     public function init( )
     {
-        $this->isInit = TRUE;
+        if ( Beholder::notifyUntil( 'input.init', $this ) )
+            $this->isInit = TRUE;
     }
 
     /**
