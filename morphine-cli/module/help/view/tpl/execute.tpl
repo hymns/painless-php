@@ -1,15 +1,14 @@
 
 Usage:
-  php morphine execute TYPE MODULE:RESOURCE [param1:param2:param3]
+  php morphine execute [type].[module-name].[component-name].[function-camel] [param] [param] [param]...
 
 Types:
-  module            - Generates an empty module
-  workflow          - Generates an empty workflow
-  model             - Generates a model
-  dao               - Generates a DAO
+  module            - Executes a module
+  workflow          - Executes a workflow
+  model             - Executes a model
+  view              - Executes a view
   help              - Displays this help file
 
 Examples:
-  php morphine execute model user:account
-    - will execute the model user:account
+  php morphine execute model.user.profile.getUser {"id":"12"} [12,12]
     
