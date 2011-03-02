@@ -129,6 +129,10 @@ class Painless
         
         self::$loader = $loader;
         self::$core = $loader->get( 'system/common/core' );
+        
+        // Include the fearsome Beholder
+        require_once self::$CORE_PATH . 'beholder.php';
+        Beholder::init( );
 
         return self::$core;
     }

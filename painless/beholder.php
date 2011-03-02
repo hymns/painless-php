@@ -66,6 +66,23 @@ class Observer
 class Beholder
 {
     public static $events = array( );
+    
+    public static function init( )
+    {
+        // Check if there's a trigger configuration
+        $IMPL_PATH = Painless::$IMPL_PATH;
+        $config = Painless::get( 'system/common/config' );
+        
+        $triggers = $config->get( 'triggers.*' );
+        
+        if ( ! empty( $triggers ) )
+        {
+            foreach( $triggers as $name => $callback )
+            {
+                self::register( $name, $callback );
+            }
+        }
+    }
 
     public static function register( $name, $callback )
     {
