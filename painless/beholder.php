@@ -134,6 +134,6 @@ class Beholder
     
     public static function notifyUntil( $name, & $params = array( ) )
     {
-        return self::$notify( $name, $params, TRUE );
+        return self::notify( $name, $params, TRUE );
     }
 }

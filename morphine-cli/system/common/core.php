@@ -109,19 +109,20 @@ class MorphineCore extends PainlessCore
 
     public function dispatch( )
     {
-        // check and load the router
+        // Check and load the router
         $router = Painless::get( 'system/common/router' );
 
+        // Process the command line arguments into a proper URI
         $uri = $this->processArgs( );
 
         try
         {
-            // let the router process the business logic
+            // Let the router process the business logic
             $response = $router->process( $uri );
         }
         catch( PainlessWorkflowNotFoundException $e )
         {
-            // construct a 404 response
+            // Construct a 404 response
             $response = Painless::get( 'system/workflow/response', LP_LOAD_NEW );
             $response->status = 404;
             $response->message = 'Unable to locate workflow';
@@ -133,7 +134,7 @@ class MorphineCore extends PainlessCore
             $response->message = $e->getMessage( );
         }
 
-        // pass the control to the renderer
+        // Pass the control to the renderer
         $render = Painless::get( 'system/common/render' );
         $output = $render->process( $response );
 
