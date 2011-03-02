@@ -328,9 +328,7 @@ class PainlessRouter
     protected function saveUri( $uri, $method, $params )
     {
         // Rebuild the URI string
-        $uri = implode( '/', $uri ); var_dump($params);
-        if ( ! empty( $params ) )
-            $uri .= '/' . implode( '/', $params );
+        $uri = implode( '/', $uri );
         
         $this->uri[$uri] = "$method $uri";
     }
