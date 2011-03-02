@@ -40,6 +40,11 @@ class ExecuteMainWorkflow extends PainlessWorkflow
 {
     protected $operations = array( );
     
+    /**
+     * Custom initialization function (mainly to enable PS_INDEX)
+     * @param type $module
+     * @param type $workflow 
+     */
     public function init( $module, $workflow )
     {
         parent::init( $module, $workflow );
@@ -50,7 +55,7 @@ class ExecuteMainWorkflow extends PainlessWorkflow
     {
         // Get the list of arguments
         $params = $this->request->getParam( );
-
+var_dump($params);die;
         // Check if there's a help command
         if ( in_array( 'help', $params ) || in_array( '--help', $params ) )
         {
@@ -59,7 +64,7 @@ class ExecuteMainWorkflow extends PainlessWorkflow
         }
         else
         {
-
+            
         }
     }
 
