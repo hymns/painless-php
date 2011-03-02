@@ -329,8 +329,6 @@ class PainlessRouter
     {
         // Rebuild the URI string
         $uri = implode( '/', $uri );
-        if ( ! empty( $params ) )
-            $uri .= '/' . implode( '/', $params );
         
         $this->uri[$uri] = "$method $uri";
     }
