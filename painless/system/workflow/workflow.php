@@ -96,11 +96,13 @@ class PainlessWorkflow
      */
     public function run( )
     {
+        $method = $this->request->method;
+
         // Check if the method exists or not
         if ( ! method_exists( $this, $method ) ) return $this->response( 405, 'Method not supported' );
 
         $this->before( );
-        $this->response = $this->$method;
+        $this->response = $this->$method( );
         $this->after( );
 
         return $this->response;

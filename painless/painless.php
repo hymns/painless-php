@@ -39,7 +39,12 @@
 
 defined( 'EXT' ) or define( 'EXT', '.php' );
 
-define( 'PL_VERSION', '1.0' );
+define( 'CORE_VERSION', '1.0' );
+
+define( 'DEV', 'dev' );
+define( 'LIVE', 'live' );
+define( 'TEST', 'test' );
+define( 'STAGE', 'stage' );
 
 /**
  * The class Painless is built as a concept of a singleton registry, where it is
@@ -60,15 +65,11 @@ class Painless
     public static $IMPL_NAME = '';
 
     /**
-     * -------------------------------------------------------------------------
-     * PainlessException codes:
-     *
-     * 1 - APP_PATH is not defined
-     * 2 - IMPL_PATH is not defined
-     * 3 - IMPL_NAME is not defined
-     * 4 - PHP version is less than 5.1.2
-     * -------------------------------------------------------------------------
+     * The original command that invoked this HTTP Request/REST Call/CLI Process
+     * @var string  this will stay empty until the first call to $router builds it
      */
+    public static $origin = '';
+
     public static function log( $message )
     {
         if ( ! isset( self::$loader ) ) return FALSE;
@@ -135,7 +136,7 @@ class Painless
         defined( 'NSTOK' ) or define( 'NSTOK', '/' );
 
         // Set the system paths
-        self::$CORE_PATH = dirname( __FILE__ );
+        self::$CORE_PATH = dirname( __FILE__ ) . '/';
         self::$IMPL_PATH = $implPath;
         self::$IMPL_NAME = $implName;
 

@@ -1,6 +1,6 @@
 <?php
 /**
- * Painless PHP - the painless path to development
+ * Morphine - the command line toolkit for Painless PHP to take away the pain
  *
  * Copyright (c) 2011, Tan Long Zheng (soggie)
  * All rights reserved.
@@ -29,27 +29,49 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- * @package     Painless PHP
+ * @package     Morphine
  * @author      Tan Long Zheng (soggie) <ruben@rendervault.com>
  * @copyright   2011 Tan Long Zheng (soggie) <ruben@rendervault.com>
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
 
-// define the deployment profile
-define( 'ERROR_REPORTING', E_ALL | E_STRICT ); // Set to 0 for 'production', set to E_ALL for 'development'
-define( 'DEPLOY_PROFILE', 'dev' );
+class ExecuteMainWorkflow extends PainlessWorkflow
+{
+    protected $operations = array( );
+    
+    public function init( $module, $workflow )
+    {
+        parent::init( $module, $workflow );
+        $this->request->setParamStyle( PainlessRequest::PS_INDEX );
+    }
 
-date_default_timezone_set( 'UTC' );
+    public function before( )
+    {
+        // Get the list of arguments
+        $params = $this->request->getParam( );
 
-// DO NOT CHANGE THIS LINE!!!!!!!!!!!!!!!!!!!!!
-$CORE = dirname( __FILE__ ) . '/painless/';
-$IMPL = dirname( __FILE__ ) . '/morphine-cli/';
-include $CORE . 'painless.php';
-include $IMPL . 'morphine.php';
+        // Check if there's a help command
+        if ( in_array( 'help', $params ) || in_array( '--help', $params ) )
+        {
+            // Forward the call to the help module
+            $this->operations[] = 'GET help/main/execute';
+        }
+        else
+        {
 
-// create the workfloo object and define a distribution
-$app = Morphine::bootstrap( 'morphine', $IMPL );
-$app->argv = $argv;
-echo $app->dispatch( );
-?>
+        }
+    }
+
+    public function get( )
+    {
+        if ( ! empty( $this->operations ) )
+        {
+            // Run the workflows
+            foreach( $this->operations as $operation )
+            {
+                $response = Painless::exec( $operation );
+            }
+        }
+    }
+}
