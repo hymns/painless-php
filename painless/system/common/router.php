@@ -57,7 +57,7 @@ class PainlessRouter
      * The default way to parse the URI
      * @var array   a default array of URI parameter
      */
-    protected $defaultRoute = array( 'module', 'workflow', 'param-all' );
+    protected $defaultRoute = array( 'module', 'workflow' );
 
     /**
      * Processes the request and automatically discover the method, module, workflow, parameter string

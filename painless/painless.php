@@ -60,6 +60,12 @@ class Painless
     public static $core = NULL;
     public static $loader = NULL;
 
+    /**
+     * CORE_PATH - the path to this file (painless.php)
+     * IMPL_PATH - the path to the implementor
+     * IMPL_NAME - the name of the implementor
+     * @var string  env paths and names
+     */
     public static $CORE_PATH = '';
     public static $IMPL_PATH = '';
     public static $IMPL_NAME = '';
@@ -77,39 +83,6 @@ class Painless
         $log = self::$loader->get( 'system/common/log' );
         $log->info( $message );
     }
-
-    /**
-     * Loads a package to be used
-     * @static
-     * @author  Ruben Tan Long Zheng <ruben@rendervault.com>
-     * @param string $name  the dash delimited name of the package to load
-     * @param string $path  (optional) the absolute path of where the package is
-     *DISABLED BECAUSE NOT SURE WHAT TO DO WITH THIS
-    public static function package( $name, $path = '' )
-    {
-        // Convert the dash delimited $name into a pascal case
-        $cn = dash_to_pascal( $name );
-
-        // No point including the file if the class already exists
-        if ( ! class_exists( $cn, FALSE ) )
-        {
-
-            // If no path is provided, or the file specified by the $path does not
-            // exists, use the default convention instead
-            if ( empty( $path ) || ! file_exists( $path ) )
-            {
-                $path = self::$IMPL_PATH . '../' . $name . '/' . $name . '.php';
-            }
-
-            require_once $path;
-
-            if ( ! class_exists( $cn, FALSE ) ) throw new ErrorException( "$cn not defined inside [$path]" );
-        }
-
-        // Bootstrap the package itself? First and second argument difficult to determine!
-        $cn::bootstrap( );
-    }
-    */
 
     /**
      * Bootstraps this service locator and initializes the engine. Always call this
@@ -203,7 +176,7 @@ class Painless
     }
 }
 
-/* * -----------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Bunch of useful functions
  * ---------------------------------------------------------------------------- */
 
@@ -258,3 +231,18 @@ function camel_to_dash( $string )
 {
     return strtolower( preg_replace( "/([a-z])([A-Z]{1})/", "$1\-$2", $string ) );
 }
+
+/* -----------------------------------------------------------------------------
+ * List of triggers
+ * ---------------------------------------------------------------------------- */
+
+/*
+ * PainlessRender:
+ *  - [nu] render.pre
+ *  - [no] render.post( output )
+ * 
+ * PainlessMysql:
+ *  - [nu] mysql.execute.pre
+ *  - [no] mysql.execute.post( data )
+ * 
+ */

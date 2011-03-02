@@ -41,23 +41,21 @@ class Observer
 {
     public $obj = NULL;
     public $func = '';
-    public $data = NULL;
 
-    public function run( )
+    public function run( & $params = array( ) )
     {
         // Localize the variables
         $obj    = $this->obj;
         $func   = $this->func;
-        $data   = $this->data;
 
         // If $obj is null, it's a simple function call
         if ( empty( $obj ) )
         {
-            $status = $func( $data );
+            $status = $func( $params );
         }
         else
         {
-            $status = $obj->$func( $data );
+            $status = $obj->$func( $params );
         }
 
         // Always return a TRUE/FALSE
@@ -69,7 +67,7 @@ class Beholder
 {
     public static $events = array( );
 
-    public static function register( $name, $callback, $data = NULL )
+    public static function register( $name, $callback )
     {
         // Check if there's any observers already registered for that event
         if ( ! isset( self::$events[$name] ) )
@@ -84,13 +82,11 @@ class Beholder
             $callback = new Observer;
             $callback->obj = $obj;
             $callback->func = $func;
-            $callback->data = $data;
         }
         else
         {
             $obj = new Observer;
             $obj->func = $callback;
-            $obj->data = $data;
             $callback = $obj;
         }
 
@@ -98,7 +94,7 @@ class Beholder
         self::$events[$name][] = $callback;
     }
 
-    public static function notify( $name, $checkStatus = FALSE, $removeAfterRun = FALSE )
+    public static function notify( $name, & $params = array( ), $checkStatus = FALSE )
     {
         // Only run this if there're observers set for this event
         if ( isset( self::$events[$name] ) )
@@ -108,20 +104,19 @@ class Beholder
             // Run through the observers collection
             foreach( $roboticsBay as $i => $observer )
             {
-                $status = $observer->run( );
+                $status = $observer->run( $params );
 
                 // If $checkStatus is enabled, stop the processing on an error
                 if ( $checkStatus && ! $status )
                 {
-                    break;
-                }
-
-                // If $removeAfterRun is enabled, unset the observer
-                if ( $removeAfterRun )
-                {
-                    unset( $roboticsBay[$i] );
+                    return FALSE;
                 }
             }
         }
+    }
+    
+    public static function notifyUntil( $name, & $params = array( ) )
+    {
+        return self::$notify( $name, $params, TRUE );
     }
 }

@@ -46,25 +46,17 @@ class PainlessRender
         // set the response for use later 
         $this->response = $response;
 
-        // perform pre render stuff
-        $this->preRender( );
-
         // render the view
         $output = $this->render( );
-
-        // perform post rendering stuff
-        $this->postRender( $output );
 
         return $output;
     }
 
-    protected function preRender( )
-    {
-        // validate the default content type
-    }
-
     protected function render( )
     {
+        // Trigger the pre-render action. Don't proceed if it failed.
+        if ( ! Beholder::notifyUntil( 'render.pre' ) ) return '';
+        
         // Localize the variables
         $response       = $this->response;
         $method         = $response->method;
@@ -105,12 +97,11 @@ class PainlessRender
         }
 
         // Return the processed output
-        return $compiler->process( $view );
-    }
-
-    protected function postRender( $output )
-    {
-        // let the implementer process stuff here
+        $output = $compiler->process( $view );
+        
+        // Trigger the post-render action
+        Beholder::notify( 'render.post', $output );
+        
         return $output;
     }
 }

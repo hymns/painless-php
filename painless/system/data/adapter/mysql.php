@@ -301,6 +301,9 @@ class PainlessMysql extends PainlessDao
     {
         // lazy init the connection
         if ( NULL == $this->_conn ) $this->init( );
+        
+        // Trigger the execution notification
+        Beholder::notify( 'mysql.execute.pre', array( $cmd, $extra ) );
 
         // create a PDOStatement object
         $stmt = $this->_conn->query( $cmd );
@@ -346,22 +349,29 @@ class PainlessMysql extends PainlessDao
                 throw new PainlessMysqlException( 'Unsupported return type [' . $retType . ']' );
         }
 
-        // close the statement if necessary
+        // Close the statement if necessary
         $closeStmt = (boolean) array_get( $extra, 'close', self::STMT_CLOSE );
         if ( $closeStmt && ! ( $ret instanceof PDOStatement ) ) $stmt->closeCursor( );
 
-        // save the query into the transaction log if this is a transaction
-        $log = array( $cmd, $extra );
+        // Only log stuff if we're in development mode
+        if ( DEV === DEPLOY_PROFILE )
+        {
+            // save the query into the transaction log if this is a transaction
+            $log = array( $cmd, $extra );
 
-        // save the return data if required
-        if ( $this->_logRetData ) $log[] = $ret;
+            // save the return data if required
+            $log[] = $ret;
 
-        // if this is a transaction, group all the logged queries together. Otherwise
-        // log them as single queries
-        if ( '' !== $this->_tranId )
-            $this->_log[$this->_tranId][] = $log;
-        else
-            $this->_log[date( 'Y-m-d H:i:s [u]' )] = $log;
+            // if this is a transaction, group all the logged queries together. Otherwise
+            // log them as single queries
+            if ( '' !== $this->_tranId )
+                $this->_log[$this->_tranId][] = $log;
+            else
+                $this->_log[date( 'Y-m-d H:i:s [u]' )] = $log;
+        }
+        
+        // Trigger the post execution notification
+        Beholder::notify( 'mysql.execute.post', $ret );
 
         return $ret;
     }
@@ -406,9 +416,12 @@ class PainlessMysql extends PainlessDao
 
         $this->_conn->beginTransaction( );
 
-        // log the current transaction
-        $this->_tranId = date( 'Y-m-d H:i:s [u]' );
-        $this->_log[$this->_tranId] = array( );
+        // log the current transaction if needed
+        if ( DEV === DEPLOY_PROFILE )
+        {
+            $this->_tranId = date( 'Y-m-d H:i:s [u]' );
+            $this->_log[$this->_tranId] = array( );
+        }
     }
 
     /**
@@ -430,9 +443,13 @@ class PainlessMysql extends PainlessDao
             $this->_conn->rollBack( );
         }
 
-        // always reset the transaction ID to prevent any further changes to the
-        // transaction log
-        $this->_tranId = '';
+        // log the current transaction if needed
+        if ( DEV === DEPLOY_PROFILE )
+        {
+            // always reset the transaction ID to prevent any further changes to the
+            // transaction log
+            $this->_tranId = '';
+        }
     }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -684,21 +701,6 @@ class PainlessMysql extends PainlessDao
         $sql = "DELETE FROM `$this->_tableName` WHERE `$this->_primaryKey` = '$pk' LIMIT 1";
 
         return $this->delete( $sql );
-    }
-
-    /**--------------------------------------------------------------------------------------------------------------------------------------------------
-     * self-sanitization
-     * --------------------------------------------------------------------------------------------------------------------------------------------------
-     */
-    protected function sanitizeForDb( ) 
-    {
-        // lazy init the connection
-        if ( NULL == $this->_conn ) $this->init( );
-        
-        foreach( $this as $field => $value )
-        {
-            $value = $this->_conn->quote( $value );
-        }
     }
 }
 
