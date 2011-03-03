@@ -130,6 +130,8 @@ class Beholder
                 }
             }
         }
+
+        return TRUE;
     }
     
     public static function notifyUntil( $name, & $params = array( ) )

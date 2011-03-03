@@ -143,7 +143,7 @@ class PainlessWorkflow
     {
         // Double check $status first. If it's not an INT, assume it's a response
         // object
-        if ( ! is_int( $status ) )
+        if ( $status instanceof PainlessResponse )
         {
             $this->response = $status;
         }

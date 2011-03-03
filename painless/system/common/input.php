@@ -99,27 +99,9 @@
 class PainlessInput
 {
 
-    protected $useXssClean = FALSE;
-    protected $xssHash = '';
     protected $ipAddress = FALSE;
     protected $userAgent = FALSE;
-    protected $allowGetArray = FALSE;
-    protected $sanitizer = NULL;
     private $isInit = FALSE;
-
-    //---------------------------------------------------------------
-    /**
-     * Constructor
-     *
-     * Sets whether to globally enable the XSS processing
-     * and whether to allow the $_GET array
-     *
-     * @access	public
-     */
-    public function __construct( )
-    {
-
-    }
 
     public function __destruct( )
     {
@@ -131,13 +113,8 @@ class PainlessInput
 
     public function init( )
     {
-        $this->sanitizer = Painless::get( 'system/common/sanitizer' );
-        $config = Painless::get( 'system/common/config' );
-
-        $this->useXssClean = ( $config->get( 'system.input.useXssFiltering' ) === TRUE ) ? TRUE : FALSE;
-        $this->sanitizeGlobals( );
-
-        $this->isInit = TRUE;
+        if ( Beholder::notifyUntil( 'input.init', $this ) )
+            $this->isInit = TRUE;
     }
 
     /**
@@ -149,7 +126,7 @@ class PainlessInput
      */
     public function get( $index = '', $default = FALSE )
     {
-        if ( !$this->isInit ) $this->init( );
+        if ( ! $this->isInit ) $this->init( );
         return $this->fetchFromArray( $_GET, $index, $default );
     }
 
@@ -162,7 +139,7 @@ class PainlessInput
      */
     public function post( $index = '', $default = FALSE )
     {
-        if ( !$this->isInit ) $this->init( );
+        if ( ! $this->isInit ) $this->init( );
         return $this->fetchFromArray( $_POST, $index, $default );
     }
 
@@ -175,7 +152,7 @@ class PainlessInput
      */
     public function file( $index = '', $default = FALSE )
     {
-        if ( !$this->isInit ) $this->init( );
+        if ( ! $this->isInit ) $this->init( );
         return $this->fetchFromArray( $_FILES, $index, $default );
     }
 
@@ -188,7 +165,7 @@ class PainlessInput
      */
     public function request( $index = '', $default = FALSE )
     {
-        if ( !$this->isInit ) $this->init( );
+        if ( ! $this->isInit ) $this->init( );
         return $this->fetchFromArray( $_REQUEST, $index, $default );
     }
 
@@ -201,7 +178,7 @@ class PainlessInput
      */
     public function server( $index = '', $default = FALSE )
     {
-        if ( !$this->isInit ) $this->init( );
+        if ( ! $this->isInit ) $this->init( );
         return $this->fetchFromArray( $_SERVER, $index, $default );
     }
 
@@ -213,7 +190,7 @@ class PainlessInput
      */
     public function ipAddress( )
     {
-        if ( !$this->isInit ) $this->init( );
+        if ( ! $this->isInit ) $this->init( );
 
         if ( $this->ipAddress !== FALSE )
         {
@@ -258,120 +235,6 @@ class PainlessInput
     }
 
     /**
-     * User Agent
-     *
-     * @access	public
-     * @return	string
-     */
-    public function userAgent( )
-    {
-        if ( !$this->isInit ) $this->init( );
-
-        if ( $this->userAgent !== FALSE )
-        {
-            return $this->userAgent;
-        }
-
-        $this->userAgent = (!isset( $_SERVER['HTTP_USER_AGENT'] ) ) ? FALSE : $_SERVER['HTTP_USER_AGENT'];
-
-        return $this->userAgent;
-    }
-
-    /**
-     * Sanitize Globals
-     *
-     * This function does the following:
-     *
-     * Unsets $_GET data (if query strings are not enabled)
-     *
-     * Standardizes newline characters to \n
-     *
-     * @access	protected
-     * @return	void
-     */
-    protected function sanitizeGlobals( )
-    {
-        // Would kind of be "wrong" to unset any of these GLOBALS
-        $protected = array( '_SERVER', '_GET', '_POST', '_FILES',
-            '_REQUEST', '_SESSION', '_ENV', 'GLOBALS',
-            'HTTP_RAW_POST_DATA', 'system_folder', 'application_folder',
-            'BM', 'EXT', 'CFG', 'URI', 'RTR', 'OUT', 'IN' );
-
-        // Clean $_GET Data
-        $_GET = $this->cleanInputData( $_GET );
-
-        // Clean $_POST Data
-        $_POST = $this->cleanInputData( $_POST );
-
-        // Clean $_COOKIE Data
-        $_COOKIE = $this->cleanInputData( $_COOKIE );
-    }
-
-    /**
-     * Clean Input Data
-     *
-     * This is a helper function. It escapes data and
-     * standardizes newline characters to \n
-     *
-     * @access	protected
-     * @param	string
-     * @return	string
-     */
-    protected function cleanInputData( $str )
-    {
-        if ( is_array( $str ) )
-        {
-            $new_array = array( );
-            foreach ( $str as $key => $val )
-            {
-                $new_array[$this->cleanInputKeys( $key )] = $this->cleanInputData( $val );
-            }
-            return $new_array;
-        }
-
-        // We strip slashes if magic quotes is on to keep things consistent
-        if ( get_magic_quotes_gpc ( ) )
-        {
-            $str = stripslashes( $str );
-        }
-
-        // Should we filter the input data?
-        if ( $this->useXssClean === TRUE )
-        {
-            $str = $this->sanitizer->xssClean( $str );
-        }
-
-        // Standardize newlines
-        if ( strpos( $str, "\r" ) !== FALSE )
-        {
-            $str = str_replace( array( "\r\n", "\r" ), "\n", $str );
-        }
-
-        return $str;
-    }
-
-    /**
-     * Clean Keys
-     *
-     * This is a helper function. To prevent malicious users
-     * from trying to exploit keys we make sure that keys are
-     * only named with alpha-numeric text and a few other items.
-     *
-     * @access	protected
-     * @param	string
-     * @return	string
-     */
-    protected function cleanInputKeys( $str )
-    {
-        if ( !preg_match( "/^[a-z0-9:_\/-]+$/i", $str ) )
-        {
-            trigger_error( sprintf( 'Invalid key: %s', $str ), E_USER_ERROR );
-        }
-
-        return $str;
-    }
-
-    /**
      * Fetch from array
      *
      * This is a helper function to retrieve values from global arrays
@@ -384,31 +247,13 @@ class PainlessInput
      */
     protected function fetchFromArray( $array, $index = '', $default = FALSE )
     {
-        $xssClean = $this->xssClean;
         $return = FALSE;
 
         // return an entire array if no index is specified
         if ( empty( $index ) )
-        {
-            if ( $xssClean === TRUE )
-            {
-                foreach ( $array as $index => $value )
-                {
-                    $array[$index] = $this->sanitizer->xssClean( $value );
-                }
-            }
-
             $return = $array;
-        }
         else
-        {
             $return = array_get( $array, $index, $default );
-        }
-
-        if ( $xssClean === TRUE )
-        {
-            $return = $this->sanitizer->xssClean( $return );
-        }
 
         return $return;
     }
