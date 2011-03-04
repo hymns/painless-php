@@ -352,7 +352,7 @@ class PainlessPdo extends PainlessDao
         // Build the insert query
         $sql = "INSERT INTO `$this->_tableName` ( $fields ) VALUES ( $values )";
 
-        return $this->insert( $sql );
+        return $this->executeInsert( $sql );
     }
 
     /**
@@ -391,7 +391,7 @@ class PainlessPdo extends PainlessDao
         // Build the SELECT query
         $sql = "SELECT $fields FROM `$this->_tableName` $where LIMIT 1";
 
-        $results = $this->select( $sql );
+        $results = $this->executeSelect( $sql );
         if ( ! empty( $results ) )
         {
             $results = $results[0];
@@ -447,7 +447,7 @@ class PainlessPdo extends PainlessDao
         // Build the SELECT query
         $sql = "SELECT $fields FROM `$this->_tableName` $where $order $group $limit";
 
-        $results = $this->select( $sql );
+        $results = $this->executeSelect( $sql );
         if ( ! empty( $results ) )
         {
             foreach( $results as $i => $row )
@@ -513,7 +513,7 @@ class PainlessPdo extends PainlessDao
         // Build the update query
         $sql = "UPDATE `$this->_tableName` SET $fields " . ( empty( $where ) ? "WHERE `$this->_primaryKey` = '$pk'" : $where );
 
-        return $this->update( $sql );
+        return $this->executeUpdate( $sql );
     }
 
     /**
@@ -540,7 +540,7 @@ class PainlessPdo extends PainlessDao
         // Build the delete query
         $sql = "DELETE FROM `$this->_tableName` " . ( empty( $where ) ? "WHERE `$this->_primaryKey` = '$pk'" : $where );
 
-        return $this->delete( $sql );
+        return $this->executeDelete( $sql );
     }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
