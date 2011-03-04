@@ -77,131 +77,6 @@ class PainlessPdo extends PainlessDao
     }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
-     * utility methods
-     * --------------------------------------------------------------------------------------------------------------------------------------------------
-     */
-
-    /**
-     * Builds a WHERE query string from an associative array
-     * @param array $criteria   an associative array containing the list of criterias
-     * @return string           the WHERE query string
-     */
-    protected function buildWhere( $criteria )
-    {
-        // lazy init the connection
-        if ( NULL == $this->_conn ) $this->init( );
-
-        $ret = '';
-
-        // $criteria can come in two flavors: a query string (which does not need
-        // to be "built" (except sanitized), or an array, which is automatically
-        // deconstructed into a string conjoined using the "AND" bitwise operator.
-        if ( is_array( $criteria ) )
-        {
-            // convert $criteria, an associative array whose key is the field name and
-            // value is the actual value, into an indexed array that can be imploded
-            // into a WHERE query string
-            $where = array( );
-            foreach ( $criteria as $field => $cond )
-            {
-                if ( is_string( $field ) )
-                {
-                    $where[] = '`' . $field . '`=' . $this->_conn->quote( $cond ) . '';
-                }
-                else
-                {
-                    $where[] = $cond;
-                }
-            }
-
-            // create the WHERE query string here
-            if ( !empty( $where ) )
-            {
-                $ret = ' WHERE ' . implode( ' AND ', $where );
-            }
-        }
-        else
-        {
-            // don't need to escape anything here as it'll automatically be done
-            // in execute( )
-            $ret = $criteria;
-        }
-
-        return $ret;
-    }
-
-    /**
-     * Builds a LIMIT clause using an offset and limit
-     * @param int $offset   the offset to begin search with. If $limit is 0, this would instead be used as the limit
-     * @param int $limit    the limit of records to search for.
-     * @return string       the LIMIT clause
-     */
-    protected function buildLimit( $offset = 0, $limit = 0 )
-    {
-        if ( FALSE === $offset && FALSE === $limit ) return '';
-
-        // lazy init the connection
-        if ( NULL == $this->_conn ) $this->init( );
-
-        // $offset and $limit can be used in 2 ways: $limit only, or $offset +
-        // $limit. This expectation is made with the use case where $offset cannot
-        // execute without a $limit. This is similar to how Mysql handles the
-        // LIMIT clause.
-        if ( $limit === 0 && $offset !== 0 )
-        {
-            $ret = "LIMIT $offset";
-        }
-        else
-        {
-            $ret = "LIMIT $offset, $limit";
-        }
-
-        return $ret;
-    }
-
-    /**
-     * Builds a ORDER query string from an associative array
-     * @param array $criteria   an associative array containing the list of criterias
-     * @return string           the ORDER query string
-     */
-    protected function buildOrder( $criteria )
-    {
-        // lazy init the connection
-        if ( NULL == $this->_conn ) $this->init( );
-
-        $ret = '';
-
-        // $criteria can come in two flavors: a query string (which does not need
-        // to be "built" (except sanitized), or an array, which is automatically
-        // deconstructed into a string conjoined using the "AND" bitwise operator.
-        if ( is_array( $criteria ) )
-        {
-            // convert $criteria, an associative array whose key is the field name and
-            // value is the actual value, into an indexed array that can be imploded
-            // into a WHERE query string
-            $order = array( );
-            foreach ( $criteria as $field )
-            {
-                $order[] = $this->_conn->quote( $field );
-            }
-
-            // create the WHERE query string here
-            if ( !empty( $order ) )
-            {
-                $ret = ' ORDER BY ' . implode( ', ', $order );
-            }
-        }
-        else
-        {
-            // don't need to escape anything here as it'll automatically be done
-            // in execute( )
-            $ret = $criteria;
-        }
-
-        return $ret;
-    }
-
-    /**--------------------------------------------------------------------------------------------------------------------------------------------------
      * lifecycle methods
      * --------------------------------------------------------------------------------------------------------------------------------------------------
      */
@@ -368,22 +243,22 @@ class PainlessPdo extends PainlessDao
      * @param string $sql   the sql query to execute
      * @return array        the results returned from the database
      */
-    public function select( $sql, $return = self::RET_ASSOC, $close = self::STMT_CLOSE )
+    public function executeSelect( $sql, $return = self::RET_ASSOC, $close = self::STMT_CLOSE )
     {
         return $this->execute( $sql, array( 'return' => $return, 'close' => $close ) );
     }
 
-    public function insert( $sql, $return = self::RET_ID, $close = self::STMT_CLOSE )
+    public function executeInsert( $sql, $return = self::RET_ID, $close = self::STMT_CLOSE )
     {
         return $this->execute( $sql, array( 'return' => $return, 'close' => $close ) );
     }
 
-    public function update( $sql, $return = self::RET_ROW_COUNT, $close = self::STMT_CLOSE )
+    public function executeUpdate( $sql, $return = self::RET_ROW_COUNT, $close = self::STMT_CLOSE )
     {
         return $this->execute( $sql, array( 'return' => $return, 'close' => $close ) );
     }
 
-    public function delete( $sql, $return = self::RET_ROW_COUNT, $close = self::STMT_CLOSE )
+    public function executeDelete( $sql, $return = self::RET_ROW_COUNT, $close = self::STMT_CLOSE )
     {
         return $this->execute( $sql, array( 'return' => $return, 'close' => $close ) );
     }
@@ -440,7 +315,7 @@ class PainlessPdo extends PainlessDao
      * Adds a record into the database
      * @param array $opt    an array of options ( NOT SUPPORTED )
      */
-    public function add( $opt = array( ) )
+    public function create( $opt = array( ) )
     {
         // lazy init the connection
         if ( NULL == $this->_conn ) $this->init( );
@@ -482,26 +357,18 @@ class PainlessPdo extends PainlessDao
 
     /**
      * Gets a record in the database
-     * @param array $opt    an array of options to be passed into buildWhere( )
+     * @param string $where     the WHERE clause
      */
-    public function get( $opt = array( ) )
+    public function get( $where = '' )
     {
         // lazy init the connection
         if ( NULL == $this->_conn ) $this->init( );
 
         if ( FALSE === $this->_tableName )
-            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions' );
 
         if ( empty( $this->_tableName ) )
             throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
-
-        // $opt can come in two flavors, either text or an array. If it's text,
-        // use it verbatim. If it's an array, process it into a WHERE query. LIMIT
-        // and ORDER are not used because get( ) retrieves only one object
-        if ( ! is_string( $opt ) && is_array( $opt ) )
-        {
-            $opt = $this->buildWhere( $opt );
-        }
 
         // Grab all properties in this object
         $fields = get_object_vars( $this );
@@ -521,7 +388,7 @@ class PainlessPdo extends PainlessDao
         $fields = implode( ',', $fields );
 
         // Build the SELECT query
-        $sql = "SELECT $fields FROM `$this->_tableName` $opt LIMIT 1";
+        $sql = "SELECT $fields FROM `$this->_tableName` $where LIMIT 1";
 
         $results = $this->select( $sql );
         if ( ! empty( $results ) )
@@ -542,18 +409,18 @@ class PainlessPdo extends PainlessDao
 
     /**
      * Searches for a record in the database
-     * @param array|string $cond    WHERE conditions
-     * @param array|string $range   LIMIT conditions
-     * @param array|string $sort    ORDER BY conditions
-     * @param array|string $group   GROUP BY conditions
+     * @param string $where   WHERE conditions
+     * @param string $order   ORDER BY conditions
+     * @param string $group   GROUP BY conditions
+     * @param string $limit   LIMIT conditions
      */
-    public function find( $query = '' )
+    public function find( $where = '', $order = '', $group = '', $limit = '' )
     {
         // lazy init the connection
         if ( NULL == $this->_conn ) $this->init( );
 
         if ( FALSE === $this->_tableName )
-            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
 
         if ( empty( $this->_tableName ) )
             throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
@@ -575,7 +442,7 @@ class PainlessPdo extends PainlessDao
         $fields = implode( ',', $fields );
 
         // Build the SELECT query
-        $sql = "SELECT $fields FROM `$this->_tableName` $query";
+        $sql = "SELECT $fields FROM `$this->_tableName` $where $order $group $limit";
 
         $results = $this->select( $sql );
         if ( ! empty( $results ) )
@@ -599,24 +466,24 @@ class PainlessPdo extends PainlessDao
 
     /**
      * Updates the database with a record.
-     * @param array $opt    an array of options ( NOT SUPPORTED )
+     * @param string $where     the WHERE clause
      */
-    public function save( $opt = array( ) )
+    public function update( $where = '' )
     {
         // lazy init the connection
         if ( NULL == $this->_conn ) $this->init( );
 
         if ( FALSE === $this->_tableName )
-            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
 
         if ( empty( $this->_tableName ) )
             throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
-        if ( FALSE === $this->_primaryKey )
-            throw new PainlessMysqlException( 'When $_primaryKey is set to FALSE, ActiveRecord functions save() and remove() cannot be used' );
+        if ( FALSE === $this->_primaryKey && empty( $where ) )
+            throw new PainlessMysqlException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
 
-        if ( empty( $this->_primaryKey ) )
-            throw new PainlessMysqlException( '$_primaryKey is not defined. Please set $_primaryKey to use save() and remove() functions' );
+        if ( empty( $this->_primaryKey ) && empty( $where ) )
+            throw new PainlessMysqlException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
 
         // Get the list of public properties of this DAO
         $props = get_object_vars( $this );
@@ -641,7 +508,7 @@ class PainlessPdo extends PainlessDao
         $fields = implode( ',', $fields );
 
         // Build the update query
-        $sql = "UPDATE `$this->_tableName` SET $fields WHERE `$this->_primaryKey` = '$pk'";
+        $sql = "UPDATE `$this->_tableName` SET $fields " . ( empty( $where ) ? "WHERE `$this->_primaryKey` = '$pk'" : $where );
 
         return $this->update( $sql );
     }
@@ -650,25 +517,25 @@ class PainlessPdo extends PainlessDao
      * Deletes a record from the DB using a primary key
      * @param array $opt    an array of options ( NOT SUPPORTED )
      */
-    public function remove( $opt = array( ) )
+    public function delete( $where = '' )
     {
         if ( FALSE === $this->_tableName )
-            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
 
         if ( empty( $this->_tableName ) )
             throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
-        if ( FALSE === $this->_primaryKey )
-            throw new PainlessMysqlException( 'When $_primaryKey is set to FALSE, ActiveRecord functions save() and remove() cannot be used' );
+        if ( FALSE === $this->_primaryKey && empty( $where ) )
+            throw new PainlessMysqlException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
 
-        if ( empty( $this->_primaryKey ) )
-            throw new PainlessMysqlException( '$_primaryKey is not defined. Please set $_primaryKey to use save() and remove() functions' );
+        if ( empty( $this->_primaryKey ) && empty( $where ) )
+            throw new PainlessMysqlException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
 
         $pk = $this->_primaryKey;
         $pk = $this->$pk;
 
         // Build the delete query
-        $sql = "DELETE FROM `$this->_tableName` WHERE `$this->_primaryKey` = '$pk' LIMIT 1";
+        $sql = "DELETE FROM `$this->_tableName` " . ( empty( $where ) ? "WHERE `$this->_primaryKey` = '$pk'" : $where );
 
         return $this->delete( $sql );
     }
