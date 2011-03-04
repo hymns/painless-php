@@ -82,13 +82,6 @@ abstract class PainlessDao
         }
     }
 
-    /**--------------------------------------------------------------------------------------------------------------------------------------------------
-     * lifecycle methods
-     * --------------------------------------------------------------------------------------------------------------------------------------------------
-     */
-    abstract public function init( $profile = '' );
-    abstract public function close( );
-
     /**
      * Adds a connection profile to the DAO
      * @param string $name  the identifier of the profile
@@ -124,20 +117,17 @@ abstract class PainlessDao
     }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
+     * lifecycle methods
+     * --------------------------------------------------------------------------------------------------------------------------------------------------
+     */
+    abstract public function init( $profile = '' );
+    abstract public function close( );
+
+    /**--------------------------------------------------------------------------------------------------------------------------------------------------
      * direct query/execution methods
      * --------------------------------------------------------------------------------------------------------------------------------------------------
      */
     abstract public function execute( $cmd, $extra = array( ) );
-
-    /**--------------------------------------------------------------------------------------------------------------------------------------------------
-     * DAO methods
-     * --------------------------------------------------------------------------------------------------------------------------------------------------
-     */
-    abstract public function add( $opt = array( ) );                            // adds a new record to the data store
-    abstract public function get( $opt = array( ) );
-    abstract public function find( $opt = array( ) );                           // finds a record from the data store
-    abstract public function save( $opt = array( ) );                           // saves or updates the record into the data store
-    abstract public function remove( $opt = array( ) );                         // deletes the record in the data store
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
      * transactional methods
