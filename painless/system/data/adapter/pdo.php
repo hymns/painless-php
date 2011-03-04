@@ -358,6 +358,7 @@ class PainlessPdo extends PainlessDao
     /**
      * Gets a record in the database
      * @param string $where     the WHERE clause
+     * @return boolean          returns TRUE if it successfully finds the record, FALSE if otherwise
      */
     public function get( $where = '' )
     {
@@ -402,9 +403,11 @@ class PainlessPdo extends PainlessDao
             }
 
             $results = $this;
+
+            return TRUE;
         }
 
-        return $results;
+        return FALSE;
     }
 
     /**
