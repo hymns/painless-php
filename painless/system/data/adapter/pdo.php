@@ -54,21 +54,19 @@ class PainlessPdo extends PainlessDao
     const STMT_CLOSE        = TRUE;
     const STMT_IGNORE       = FALSE;
 
-    // execute( ) $extra option shorthands for common operations
-    protected $_opInsert    = array( 'return' => self::RET_ID,          'close' => self::STMT_CLOSE );
-    protected $_opUpdate    = array( 'return' => self::RET_ROW_COUNT,   'close' => self::STMT_CLOSE );
-    protected $_opSelect    = array( 'return' => self::RET_ASSOC,       'close' => self::STMT_CLOSE );
-    protected $_opDelete    = array( 'return' => self::RET_ROW_COUNT,   'close' => self::STMT_CLOSE );
+    // If this is set to true, then this object is a valid DAO after the get( )
+    // operation.
+    protected $_isDao       = TRUE;
+
+    protected $_sqlFactory  = NULL;
 
     protected $_logRetData  = FALSE;
-
     protected $_conn        = NULL;
 
     /**
      * @var string	$prep	the list of SQL in the last transaction
      */
     protected $_log         = array( );
-
     protected $_tranId      = '';
 
     public function __construct( )
@@ -370,24 +368,24 @@ class PainlessPdo extends PainlessDao
      * @param string $sql   the sql query to execute
      * @return array        the results returned from the database
      */
-    public function select( $sql )
+    public function select( $sql, $return = self::RET_ASSOC, $close = self::STMT_CLOSE )
     {
-        return $this->execute( $sql, $this->_opSelect );
+        return $this->execute( $sql, array( 'return' => $return, 'close' => $close ) );
     }
 
-    public function insert( $sql )
+    public function insert( $sql, $return = self::RET_ID, $close = self::STMT_CLOSE )
     {
-        return $this->execute( $sql, $this->_opInsert );
+        return $this->execute( $sql, array( 'return' => $return, 'close' => $close ) );
     }
 
-    public function update( $sql )
+    public function update( $sql, $return = self::RET_ROW_COUNT, $close = self::STMT_CLOSE )
     {
-        return $this->execute( $sql, $this->_opUpdate );
+        return $this->execute( $sql, array( 'return' => $return, 'close' => $close ) );
     }
 
-    public function delete( $sql )
+    public function delete( $sql, $return = self::RET_ROW_COUNT, $close = self::STMT_CLOSE )
     {
-        return $this->execute( $sql, $this->_opDelete );
+        return $this->execute( $sql, array( 'return' => $return, 'close' => $close ) );
     }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -460,15 +458,16 @@ class PainlessPdo extends PainlessDao
         $values = array( );
 
         // Create the fields and values array
-        foreach( $props as $p )
+        foreach( $props as $p => $v )
         {
-            $v = $this->_conn->quote( $this->$p );
+            // Skip over any unset fields
+            if ( NULL === $v || $p[0] === '_' || $p === $this->_primaryKey ) continue;
+
+            $v = $this->_conn->quote( $v );
             $p = camel_to_underscore( $p );
-            if ( ( ! empty( $p ) && $p[0] !== '_' ) || $p !== $this->_primaryKey )
-            {
-                $fields[] = $p;
-                $values[] = $v;
-            }
+            
+            $fields[] = '`' . $p . '`';
+            $values[] = $v;
         }
 
         // Implode the two arrays into strings
@@ -483,11 +482,7 @@ class PainlessPdo extends PainlessDao
 
     /**
      * Gets a record in the database
-     * @param array $opt    an array of options, each an associative array where:
-     *                      options:
-     *                          where (assoc array)
-     *                              - key           = the name of the field to search for
-     *                              - value         = the value of the field to search for
+     * @param array $opt    an array of options to be passed into buildWhere( )
      */
     public function get( $opt = array( ) )
     {
@@ -500,9 +495,15 @@ class PainlessPdo extends PainlessDao
         if ( empty( $this->_tableName ) )
             throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
-        // Build the WHERE, LIMIT and ORDER query
-        $where = $this->buildWhere( array_get( $opt, 'where', array( ) ) );
+        // $opt can come in two flavors, either text or an array. If it's text,
+        // use it verbatim. If it's an array, process it into a WHERE query. LIMIT
+        // and ORDER are not used because get( ) retrieves only one object
+        if ( ! is_string( $opt ) && is_array( $opt ) )
+        {
+            $opt = $this->buildWhere( $opt );
+        }
 
+        // Grab all properties in this object
         $fields = get_object_vars( $this );
 
         // Convert all properties from camel case to underscore convention
@@ -520,7 +521,7 @@ class PainlessPdo extends PainlessDao
         $fields = implode( ',', $fields );
 
         // Build the SELECT query
-        $sql = "SELECT $fields FROM `$this->_tableName` $where LIMIT 1";
+        $sql = "SELECT $fields FROM `$this->_tableName` $opt LIMIT 1";
 
         $results = $this->select( $sql );
         if ( ! empty( $results ) )
@@ -541,19 +542,12 @@ class PainlessPdo extends PainlessDao
 
     /**
      * Searches for a record in the database
-     * @param array $opt    an array of options, each an associative array where:
-     *                      options:
-     *                          where (assoc array)
-     *                              - key           = the name of the field to search for
-     *                              - value         = the value of the field to search for
-     *                          limit (indexed array)
-     *                              - 0             = the offset
-     *                              - 1             = the max
-     *                          order (assoc array)
-     *                              - key           = the field to order by
-     *                              - value         = either DESC or ASC
+     * @param array|string $cond    WHERE conditions
+     * @param array|string $range   LIMIT conditions
+     * @param array|string $sort    ORDER BY conditions
+     * @param array|string $group   GROUP BY conditions
      */
-    public function find( $opt = array( ) )
+    public function find( $query = '' )
     {
         // lazy init the connection
         if ( NULL == $this->_conn ) $this->init( );
@@ -563,12 +557,6 @@ class PainlessPdo extends PainlessDao
 
         if ( empty( $this->_tableName ) )
             throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
-
-        // Build the WHERE, LIMIT and ORDER query
-        $where = $this->buildWhere( array_get( $opt, 'where', array( ) ) );
-        list( $limit, $offset ) = array_get( $opt, 'limit', array( FALSE, FALSE ) );
-        $limit = $this->buildLimit( $limit, $offset );
-        $order = $this->buildOrder( array_get( $opt, 'order', array( ) ) );
 
         $fields = get_object_vars( $this );
 
@@ -587,7 +575,7 @@ class PainlessPdo extends PainlessDao
         $fields = implode( ',', $fields );
 
         // Build the SELECT query
-        $sql = "SELECT $fields FROM `$this->_tableName` $where $order $limit";
+        $sql = "SELECT $fields FROM `$this->_tableName` $query";
 
         $results = $this->select( $sql );
         if ( ! empty( $results ) )
@@ -683,6 +671,18 @@ class PainlessPdo extends PainlessDao
         $sql = "DELETE FROM `$this->_tableName` WHERE `$this->_primaryKey` = '$pk' LIMIT 1";
 
         return $this->delete( $sql );
+    }
+
+    /**--------------------------------------------------------------------------------------------------------------------------------------------------
+     * SQL query factory
+     * --------------------------------------------------------------------------------------------------------------------------------------------------
+     */
+    public function sql( )
+    {
+        if ( empty( $this->_sqlFactory ) )
+            $this->_sqlFactory = Painless::get( 'system/data/sql/sql-factory' );
+
+        return $this->_sqlFactory;
     }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
