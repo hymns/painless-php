@@ -379,7 +379,7 @@ class PainlessPdo extends PainlessDao
         $fields = implode( ',', $fields );
 
         // Append the WHERE clause to $where if none exists
-        if ( ! empty( $where ) && FALSE === stripos( 'WHERE', $where ) )
+        if ( ! empty( $where ) && FALSE === stripos( $where, 'WHERE' ) )
             $where = "WHERE $where";
 
         // Build the SELECT query
@@ -438,19 +438,19 @@ class PainlessPdo extends PainlessDao
         $fields = implode( ',', $fields );
 
         // Prepend a WHERE to $where if none available
-        if ( ! empty( $where ) && FALSE === stripos( 'WHERE', $where) )
+        if ( ! empty( $where ) && FALSE === stripos( $where, 'WHERE' ) )
             $where = "WHERE $where";
 
         // Prepend an ORDER BY to $order if none available
-        if ( ! empty( $order ) && FALSE === stripos( 'ORDER BY', $order ) )
+        if ( ! empty( $order ) && FALSE === stripos( $order, 'ORDER BY' ) )
             $order = "ORDER BY $order";
 
         // Prepend a GROUP BY to $group if none available
-        if ( ! empty( $group ) && FALSE === stripos( 'GROUP BY', $group ) )
+        if ( ! empty( $group ) && FALSE === stripos( $group, 'GROUP BY' ) )
             $group = "GROUP BY $group";
 
         // Prepend a LIMIT to $limit if none available
-        if ( ! empty( $limit ) && FALSE === stripos( 'LIMIT', $limi ) )
+        if ( ! empty( $limit ) && FALSE === stripos( $limit, 'LIMIT' ) )
             $limit = "LIMIT $limit";
 
         // Build the SELECT query
@@ -494,7 +494,7 @@ class PainlessPdo extends PainlessDao
         if ( FALSE === $this->_primaryKey && empty( $where ) )
             throw new PainlessMysqlException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
 
-        if ( empty( $this->_primaryKey ) && empty( $where ) )
+        if ( empty( $this->_primaryKey ) || ( empty( $where ) && NULL === $this->{$this->_primaryKey} ) )
             throw new PainlessMysqlException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
 
         // Get the list of public properties of this DAO
@@ -504,23 +504,32 @@ class PainlessPdo extends PainlessDao
         $pk = '';
 
         // Create the fields and values array
-        foreach( $props as $p )
+        foreach( $props as $f => $v )
         {
-            if ( ! empty( $p ) && $p[0] !== '_' && $p !== $this->_primaryKey )
-            {
-                $fields[] = "`$p` = " . $this->_conn->quote( $this->$p );
-            }
-            elseif( $p === $this->_primaryKey )
-            {
-                $pk = $this->$p;
-            }
+            // Don't proceed if the value of the field is NULL, to enable selective
+            // field updates
+            if ( $f[0] === '_' || $f === $this->_primaryKey || NULL === $v )
+                continue;
+
+            $fields[] = "`$f` = " . $this->_conn->quote( $v );
         }
 
         // Implode the two arrays into strings
         $fields = implode( ',', $fields );
 
+        // If no $where is provided as a parameter, use the primary key instead
+        if ( empty( $where ) )
+        {
+            $pk = $this->_primaryKey;
+            $where = "WHERE `$this->_primaryKey` = " . $this->{$pk};
+        }
+
+        // Prepend the WHERE in $where if needed
+        if ( FALSE === stripos( $where, 'WHERE' ) )
+            $where = "WHERE $where";
+
         // Build the update query
-        $sql = "UPDATE `$this->_tableName` SET $fields " . ( empty( $where ) ? "WHERE `$this->_primaryKey` = '$pk'" : $where );
+        $sql = "UPDATE `$this->_tableName` SET $fields $where";
 
         return $this->executeUpdate( $sql );
     }
