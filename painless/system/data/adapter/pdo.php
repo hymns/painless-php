@@ -475,7 +475,8 @@ class PainlessPdo extends PainlessDao
         {
             foreach( $results as $i => $row )
             {
-                $obj = new $this;
+                $obj = clone $this;
+
                 foreach( $row as $field => $value )
                 {
                     $field = underscore_to_camel( $field );
@@ -624,6 +625,15 @@ class PainlessPdo extends PainlessDao
         {
             $value = $this->_conn->quote( $value );
         }
+    }
+
+    /**--------------------------------------------------------------------------------------------------------------------------------------------------
+     * debug
+     * --------------------------------------------------------------------------------------------------------------------------------------------------
+     */
+    public static function debug( )
+    {
+        var_dump( self::$queryLog );
     }
 }
 
