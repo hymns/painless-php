@@ -263,7 +263,7 @@ class PainlessPdo extends PainlessDao
         // lazy init the connection
         if ( NULL == $this->_conn ) $this->init( );
 
-        $this->_conn->beginTransaction( );
+        $state = $this->_conn->beginTransaction( );
 
         // log the current transaction
         self::$currTranId = date( 'Y-m-d H:i:s [u]' );
@@ -282,11 +282,12 @@ class PainlessPdo extends PainlessDao
         if ( ! $rollback )
         {
             // commits the data and if failed, roll it back
-            if ( ! $this->_conn->commit( ) ) $this->end( TRUE );
+            if ( ! $this->_conn->commit( ) )
+                $this->end( TRUE );
         }
         else
         {
-            $this->_conn->rollBack( );
+            $state = $this->_conn->rollBack( );
         }
 
         // always reset the transaction ID to prevent any further changes to the
@@ -592,7 +593,7 @@ class PainlessPdo extends PainlessDao
         foreach( $props as $f => $v )
         {
             if ( $f[0] === '_' ) continue;
-            $props->$f = NULL;
+            $this->{$f} = NULL;
         }
 
         return $this;
