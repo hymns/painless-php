@@ -533,7 +533,7 @@ class PainlessPdo extends PainlessDao
 
         // Don't update if there's nothing to update
         if ( empty( $fields ) )
-            return 0;
+            return FALSE;
 
         // Implode the two arrays into strings
         $fields = implode( ',', $fields );
