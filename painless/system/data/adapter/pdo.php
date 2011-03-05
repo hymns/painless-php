@@ -155,21 +155,23 @@ class PainlessPdo extends PainlessDao
      */
     public function execute( $cmd, $extra = array( ) )
     {
-        // lazy init the connection
+        // Lazy init the connection
         if ( NULL == $this->_conn ) $this->init( );
 
-        // create a PDOStatement object
+        // Create a PDOStatement object
         $stmt = $this->_conn->query( $cmd );
         if ( FALSE === $stmt )
         {
             return FALSE;
         }
 
+        // Get the execution options
+        $retType    = (int) array_get( $extra, 'return', self::RET_ROW_COUNT );
+        $closeStmt  = (bool) array_get( $extra, 'close', self::STMT_CLOSE );
+
         // $extra['return'] will tell us what stuff to return, so let's parse it
         // now
-        $retType = (int) array_get( $extra, 'return', self::RET_ROW_COUNT );
         $ret = NULL;
-
         switch( $retType )
         {
             case self::RET_ROW_COUNT :
@@ -202,19 +204,18 @@ class PainlessPdo extends PainlessDao
                 throw new PainlessMysqlException( 'Unsupported return type [' . $retType . ']' );
         }
 
-        // close the statement if necessary
-        $closeStmt = (boolean) array_get( $extra, 'close', self::STMT_CLOSE );
+        // Close the statement if necessary
         if ( $closeStmt && ! ( $ret instanceof PDOStatement ) ) $stmt->closeCursor( );
 
-        // save the query into the transaction log if this is a transaction
+        // Save the query into the transaction log if this is a transaction
         $log = array( $cmd, $extra );
 
-        // save the return data if required
+        // Save the return data if required
         $logData = Painless::isProfile( DEV );
         if ( $logData )
             $log[] = $ret;
 
-        // if this is a transaction, group all the logged queries together. Otherwise
+        // If this is a transaction, group all the logged queries together. Otherwise
         // log them as single queries
         if ( '' !== self::$currTranId )
             self::$queryLog[self::$currTranId][] = $log;
@@ -224,11 +225,6 @@ class PainlessPdo extends PainlessDao
         return $ret;
     }
 
-    /**
-     * A shorthand for executing SELECT statements
-     * @param string $sql   the sql query to execute
-     * @return array        the results returned from the database
-     */
     public function executeSelect( $sql, $return = self::RET_ASSOC, $close = self::STMT_CLOSE )
     {
         return $this->execute( $sql, array( 'return' => $return, 'close' => $close ) );
