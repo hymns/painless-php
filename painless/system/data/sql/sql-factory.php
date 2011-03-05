@@ -86,10 +86,18 @@ class PainlessSqlFactory
         return $this;
     }
 
+    public function limit( $count, $offset = 0 )
+    {
+        $this->limit = array( (int) $count, (int) $offset );
+        return $this;
+    }
+
     public function build( $option = self::ALL )
     {
-        // Build the WHERE clause
         $where      = '';
+        $limit      = '';
+
+        // Build the WHERE clause
         $whereArr   = $this->where;
         $count      = count( $whereArr );
 
@@ -123,7 +131,23 @@ class PainlessSqlFactory
             }
         }
 
-        return $where;
+        // Build the LIMIT clause
+        if ( ! empty( $this->limit ) )
+        {
+            list( $count, $offset ) = $this->limit;
+
+            if ( $offset === 0 )
+                $limit = "LIMIT $count";
+            else
+                $limit = "LIMIT $offset, $count";
+        }
+
+        // Wipe out all operations
+        $this->where = NULL;
+        $this->order = NULL;
+        $this->limit = NULL;
+
+        return $where . ' ' . $limit;
     }
 }
 
@@ -139,15 +163,16 @@ $sql->where( 'id = 1' )
      ->open( )
      ->where( 'id = 4' )
      ->close( )
-     ->close( );
+     ->close( )
+     ->build( );
 // WHERE id = 1  AND  ( ( id = 2  OR  id = 3 )  AND  ( id = 4 ) )
 
 $sql2 = new PainlessSqlFactory;
-$sql2->whereOr( 'id = 3' )->where( 'id = 5');
+$sql2->whereOr( 'id = 3' )->where( 'id = 5')->build( );
 // WHERE id = 3  OR  id = 5
 
 $sql3 = new PainlessSqlFactory;
-$sql3->where( 'id = 1' )->open( )->whereOr( 'id = 2' )->where( 'id = 3' )->whereOr( 'id = 4' )->close( )->where( 'id = 6' );
+$sql3->where( 'id = 1' )->open( )->whereOr( 'id = 2' )->where( 'id = 3' )->whereOr( 'id = 4' )->close( )->where( 'id = 6' )->build( );
 // WHERE id = 1  AND  ( id = 2  OR  id = 3  AND  id = 4 )  OR  id = 6
 
 $sql4 = new PainlessSqlFactory;

@@ -90,10 +90,10 @@ class PainlessPdo extends PainlessDao
         {
             // Get the list of profiles from the config file
             $profiles   = $config->get( 'mysql.profiles' );
-            if ( empty( $profiles ) ) throw new PainlessMysqlException( 'Profiles not properly defined in the config file' );
+            if ( empty( $profiles ) ) throw new PainlessPdoException( 'Profiles not properly defined in the config file' );
 
             // Only get the profile if there's a match
-            if ( ! array_values( $profile ) ) throw new PainlessMysqlException( "The specified profile [$profile] is not defined in the config file" );
+            if ( ! array_values( $profile ) ) throw new PainlessPdoException( "The specified profile [$profile] is not defined in the config file" );
             $connParams = $config->get( "mysql.$profile.*" );
             $prefix .= $profile . '.';
         }
@@ -163,69 +163,72 @@ class PainlessPdo extends PainlessDao
         // Lazy init the connection
         if ( NULL == $this->_conn ) $this->init( );
 
-        // Create a PDOStatement object
-        $stmt = $this->_conn->query( $cmd );
-        if ( FALSE === $stmt )
+        // Construct the log item
+        $log = array( $cmd, $extra );
+        
+        try
         {
-            return FALSE;
+            // Create a PDOStatement object
+            $stmt = $this->_conn->query( $cmd );
+            if ( FALSE === $stmt )
+            {
+                return FALSE;
+            }
+
+            // Get the execution options
+            $retType    = (int) array_get( $extra, 'return', self::RET_ROW_COUNT );
+            $closeStmt  = (bool) array_get( $extra, 'close', self::STMT_CLOSE );
+
+            // $extra['return'] will tell us what stuff to return, so let's parse it
+            // now
+            $ret = NULL;
+            switch( $retType )
+            {
+                case self::RET_ROW_COUNT :
+                    $ret = (int) $stmt->rowCount( );
+                    break;
+
+                case self::RET_ID :
+                    $ret = $this->_conn->lastInsertId( );
+                    break;
+
+                case self::RET_ARRAY :
+                    $stmt->setFetchMode( PDO::FETCH_NUM );
+                    $ret = $stmt->fetchAll( );
+                    break;
+
+                case self::RET_ASSOC :
+                    $stmt->setFetchMode( PDO::FETCH_ASSOC );
+                    $ret = $stmt->fetchAll( );
+                    break;
+
+                case self::RET_OBJ :
+                    $stmt->setFetchMode( PDO::FETCH_OBJ );
+                    $ret = $stmt->fetchAll( );
+                    break;
+
+                case self::RET_STMT :
+                    $ret = $stmt;
+
+                default :
+                    throw new PainlessPdoException( 'Unsupported return type [' . $retType . ']' );
+            }
         }
-
-        // Get the execution options
-        $retType    = (int) array_get( $extra, 'return', self::RET_ROW_COUNT );
-        $closeStmt  = (bool) array_get( $extra, 'close', self::STMT_CLOSE );
-
-        // $extra['return'] will tell us what stuff to return, so let's parse it
-        // now
-        $ret = NULL;
-        switch( $retType )
+        catch( Exception $e )
         {
-            case self::RET_ROW_COUNT :
-                $ret = (int) $stmt->rowCount( );
-                break;
-
-            case self::RET_ID :
-                $ret = $this->_conn->lastInsertId( );
-                break;
-
-            case self::RET_ARRAY :
-                $stmt->setFetchMode( PDO::FETCH_NUM );
-                $ret = $stmt->fetchAll( );
-                break;
-
-            case self::RET_ASSOC :
-                $stmt->setFetchMode( PDO::FETCH_ASSOC );
-                $ret = $stmt->fetchAll( );
-                break;
-
-            case self::RET_OBJ :
-                $stmt->setFetchMode( PDO::FETCH_OBJ );
-                $ret = $stmt->fetchAll( );
-                break;
-
-            case self::RET_STMT :
-                $ret = $stmt;
-
-            default :
-                throw new PainlessMysqlException( 'Unsupported return type [' . $retType . ']' );
+            // Don't forget to log the operation before exiting
+            PainlessPdo::log( $log );
+            throw new PainlessPdoException( $e );
         }
 
         // Close the statement if necessary
         if ( $closeStmt && ! ( $ret instanceof PDOStatement ) ) $stmt->closeCursor( );
 
-        // Save the query into the transaction log if this is a transaction
-        $log = array( $cmd, $extra );
-
         // Save the return data if required
-        $logData = Painless::isProfile( DEV );
-        if ( $logData )
+        if ( Painless::isProfile( DEV ) )
             $log[] = $ret;
 
-        // If this is a transaction, group all the logged queries together. Otherwise
-        // log them as single queries
-        if ( '' !== self::$currTranId )
-            self::$queryLog[self::$currTranId][] = $log;
-        else
-            self::$queryLog[date( 'Y-m-d H:i:s [u]' )] = $log;
+        PainlessPdo::log( $log );
 
         return $ret;
     }
@@ -264,10 +267,6 @@ class PainlessPdo extends PainlessDao
         if ( NULL == $this->_conn ) $this->init( );
 
         $state = $this->_conn->beginTransaction( );
-
-        // log the current transaction
-        self::$currTranId = date( 'Y-m-d H:i:s [u]' );
-        self::$queryLog[self::$currTranId] = array( );
     }
 
     /**
@@ -289,10 +288,6 @@ class PainlessPdo extends PainlessDao
         {
             $state = $this->_conn->rollBack( );
         }
-
-        // always reset the transaction ID to prevent any further changes to the
-        // transaction log
-        self::$currTranId = '';
     }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -309,10 +304,10 @@ class PainlessPdo extends PainlessDao
         $conn = $this->_conn;
 
         if ( FALSE === $this->_tableName )
-            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+            throw new PainlessPdoException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new PainlessPdoException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         // Get the list of public properties of this DAO
         $props = get_object_vars( $this );
@@ -360,10 +355,10 @@ class PainlessPdo extends PainlessDao
         if ( NULL == $this->_conn ) $this->init( );
 
         if ( FALSE === $this->_tableName )
-            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions' );
+            throw new PainlessPdoException( 'When $_tableName is set to FALSE, ActiveRecord functions' );
 
         if ( empty( $this->_tableName ) )
-            throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new PainlessPdoException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         // Grab all properties in this object
         $fields = get_object_vars( $this );
@@ -429,10 +424,10 @@ class PainlessPdo extends PainlessDao
         if ( NULL == $this->_conn ) $this->init( );
 
         if ( FALSE === $this->_tableName )
-            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
+            throw new PainlessPdoException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new PainlessPdoException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         $fields = get_object_vars( $this );
 
@@ -502,16 +497,16 @@ class PainlessPdo extends PainlessDao
         $conn = $this->_conn;
 
         if ( FALSE === $this->_tableName )
-            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
+            throw new PainlessPdoException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new PainlessPdoException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         if ( FALSE === $this->_primaryKey && empty( $where ) )
-            throw new PainlessMysqlException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
+            throw new PainlessPdoException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
 
         if ( empty( $this->_primaryKey ) || ( empty( $where ) && NULL === $this->{$this->_primaryKey} ) )
-            throw new PainlessMysqlException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
+            throw new PainlessPdoException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
 
         // Get the list of public properties of this DAO
         $props = get_object_vars( $this );
@@ -527,6 +522,9 @@ class PainlessPdo extends PainlessDao
             // field updates
             if ( $f[0] === '_' || $f === $pkName || NULL === $v || in_array( $f, $excludes ) )
                 continue;
+
+            // Switch convention from camel to underscore
+            $f = camel_to_underscore( $f );
 
             $fields[] = "`$f` = " . $conn->quote( $v );
         }
@@ -561,16 +559,16 @@ class PainlessPdo extends PainlessDao
     public function delete( $where = '' )
     {        
         if ( FALSE === $this->_tableName )
-            throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
+            throw new PainlessPdoException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new PainlessMysqlException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new PainlessPdoException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         if ( FALSE === $this->_primaryKey && empty( $where ) )
-            throw new PainlessMysqlException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
+            throw new PainlessPdoException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
 
         if ( empty( $this->_primaryKey ) || ( empty( $where ) && NULL === $this->{$this->_primaryKey} ) )
-            throw new PainlessMysqlException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
+            throw new PainlessPdoException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
 
         // If no $where is provided as a parameter, use the primary key instead
         $pkName = $this->_primaryKey;
@@ -639,6 +637,11 @@ class PainlessPdo extends PainlessDao
     {
         var_dump( self::$queryLog );
     }
+
+    public static function log( $log )
+    {
+        self::$queryLog[] = $log;
+    }
 }
 
-class PainlessMysqlException extends ErrorException { }
+class PainlessPdoException extends ErrorException { }
