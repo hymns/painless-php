@@ -56,6 +56,11 @@ class PainlessPdo extends PainlessDao
 
     protected $_conn                = NULL;
 
+    // Add fields to $_daoExclude to prevent them from being processed when using
+    // any ActiveRecord functions (create,get,find,update,delete). Useful if you
+    // want to turn this object into a DataMapper
+    protected $_daoExclude          = array( );
+
     protected static $queryBuilder  = NULL;
     protected static $queryLog      = array( );
     protected static $currTranId    = '';
@@ -301,6 +306,7 @@ class PainlessPdo extends PainlessDao
     {
         // lazy init the connection
         if ( NULL == $this->_conn ) $this->init( );
+        $conn = $this->_conn;
 
         if ( FALSE === $this->_tableName )
             throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
@@ -315,12 +321,14 @@ class PainlessPdo extends PainlessDao
         $values = array( );
 
         // Create the fields and values array
+        $excludes = $this->_daoExclude;
+        $pkName = $this->_primaryKey;
         foreach( $props as $p => $v )
         {
             // Skip over any unset fields
-            if ( NULL === $v || $p[0] === '_' || $p === $this->_primaryKey ) continue;
+            if ( NULL === $v || $p[0] === '_' || $p === $pkName || in_array( $p, $excludes ) ) continue;
 
-            $v = $this->_conn->quote( $v );
+            $v = $conn->quote( $v );
             $p = camel_to_underscore( $p );
             
             $fields[] = '`' . $p . '`';
@@ -361,9 +369,10 @@ class PainlessPdo extends PainlessDao
         $fields = get_object_vars( $this );
 
         // Convert all properties from camel case to underscore convention
+        $excludes = $this->_daoExclude;
         foreach( $fields as $i => $f )
         {
-            if ( $i[0] === '_' )
+            if ( $i[0] === '_' || in_array( $i, $excludes ) )
             {
                 unset( $fields[$i] );
                 continue;
@@ -420,9 +429,10 @@ class PainlessPdo extends PainlessDao
         $fields = get_object_vars( $this );
 
         // Convert all properties from camel case to underscore convention
+        $excludes = $this->_daoExclude;
         foreach( $fields as $i => $f )
         {
-            if ( $i[0] === '_' )
+            if ( $i[0] === '_' || in_array( $i, $excludes ) )
             {
                 unset( $fields[$i] );
                 continue;
@@ -480,6 +490,7 @@ class PainlessPdo extends PainlessDao
     {
         // lazy init the connection
         if ( NULL == $this->_conn ) $this->init( );
+        $conn = $this->_conn;
 
         if ( FALSE === $this->_tableName )
             throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
@@ -499,14 +510,16 @@ class PainlessPdo extends PainlessDao
         $fields = array( );
 
         // Create the fields and values array
+        $pkName = $this->_primaryKey;
+        $excludes = $this->_daoExclude;
         foreach( $props as $f => $v )
         {
             // Don't proceed if the value of the field is NULL, to enable selective
             // field updates
-            if ( $f[0] === '_' || $f === $this->_primaryKey || NULL === $v )
+            if ( $f[0] === '_' || $f === $pkName || NULL === $v || in_aray( $f, $excludes ) )
                 continue;
 
-            $fields[] = "`$f` = " . $this->_conn->quote( $v );
+            $fields[] = "`$f` = " . $conn->quote( $v );
         }
 
         // Implode the two arrays into strings
@@ -534,7 +547,7 @@ class PainlessPdo extends PainlessDao
      * @param array $opt    an array of options ( NOT SUPPORTED )
      */
     public function delete( $where = '' )
-    {
+    {        
         if ( FALSE === $this->_tableName )
             throw new PainlessMysqlException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
 
@@ -548,10 +561,10 @@ class PainlessPdo extends PainlessDao
             throw new PainlessMysqlException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
 
         // If no $where is provided as a parameter, use the primary key instead
+        $pkName = $this->_primaryKey;
         if ( empty( $where ) )
         {
-            $pk = $this->_primaryKey;
-            $where = "WHERE `$this->_primaryKey` = " . $this->{$pk};
+            $where = "WHERE `$pkName` = " . $this->{$pkName};
         }
 
         // Prepend the WHERE in $where if needed
