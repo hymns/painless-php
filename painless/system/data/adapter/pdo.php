@@ -531,6 +531,10 @@ class PainlessPdo extends PainlessDao
             $fields[] = "`$f` = " . $conn->quote( $v );
         }
 
+        // Don't update if there's nothing to update
+        if ( empty( $fields ) )
+            return 0;
+
         // Implode the two arrays into strings
         $fields = implode( ',', $fields );
 
