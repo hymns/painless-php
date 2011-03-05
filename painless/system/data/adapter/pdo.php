@@ -564,7 +564,7 @@ class PainlessPdo extends PainlessDao
 
         // Build the delete query
         $sql = "DELETE FROM `$this->_tableName` $where";
-var_dump($sql);
+
         return $this->executeDelete( $sql );
     }
 
