@@ -261,7 +261,7 @@ class PainlessPdo extends PainlessDao
     public function start( )
     {
         // lazy init the connection
-        if ( NULL == $this->_conn ) $this->open( );
+        if ( NULL == $this->_conn ) $this->init( );
 
         $this->_conn->beginTransaction( );
 
@@ -277,7 +277,7 @@ class PainlessPdo extends PainlessDao
     public function end( $rollback = FALSE )
     {
         // lazy init the connection
-        if ( NULL == $this->_conn ) $this->open( );
+        if ( NULL == $this->_conn ) $this->init( );
 
         if ( ! $rollback )
         {
@@ -581,6 +581,21 @@ class PainlessPdo extends PainlessDao
         $sql = "DELETE FROM `$this->_tableName` $where";
 
         return $this->executeDelete( $sql );
+    }
+
+    /**
+     * Resets all the fields in the DAO to NULL
+     */
+    public function reset( )
+    {
+        $props = get_object_vars( $this );
+        foreach( $props as $f => $v )
+        {
+            if ( $f[0] === '_' ) continue;
+            $props->$f = NULL;
+        }
+
+        return $this;
     }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
