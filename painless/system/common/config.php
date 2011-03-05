@@ -86,8 +86,7 @@ class PainlessConfig
         $aclPath = '';
 
         // first, check if a deployment profile is issued
-        if ( defined( 'DEPLOY_PROFILE' ) )
-            $profile = DEPLOY_PROFILE;
+        $profile = Painless::$PROFILE;
 
         // get the engine's implementor path if possible
         if ( ! empty( Painless::$IMPL_PATH ) )

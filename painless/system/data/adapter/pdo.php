@@ -43,38 +43,22 @@
 class PainlessPdo extends PainlessDao
 {
     // execute( ) $extra['return'] options
-    const RET_ROW_COUNT     = 0;
-    const RET_ID            = 1;
-    const RET_ARRAY         = 2;
-    const RET_ASSOC         = 3;
-    const RET_OBJ           = 4;
-    const RET_STMT          = 5;
+    const RET_ROW_COUNT             = 0;
+    const RET_ID                    = 1;
+    const RET_ARRAY                 = 2;
+    const RET_ASSOC                 = 3;
+    const RET_OBJ                   = 4;
+    const RET_STMT                  = 5;
 
     // execute( ) $extra['close'] options
-    const STMT_CLOSE        = TRUE;
-    const STMT_IGNORE       = FALSE;
+    const STMT_CLOSE                = TRUE;
+    const STMT_IGNORE               = FALSE;
 
-    // If this is set to true, then this object is a valid DAO after the get( )
-    // operation.
-    protected $_isDao       = TRUE;
+    protected $_conn                = NULL;
 
-    protected $_sqlFactory  = NULL;
-
-    protected $_logRetData  = FALSE;
-    protected $_conn        = NULL;
-
-    /**
-     * @var string	$prep	the list of SQL in the last transaction
-     */
-    protected $_log         = array( );
-    protected $_tranId      = '';
-
-    public function __construct( )
-    {
-        // log the return data of all queries during development. This is turned
-        // off in production to save memory
-        if ( 'development' === DEPLOY_PROFILE ) $this->_logRetData = TRUE;
-    }
+    protected static $queryBuilder  = NULL;
+    protected static $queryLog      = array( );
+    protected static $currTranId    = '';
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
      * lifecycle methods
@@ -125,7 +109,7 @@ class PainlessPdo extends PainlessDao
 
         // make sure the PDO connection throws an exception during development
         // mode
-        if ( DEPLOY_PROFILE === 'development' )
+        if ( Painless::isProfile( DEV ) )
             $this->_conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         return TRUE;
@@ -226,14 +210,16 @@ class PainlessPdo extends PainlessDao
         $log = array( $cmd, $extra );
 
         // save the return data if required
-        if ( $this->_logRetData ) $log[] = $ret;
+        $logData = Painless::isProfile( DEV );
+        if ( $logData )
+            $log[] = $ret;
 
         // if this is a transaction, group all the logged queries together. Otherwise
         // log them as single queries
-        if ( '' !== $this->_tranId )
-            $this->_log[$this->_tranId][] = $log;
+        if ( '' !== self::$currTranId )
+            self::$queryLog[self::$currTranId][] = $log;
         else
-            $this->_log[date( 'Y-m-d H:i:s [u]' )] = $log;
+            self::$queryLog[date( 'Y-m-d H:i:s [u]' )] = $log;
 
         return $ret;
     }
@@ -279,8 +265,8 @@ class PainlessPdo extends PainlessDao
         $this->_conn->beginTransaction( );
 
         // log the current transaction
-        $this->_tranId = date( 'Y-m-d H:i:s [u]' );
-        $this->_log[$this->_tranId] = array( );
+        self::$currTranId = date( 'Y-m-d H:i:s [u]' );
+        self::$queryLog[self::$currTranId] = array( );
     }
 
     /**
@@ -304,7 +290,7 @@ class PainlessPdo extends PainlessDao
 
         // always reset the transaction ID to prevent any further changes to the
         // transaction log
-        $this->_tranId = '';
+        self::$currTranId = '';
     }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -352,13 +338,17 @@ class PainlessPdo extends PainlessDao
         // Build the insert query
         $sql = "INSERT INTO `$this->_tableName` ( $fields ) VALUES ( $values )";
 
-        return $this->executeInsert( $sql );
+        $this->id = $this->executeInsert( $sql );
+        if ( empty( $this->id ) )
+            return FALSE;
+
+        return TRUE;
     }
 
     /**
      * Gets a record in the database
-     * @param string $where     the WHERE clause
-     * @return boolean          returns TRUE if it successfully finds the record, FALSE if otherwise
+     * @param string $where the WHERE clause in string
+     * @return boolean      returns TRUE if it successfully finds the record, FALSE if otherwise
      */
     public function get( $where = '' )
     {
@@ -388,9 +378,12 @@ class PainlessPdo extends PainlessDao
 
         $fields = implode( ',', $fields );
 
+        // Append the WHERE clause to $where if none exists
+        if ( ! empty( $where ) && FALSE === stripos( 'WHERE', $where ) )
+            $where = "WHERE $where";
+
         // Build the SELECT query
         $sql = "SELECT $fields FROM `$this->_tableName` $where LIMIT 1";
-
         $results = $this->executeSelect( $sql );
         if ( ! empty( $results ) )
         {
@@ -443,6 +436,22 @@ class PainlessPdo extends PainlessDao
         }
 
         $fields = implode( ',', $fields );
+
+        // Prepend a WHERE to $where if none available
+        if ( ! empty( $where ) && FALSE === stripos( 'WHERE', $where) )
+            $where = "WHERE $where";
+
+        // Prepend an ORDER BY to $order if none available
+        if ( ! empty( $order ) && FALSE === stripos( 'ORDER BY', $order ) )
+            $order = "ORDER BY $order";
+
+        // Prepend a GROUP BY to $group if none available
+        if ( ! empty( $group ) && FALSE === stripos( 'GROUP BY', $group ) )
+            $group = "GROUP BY $group";
+
+        // Prepend a LIMIT to $limit if none available
+        if ( ! empty( $limit ) && FALSE === stripos( 'LIMIT', $limi ) )
+            $limit = "LIMIT $limit";
 
         // Build the SELECT query
         $sql = "SELECT $fields FROM `$this->_tableName` $where $order $group $limit";
@@ -549,10 +558,10 @@ class PainlessPdo extends PainlessDao
      */
     public function sql( )
     {
-        if ( empty( $this->_sqlFactory ) )
-            $this->_sqlFactory = Painless::get( 'system/data/sql/sql-factory' );
+        if ( empty( self::$queryBuilder ) )
+            self::$queryBuilder = Painless::get( 'system/data/sql/sql-factory' );
 
-        return $this->_sqlFactory;
+        return self::$queryBuilder;
     }
 
     /**--------------------------------------------------------------------------------------------------------------------------------------------------

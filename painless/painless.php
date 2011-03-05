@@ -66,15 +66,24 @@ class Painless
      * IMPL_NAME - the name of the implementor
      * @var string  env paths and names
      */
-    public static $CORE_PATH = '';
-    public static $IMPL_PATH = '';
-    public static $IMPL_NAME = '';
+    public static $CORE_PATH    = '';
+    public static $IMPL_PATH    = '';
+    public static $IMPL_NAME    = '';
+    public static $PROFILE      = '';
 
     /**
      * The original command that invoked this HTTP Request/REST Call/CLI Process
      * @var string  this will stay empty until the first call to $router builds it
      */
     public static $origin = '';
+
+    public static function isProfile( $type )
+    {
+        if ( self::$PROFILE === $type )
+            return TRUE;
+
+        return FALSE;
+    }
 
     public static function log( $message )
     {
@@ -105,8 +114,8 @@ class Painless
 
         // Set default values for non-critical env consts if none are set
         defined( 'ERROR_REPORTING' ) or define( 'ERROR_REPORTING', E_ALL | E_STRICT );
-        defined( 'DEPLOY_PROFILE' ) or define( 'DEPLOY_PROFILE', 'dev' );
         defined( 'NSTOK' ) or define( 'NSTOK', '/' );
+        ( ! empty( self::$PROFILE ) ) or self::$PROFILE = DEV;
 
         // Set the system paths
         self::$CORE_PATH = dirname( __FILE__ ) . '/';
