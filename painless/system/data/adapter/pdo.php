@@ -300,9 +300,8 @@ class PainlessPdo extends PainlessDao
      */
     /**
      * Adds a record into the database
-     * @param array $opt    an array of options ( NOT SUPPORTED )
      */
-    public function create( $opt = array( ) )
+    public function create( )
     {
         // lazy init the connection
         if ( NULL == $this->_conn ) $this->init( );
@@ -386,6 +385,14 @@ class PainlessPdo extends PainlessDao
         // Append the WHERE clause to $where if none exists
         if ( ! empty( $where ) && FALSE === stripos( $where, 'WHERE' ) )
             $where = "WHERE $where";
+        // If $where is empty, try to use the primary key instead
+        elseif ( empty( $where ) && ! empty( $this->_primaryKey ) )
+        {
+            $pkName = $this->_primaryKey;
+
+            if ( ! empty( $this->{$pkName} ) )
+                $where = "WHERE `$this->_primaryKey` = '" . $this->{$pkName} . "'";
+        }
 
         // Build the SELECT query
         $sql = "SELECT $fields FROM `$this->_tableName` $where LIMIT 1";
@@ -516,7 +523,7 @@ class PainlessPdo extends PainlessDao
         {
             // Don't proceed if the value of the field is NULL, to enable selective
             // field updates
-            if ( $f[0] === '_' || $f === $pkName || NULL === $v || in_aray( $f, $excludes ) )
+            if ( $f[0] === '_' || $f === $pkName || NULL === $v || in_array( $f, $excludes ) )
                 continue;
 
             $fields[] = "`$f` = " . $conn->quote( $v );
@@ -528,8 +535,7 @@ class PainlessPdo extends PainlessDao
         // If no $where is provided as a parameter, use the primary key instead
         if ( empty( $where ) )
         {
-            $pk = $this->_primaryKey;
-            $where = "WHERE `$this->_primaryKey` = " . $this->{$pk};
+            $where = "WHERE `$this->_primaryKey` = " . $conn->quote( $this->{$pkName} );
         }
 
         // Prepend the WHERE in $where if needed
@@ -564,7 +570,7 @@ class PainlessPdo extends PainlessDao
         $pkName = $this->_primaryKey;
         if ( empty( $where ) )
         {
-            $where = "WHERE `$pkName` = " . $this->{$pkName};
+            $where = "WHERE `$pkName` = '" . $this->{$pkName} . "'";
         }
 
         // Prepend the WHERE in $where if needed
