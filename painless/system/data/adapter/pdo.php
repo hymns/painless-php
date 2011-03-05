@@ -501,7 +501,6 @@ class PainlessPdo extends PainlessDao
         $props = get_object_vars( $this );
 
         $fields = array( );
-        $pk = '';
 
         // Create the fields and values array
         foreach( $props as $f => $v )
@@ -549,15 +548,23 @@ class PainlessPdo extends PainlessDao
         if ( FALSE === $this->_primaryKey && empty( $where ) )
             throw new PainlessMysqlException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
 
-        if ( empty( $this->_primaryKey ) && empty( $where ) )
+        if ( empty( $this->_primaryKey ) || ( empty( $where ) && NULL === $this->{$this->_primaryKey} ) )
             throw new PainlessMysqlException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
 
-        $pk = $this->_primaryKey;
-        $pk = $this->$pk;
+        // If no $where is provided as a parameter, use the primary key instead
+        if ( empty( $where ) )
+        {
+            $pk = $this->_primaryKey;
+            $where = "WHERE `$this->_primaryKey` = " . $this->{$pk};
+        }
+
+        // Prepend the WHERE in $where if needed
+        if ( FALSE === stripos( $where, 'WHERE' ) )
+            $where = "WHERE $where";
 
         // Build the delete query
-        $sql = "DELETE FROM `$this->_tableName` " . ( empty( $where ) ? "WHERE `$this->_primaryKey` = '$pk'" : $where );
-
+        $sql = "DELETE FROM `$this->_tableName` $where";
+var_dump($sql);
         return $this->executeDelete( $sql );
     }
 
