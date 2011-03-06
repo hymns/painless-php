@@ -357,21 +357,27 @@ class PainlessLoader
     protected function dao( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) !== 4 ) throw new PainlessLoaderException( 'DAO namespace should follow this format: dao/[module]/[dao]/[adapter]' );
+        if ( count( $nsa ) < 3 ) throw new PainlessLoaderException( 'DAO namespace should follow this format: dao/[module]/[dao]/[adapter] or dao/[module]/[dao]' );
 
         // The second key in the $nsa array is always the module name, followed
         // by the view name
         $module = $nsa[1];
         $dao = $nsa[2];
-        $adapter = $nsa[3];
+        $cn = dash_to_pascal( $module . CNTOK . $dao );
 
-        // Load the base object (the adapter) manually
-        Painless::get( 'adapter/' . $adapter, LP_DEF_ONLY );
+        if ( isset( $nsa[3] ) )
+        {
+            $adapter = $nsa[3];
 
-        $cn = dash_to_pascal( $module . CNTOK . $dao . CNTOK . $adapter );
+            // Load the base object (the adapter) manually
+            Painless::get( 'adapter/' . $adapter, LP_DEF_ONLY );
+
+            $dao .= CNTOK . $adapter;
+            $cn .= CNTOK . $adapter;
+        }
 
         return array(
-            'load_path' => $this->impl . 'module/' . $module . '/dao/' . $dao . CNTOK . $adapter . EXT,
+            'load_path' => $this->impl . 'module/' . $module . '/dao/' . $dao . EXT,
             'load_obj'  => $cn,
 
             'base_path' => FALSE,
