@@ -158,6 +158,9 @@ class PainlessRouter
      */
     public function dispatch( $method, $module, $workflow, $contentType, $params, $agent )
     {
+        if ( ! Beholder::notifyUntil( 'router.pre', array( $method, $module, $workflow, $contentType, $params, $agent ) ) )
+            return FALSE;
+
         $woObj = Painless::get( "workflow/$module/$workflow" );
 
         if ( empty( $woObj ) ) throw new PainlessWorkflowNotFoundException( "Unable to find workflow [$module/$workflow]" );

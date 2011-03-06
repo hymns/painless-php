@@ -42,7 +42,7 @@ class Observer
     public $obj = NULL;
     public $func = '';
 
-    public function run( & $params = array( ) )
+    public function run( $params = array( ) )
     {
         // Localize the variables
         $obj    = $this->obj;
@@ -111,7 +111,7 @@ class Beholder
         self::$events[$name][] = $callback;
     }
 
-    public static function notify( $name, & $params = array( ), $checkStatus = FALSE )
+    public static function notify( $name, $params = array( ), $checkStatus = FALSE )
     {
         // Only run this if there're observers set for this event
         if ( isset( self::$events[$name] ) )
@@ -134,7 +134,7 @@ class Beholder
         return TRUE;
     }
     
-    public static function notifyUntil( $name, & $params = array( ) )
+    public static function notifyUntil( $name, $params = array( ) )
     {
         return self::notify( $name, $params, TRUE );
     }
