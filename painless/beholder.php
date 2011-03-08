@@ -39,8 +39,9 @@
 
 class Observer
 {
-    public $obj = NULL;
-    public $func = '';
+    public $obj         = NULL;
+    public $func        = '';
+    public $removeMe    = FALSE;
 
     public function run( $params = array( ) )
     {
@@ -49,13 +50,20 @@ class Observer
         $func   = $this->func;
 
         // If $obj is null, it's a simple function call
-        if ( empty( $obj ) )
+        if ( empty( $obj ) && function_exists( $func ) )
         {
             $status = $func( $params );
         }
-        else
+        // $obj exists and $func is a public method inside $obj
+        elseif ( ! empty( $obj ) && method_exists( $obj, $func ) )
         {
             $status = $obj->$func( $params );
+        }
+        // The object or the function doesn't exist. Mark it for garbage
+        // collection.
+        else
+        {
+            $this->removeMe = TRUE;
         }
 
         // Always return a TRUE/FALSE
@@ -122,6 +130,10 @@ class Beholder
             foreach( $roboticsBay as $i => $observer )
             {
                 $status = $observer->run( $params );
+                
+                // If $observer->removeMe is TRUE, remove it from the list of observers
+                if ( $observer->removeMe )
+                    unset( $roboticsBay[$i] );
 
                 // If $checkStatus is enabled, stop the processing on an error
                 if ( $checkStatus && ! $status )

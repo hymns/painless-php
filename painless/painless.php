@@ -77,6 +77,11 @@ class Painless
      */
     public static $origin = '';
 
+    /**
+     * Checks what profile is this package using (DEV, LIVE, etc)
+     * @param string $type  a profile type to check against
+     * @return boolean      TRUE if it matches, FALSE if otherwise 
+     */
     public static function isProfile( $type )
     {
         if ( self::$PROFILE === $type )
@@ -84,7 +89,36 @@ class Painless
 
         return FALSE;
     }
+    
+    /**
+     * Gets data from a namespaced stream:
+     *  http://     - uses the HTTP client to get a HTTP resource
+     *  rest://     - uses the REST client to get a REST resource
+     *  package://  - uses an internal client to get a resource from another package
+     *  workflow:// - uses an internal client to get a resource from a workflow in the same package
+     * 
+     * The syntax goes like this: [method] [protocol]://[namespace/uri]
+     * 
+     * For example:
+     *  GET http://api.google.com/foo/bar   - makes a HTTP call to http://api.google.com/foo/bar
+     *  PUT package://flight-plan/id/123    - creates a new flight plan with the id 123
+     * 
+     * @static
+     * @param string $uri       the URI to send a request to
+     * @param mixed $data       the data to attach to the request
+     * @param PainlessResponse  a response object
+     */
+    public static function request( $uri, $data )
+    {
+        return;
+    }
 
+    /**
+     * A shorthand to log messages
+     * @static
+     * @param string $message   the message to log
+     * @return void 
+     */
     public static function log( $message )
     {
         if ( ! isset( self::$loader ) ) return FALSE;
@@ -97,7 +131,6 @@ class Painless
      * Bootstraps this service locator and initializes the engine. Always call this
      * function first before attempting to run any services or components from
      * Painless.
-     *
      * @static
      * @author	Ruben Tan Long Zheng <ruben@rendervault.com>
      * @copyright   Copyright (c) 2009, Rendervault Solutions
