@@ -365,11 +365,8 @@ class PainlessLoader
         $dao = $nsa[2];
         $adapter = $nsa[3];
 
-        // All DAO adapters HAVE to extend PainlessDao, so we load that first
-        Painless::get( 'system/data/dao', LP_DEF_ONLY );
-
-        // Load the base object manually
-        Painless::get( 'system/data/dao/adapter/' . $adapter, LP_DEF_ONLY );
+        // Load the base object (the adapter) manually
+        Painless::get( 'adapter/' . $adapter, LP_DEF_ONLY );
 
         $cn = dash_to_pascal( $module . CNTOK . $dao . CNTOK . $adapter );
 
@@ -394,6 +391,10 @@ class PainlessLoader
         if ( count( $nsa ) !== 2 ) throw new PainlessLoaderException( 'DAO namespace should follow this format: adapter/[adapter-type]' );
 
         $cn = dash_to_pascal( $nsa[1] );
+
+        // If by any chance $nsa[1] is 'dao', then don't proceed
+        if ( $nsa[1] == 'dao' )
+            return new PainlessLoaderException( '"dao" is not an adapter' );
 
         // Get PainlessDao definition
         Painless::get( 'system/data/dao', LP_DEF_ONLY );

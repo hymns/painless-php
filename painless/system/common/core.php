@@ -65,7 +65,7 @@ class PainlessCore
         }
 
         // set to show errors
-        if ( DEPLOY_PROFILE === 'development' )
+        if ( Painless::isProfile( DEV ) )
         {
             ini_set( 'display_errors', 1 );
         }

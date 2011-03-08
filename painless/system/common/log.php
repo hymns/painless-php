@@ -60,7 +60,7 @@ class PainlessLog
 
     public function info( $message )
     {
-        if ( DEPLOY_PROFILE === 'development' )
+        if ( Painless::isProfile( DEV ) )
         {
             $this->open( );
             fwrite( $this->file, "$message\n" );

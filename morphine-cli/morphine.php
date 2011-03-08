@@ -52,8 +52,8 @@ class Morphine extends Painless
     {
         // Set default values for non-critical env consts if none are set
         defined( 'ERROR_REPORTING' ) or define( 'ERROR_REPORTING', E_ALL | E_STRICT );
-        defined( 'DEPLOY_PROFILE' ) or define( 'DEPLOY_PROFILE', 'dev' );
         defined( 'NSTOK' ) or define( 'NSTOK', '/' );
+        ( ! empty( self::$PROFILE ) ) or self::$PROFILE = DEV;
 
         // Reset the core, impl path and name
         self::$CORE_PATH = dirname( __FILE__ ) . '/../painless/';
