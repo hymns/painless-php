@@ -43,7 +43,7 @@ date_default_timezone_set( 'UTC' );
 
 // DO NOT CHANGE THIS LINE!!!!!!!!!!!!!!!!!!!!!
 $CORE = dirname( __FILE__ ) . '/painless/';
-$IMPL = dirname( __FILE__ ) . '/morphine-cli/';
+$IMPL = dirname( __FILE__ ) . '/morphine/';
 include $CORE . 'painless.php';
 include $IMPL . 'morphine.php';
 
