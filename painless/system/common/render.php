@@ -37,7 +37,9 @@
  * @link        http://painless-php.com
  */
 
-class PainlessRender
+namespace Painless\System\Common;
+
+class Render
 {
     protected $response = NULL;
 

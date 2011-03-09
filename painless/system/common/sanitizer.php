@@ -37,7 +37,9 @@
  * @link        http://painless-php.com
  */
 
-class PainlessSanitizer
+namespace Painless\System\Common;
+
+class Sanitizer
 {
     /* never allowed, string replacement */
 

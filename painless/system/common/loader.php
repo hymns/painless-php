@@ -37,6 +37,8 @@
  * @link        http://painless-php.com
  */
 
+namespace Painless\System\Common;
+
 defined( 'NSTOK' ) or define( 'NSTOK', '/' );
 defined( 'CNTOK' ) or define( 'CNTOK', '-' );
 
@@ -54,7 +56,7 @@ define( 'LP_DEF_ONLY', 3 );         // short for LP_DEF_CORE | LP_DEF_EXT
 define( 'LP_EXT_ONLY', 42 );        // short for LP_DEF_EXT | LP_CACHE_EXT | LP_RET_EXT
 define( 'LP_CORE_ONLY', 21 );       // short for LP_DEF_CORE | LP_CACHE_CORE | LP_RET_CORE
 
-class PainlessLoader
+class Loader
 {
     public $name = '';
     public $base = '';

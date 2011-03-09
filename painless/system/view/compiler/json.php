@@ -37,7 +37,9 @@
  * @link        http://painless-php.com
  */
 
-class PainlessJsonCompiler extends PainlessBaseCompiler
+namespace Painless\System\View\Compiler;
+
+class JsonCompiler extends BaseCompiler
 {
     public function process( $view )
     {

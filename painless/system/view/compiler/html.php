@@ -37,7 +37,9 @@
  * @link        http://painless-php.com
  */
 
-class PainlessHtmlCompiler extends PainlessBaseCompiler
+namespace Painless\System\View\Compiler;
+
+class HtmlCompiler extends BaseCompiler
 {
 
     public function process( $view )

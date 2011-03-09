@@ -40,7 +40,10 @@
  * and open the template in the editor.
  */
 
-class PainlessPdo extends PainlessDao
+namespace Painless\System\Data\Adapter;
+use Painless\System\Data\Dao as Dao;
+
+class Rdb extends Dao
 {
     // execute( ) $extra['return'] options
     const RET_ROW_COUNT             = 0;
@@ -90,10 +93,10 @@ class PainlessPdo extends PainlessDao
         {
             // Get the list of profiles from the config file
             $profiles   = $config->get( 'mysql.profiles' );
-            if ( empty( $profiles ) ) throw new PainlessPdoException( 'Profiles not properly defined in the config file' );
+            if ( empty( $profiles ) ) throw new RdbException( 'Profiles not properly defined in the config file' );
 
             // Only get the profile if there's a match
-            if ( ! array_values( $profile ) ) throw new PainlessPdoException( "The specified profile [$profile] is not defined in the config file" );
+            if ( ! array_values( $profile ) ) throw new RdbException( "The specified profile [$profile] is not defined in the config file" );
             $connParams = $config->get( "mysql.$profile.*" );
             $prefix .= $profile . '.';
         }
@@ -211,13 +214,13 @@ class PainlessPdo extends PainlessDao
                     $ret = $stmt;
 
                 default :
-                    throw new PainlessPdoException( 'Unsupported return type [' . $retType . ']' );
+                    throw new RdbException( 'Unsupported return type [' . $retType . ']' );
             }
         }
         catch( Exception $e )
         {
             // Don't forget to log the operation before exiting
-            PainlessPdo::log( $log );
+            static::log( $log );
             throw new PainlessPdoException( $e );
         }
 
@@ -228,7 +231,7 @@ class PainlessPdo extends PainlessDao
         if ( Painless::isProfile( DEV ) )
             $log[] = $ret;
 
-        PainlessPdo::log( $log );
+        static::log( $log );
 
         return $ret;
     }
@@ -304,10 +307,10 @@ class PainlessPdo extends PainlessDao
         $conn = $this->_conn;
 
         if ( FALSE === $this->_tableName )
-            throw new PainlessPdoException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+            throw new RdbException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new PainlessPdoException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new RdbException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         // Get the list of public properties of this DAO
         $props = get_object_vars( $this );
@@ -355,10 +358,10 @@ class PainlessPdo extends PainlessDao
         if ( NULL == $this->_conn ) $this->init( );
 
         if ( FALSE === $this->_tableName )
-            throw new PainlessPdoException( 'When $_tableName is set to FALSE, ActiveRecord functions' );
+            throw new RdbException( 'When $_tableName is set to FALSE, ActiveRecord functions' );
 
         if ( empty( $this->_tableName ) )
-            throw new PainlessPdoException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new RdbException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         // Grab all properties in this object
         $fields = get_object_vars( $this );
@@ -424,10 +427,10 @@ class PainlessPdo extends PainlessDao
         if ( NULL == $this->_conn ) $this->init( );
 
         if ( FALSE === $this->_tableName )
-            throw new PainlessPdoException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
+            throw new RdbException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new PainlessPdoException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new RdbException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         $fields = get_object_vars( $this );
 
@@ -497,16 +500,16 @@ class PainlessPdo extends PainlessDao
         $conn = $this->_conn;
 
         if ( FALSE === $this->_tableName )
-            throw new PainlessPdoException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
+            throw new RdbException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new PainlessPdoException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new RdbException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         if ( FALSE === $this->_primaryKey && empty( $where ) )
-            throw new PainlessPdoException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
+            throw new RdbException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
 
         if ( empty( $this->_primaryKey ) || ( empty( $where ) && NULL === $this->{$this->_primaryKey} ) )
-            throw new PainlessPdoException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
+            throw new RdbException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
 
         // Get the list of public properties of this DAO
         $props = get_object_vars( $this );
@@ -559,16 +562,16 @@ class PainlessPdo extends PainlessDao
     public function delete( $where = '' )
     {        
         if ( FALSE === $this->_tableName )
-            throw new PainlessPdoException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
+            throw new RdbException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new PainlessPdoException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new RdbException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         if ( FALSE === $this->_primaryKey && empty( $where ) )
-            throw new PainlessPdoException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
+            throw new RdbException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
 
         if ( empty( $this->_primaryKey ) || ( empty( $where ) && NULL === $this->{$this->_primaryKey} ) )
-            throw new PainlessPdoException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
+            throw new RdbException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
 
         // If no $where is provided as a parameter, use the primary key instead
         $pkName = $this->_primaryKey;
@@ -644,4 +647,4 @@ class PainlessPdo extends PainlessDao
     }
 }
 
-class PainlessPdoException extends ErrorException { }
+class RdbException extends ErrorException { }

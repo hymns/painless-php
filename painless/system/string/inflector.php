@@ -1,6 +1,6 @@
 <?php
 
-namespace Painless;
+namespace Painless\System\String;
 
 class Inflector
 {

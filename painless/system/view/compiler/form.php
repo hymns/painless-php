@@ -37,7 +37,9 @@
  * @link        http://painless-php.com
  */
 
-class PainlessFormCompiler extends PainlessBaseCompiler
+namespace Painless\System\View\Compiler;
+
+class FormCompiler extends BaseCompiler
 {
     
 }

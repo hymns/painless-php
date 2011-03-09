@@ -45,7 +45,9 @@
  * freely pass data amongst each other.
  */
 
-class PainlessRouter
+namespace Painless\System\Router;
+
+class Router
 {
     /**
      * The queue of URI that is saved and checked to prevent redundancy

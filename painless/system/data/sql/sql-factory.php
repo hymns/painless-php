@@ -4,7 +4,9 @@
  * and open the template in the editor.
  */
 
-class PainlessSqlFactory
+namespace Painless\System\Data\Sql;
+
+class SqlFactory
 {
     const WHERE = 1;
     const ORDER = 2;

@@ -36,7 +36,9 @@
  * @link        http://painless-php.com
  */
 
-class PainlessView
+namespace Painless\System\View;
+
+class View
 {
     const PATH = '_tpl';
 

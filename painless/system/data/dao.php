@@ -51,7 +51,9 @@
  * sanitized would provide a good mechanism to filter out unwanted operations.
  */
 
-abstract class PainlessDao
+namespace Painless\System\Data;
+
+abstract class Dao
 {
     /**
      * Determines whether or not this adapter will be automatically killed upon

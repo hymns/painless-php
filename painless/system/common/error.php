@@ -36,7 +36,9 @@
  * @link        http://painless-php.com
  */
 
-class PainlessError
+namespace Painless\System\Common;
+
+class Error
 {
     public function handleError( $errNo, $errStr, $errFile, $errLine )
     {

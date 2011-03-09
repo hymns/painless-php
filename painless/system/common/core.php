@@ -44,9 +44,11 @@
  * 
  */
 
+namespace Painless\System\Common;
+
 define( 'PHP_VER', phpversion( ) );
 
-class PainlessCore
+class Core
 {
     protected $errorReportLevel = 0;
 

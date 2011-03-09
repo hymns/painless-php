@@ -37,7 +37,9 @@
  * @link        http://painless-php.com
  */
 
-class PainlessLog
+namespace Painless\System\Common;
+
+class Log
 {
     protected $file = NULL;
 

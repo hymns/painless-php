@@ -1,7 +1,10 @@
 <?php
 
+namespace Painless\System\Data\Adapter;
 
-class PainlessEmail extends PainlessDao
+use Painless\System\Data\Dao as Dao;
+
+class Email extends Dao
 {
     
 }

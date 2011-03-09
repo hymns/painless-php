@@ -36,7 +36,9 @@
  * @link        http://painless-php.com
  */
 
-class PainlessEmail
+namespace Painless\System\Common;
+
+class Email
 {
     protected $to = array( );
     protected $cc = array( );

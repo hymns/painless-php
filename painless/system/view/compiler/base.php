@@ -37,7 +37,9 @@
  * @link        http://painless-php.com
  */
 
-abstract class PainlessBaseCompiler
+namespace Painless\System\View\Compiler;
+
+abstract class BaseCompiler
 {
     abstract public function process( $view );
 

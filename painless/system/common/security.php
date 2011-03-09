@@ -37,7 +37,9 @@
  * @link        http://painless-php.com
  */
 
-class PainlessSecurity
+namespace Painless\System\Common;
+
+class Security
 {
     const POLICY_WHITELIST = 'whitelist';
     const POLICY_BLACKLIST = 'blacklist';

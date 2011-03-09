@@ -37,7 +37,9 @@
  * @link        http://painless-php.com
  */
 
-class PainlessDebugCompiler extends PainlessBaseCompiler
+namespace Painless\System\View\Compiler;
+
+class DebugCompiler extends BaseCompiler
 {
     
 }

@@ -36,7 +36,7 @@
  * @link        http://painless-php.com
  */
 
-namespace Painless\Common;
+namespace Painless\System\Common;
 
 class Config
 {
@@ -110,7 +110,7 @@ class Config
             require_once( $configPath );
 
             if ( !isset( $config ) )
-                throw new PainlessConfigException( 'Unable to find the config array in [' . $configPath . ']' );
+                throw new ConfigException( 'Unable to find the config array in [' . $configPath . ']' );
 
             $this->config = $config;
 
@@ -119,7 +119,7 @@ class Config
         }
         else
         {
-            throw new PainlessConfigException( 'Invalid config file [' . $configPath . ']' );
+            throw new ConfigException( 'Invalid config file [' . $configPath . ']' );
         }
 
         // load the acl array too
@@ -147,4 +147,4 @@ class Config
     }
 }
 
-class PainlessConfigException extends ErrorException { }
+class ConfigException extends \ErrorException { }

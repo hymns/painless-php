@@ -50,7 +50,9 @@
  * 5) AUTOSTART
  */
 
-class PainlessSession
+namespace Painless\System\Common;
+
+class Session
 {
     protected $useNamespace = TRUE;         // uses namespaces to store session data (TRUE by default)
     protected $regenIdPerReq = FALSE;        // regenerates session ID on every request (TRUE by default)

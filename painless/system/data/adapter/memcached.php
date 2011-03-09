@@ -42,7 +42,10 @@
  * and open the template in the editor.
  */
 
-class PainlessMemcached extends PainlessDao
+namespace Painless\System\Data\Adapter;
+use Painless\System\Data\Dao as Dao;
+
+class Memcached extends Dao
 {
 
     public function open( $options = array( ) )
@@ -50,7 +53,7 @@ class PainlessMemcached extends PainlessDao
         // do not proceed if memcached is not available
         if ( ! extension_loaded( 'memcached' ) )
         {
-            throw new PainlessMemcachedDaoException( 'Memcached is not installed in your system.' );
+            throw new \MemcachedException( 'Memcached is not installed in your system.' );
         }
 
         $this->params = $options;
@@ -109,4 +112,4 @@ class PainlessMemcached extends PainlessDao
     }
 }
 
-class PainlessMemcachedException extends ErrorException { }
+class MemcachedException extends ErrorException { }

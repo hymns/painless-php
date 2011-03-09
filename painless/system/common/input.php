@@ -96,7 +96,9 @@
     DATA OR SOFTWARE PROGRAMS, OR UNAVAILABILITY OR INTERRUPTION OF OPERATIONS.
  */
 
-class PainlessInput
+namespace Painless\System\Common;
+
+class Input
 {
 
     protected $ipAddress = FALSE;

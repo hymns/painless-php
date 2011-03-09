@@ -38,6 +38,8 @@
 
 // @PAINFUL
 
+namespace Painless\System\Common;
+
 class PainlessCookie
 {
     protected $salt = 'This is workfloo';

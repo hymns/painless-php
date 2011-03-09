@@ -37,7 +37,10 @@
  * @link        http://painless-php.com
  */
 
-class PainlessRedis extends PainlessDao
+namespace Painless\System\Data\Adapter;
+use Painless\System\Data\Dao as Dao;
+
+class Redis extends Dao
 {
     
 }
