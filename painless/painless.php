@@ -84,7 +84,7 @@ class Painless
      */
     public static function isProfile( $type )
     {
-        if ( self::$PROFILE === $type )
+        if ( static::$PROFILE === $type )
             return TRUE;
 
         return FALSE;
@@ -121,7 +121,7 @@ class Painless
      */
     public static function log( $message )
     {
-        if ( ! isset( self::$loader ) ) return FALSE;
+        if ( ! isset( static::$loader ) ) return FALSE;
         
         $log = self::$loader->get( 'system/common/log' );
         $log->info( $message );
@@ -148,12 +148,12 @@ class Painless
         // Set default values for non-critical env consts if none are set
         defined( 'ERROR_REPORTING' ) or define( 'ERROR_REPORTING', E_ALL | E_STRICT );
         defined( 'NSTOK' ) or define( 'NSTOK', '/' );
-        ( ! empty( self::$PROFILE ) ) or self::$PROFILE = DEV;
+        ( ! empty( static::$PROFILE ) ) or self::$PROFILE = DEV;
 
         // Set the system paths
-        self::$CORE_PATH = dirname( __FILE__ ) . '/';
-        self::$IMPL_PATH = $implPath;
-        self::$IMPL_NAME = $implName;
+        static::$CORE_PATH = dirname( __FILE__ ) . '/';
+        static::$IMPL_PATH = $implPath;
+        static::$IMPL_NAME = $implName;
 
         // Instantitate a version of the loader first if none provided. Usually,
         // to improve performance, if the implementor decides to use their own
@@ -162,21 +162,21 @@ class Painless
         // rather than leaving it as a NULL
         if ( NULL === $loader )
         {
-            require_once self::$CORE_PATH . 'system/common/loader' . EXT;
+            require_once static::$CORE_PATH . 'system/common/loader' . EXT;
             $loader = new PainlessLoader;
 
             // Replace itself with a proper loader
             $loader = $loader->get( 'system/common/loader' );
         }
         
-        self::$loader = $loader;
-        self::$core = $loader->get( 'system/common/core' );
+        static::$loader = $loader;
+        static::$core = $loader->get( 'system/common/core' );
         
         // Include the fearsome Beholder
-        require_once self::$CORE_PATH . 'beholder.php';
+        require_once static::$CORE_PATH . 'beholder.php';
         Beholder::init( );
 
-        return self::$core;
+        return static::$core;
     }
 
     /**
@@ -192,7 +192,7 @@ class Painless
     public static function get( $namespace, $options = LP_ALL )
     {
         // offload the loading back to PainlessCore
-        return self::$loader->get( $namespace, $options );
+        return static::$loader->get( $namespace, $options );
     }
 
     /**
@@ -209,7 +209,7 @@ class Painless
      */
     public static function exec( $op = '' )
     {
-        return self::$core->exec( $op );
+        return static::$core->exec( $op );
     }
 
     /**
@@ -218,7 +218,7 @@ class Painless
      */
     public static function autoload( $cn )
     {
-        self::$loader->autoload( $cn );
+        static::$loader->autoload( $cn );
     }
 }
 
