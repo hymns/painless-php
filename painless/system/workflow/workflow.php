@@ -37,11 +37,9 @@
  * @link        http://painless-php.com
  */
 
-// Load the definitions of PainlessRequest and PainlessResponse's class definitions
-Painless::get( 'system/workflow/request', LP_DEF_ONLY );
-Painless::get( 'system/workflow/response', LP_DEF_ONLY );
+namespace Painless\System\Workflow;
 
-class PainlessWorkflow
+class Workflow
 {
     /**
      * The workflow's dash-notation name
@@ -116,12 +114,12 @@ class PainlessWorkflow
      * @param string $agent         the invoking agent
      * @return PainlessWorkflow     returns itself to facilitate method chaining
      */
-    public function request( $method, $params, $contentType = PainlessRequest::HTML, $agent = 'painless' )
+    public function request( $method, $params, $contentType = Request::HTML, $agent = 'painless' )
     {
         $request = $this->request;
 
         // Use the defaults if $contentType is empty
-        if ( empty( $contentType ) ) $contentType = PainlessRequest::HTML;
+        if ( empty( $contentType ) ) $contentType = Request::HTML;
         if ( empty( $agent ) ) $agent = 'painless';
 
         // Initialize the request
@@ -143,7 +141,7 @@ class PainlessWorkflow
     {
         // Double check $status first. If it's not an INT, assume it's a response
         // object
-        if ( $status instanceof PainlessResponse )
+        if ( $status instanceof Response )
         {
             $this->response = $status;
         }
@@ -188,4 +186,4 @@ class PainlessWorkflow
     }
 }
 
-class PainlessWorkflowException extends ErrorException { }
+class WorkflowException extends \ErrorException { }

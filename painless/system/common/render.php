@@ -108,4 +108,4 @@ class Render
     }
 }
 
-class PainlessRenderException extends ErrorException { }
+class RenderException extends \ErrorException { }

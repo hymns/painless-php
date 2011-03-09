@@ -37,7 +37,9 @@
  * @link        http://painless-php.com
  */
 
-class PainlessModel
+namespace Painless\System\Workflow;
+
+class Model
 {
     const SUCCESS = 200;
     const CREATED = 201;
@@ -60,8 +62,8 @@ class PainlessModel
         if ( ! is_int( $status ) )
         {
             Painless::get( 'system/workflow/response', LP_DEF_ONLY );
-            if ( ! ( $status instanceof PainlessResponse ) )
-                throw new PainlessWorkflowException( '$status must only be an int or an instance of PainlessResponse' );
+            if ( ! ( $status instanceof Response ) )
+                throw new WorkflowException( '$status must only be an int or an instance of PainlessResponse' );
 
             $this->response = $status;
         }
@@ -84,4 +86,4 @@ class PainlessModel
     protected function validateIdentical( $v1, $v2 )       { return ( $v1 === $v2 ); }
 }
 
-class PainlessModelException extends ErrorException { }
+class ModelException extends \ErrorException { }

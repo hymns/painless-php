@@ -47,6 +47,9 @@
 
 namespace Painless\System\Router;
 
+use Painless\System\Workflow\Request as Request;
+use Painless\System\Workflow\Response as Response;
+
 class Router
 {
     /**
@@ -98,11 +101,11 @@ class Router
 
             // In CLI mode, $uri CANNOT be empty
             if ( empty( $uri ) )
-                throw new PainlessRouterException( '$uri that is passed into process( ) cannot be NULL when Painless is running in CLI mode' );
+                throw new RouterException( '$uri that is passed into process( ) cannot be NULL when Painless is running in CLI mode' );
 
             // In CLI mode, $uri MUST be a string
             if ( ! is_string( $uri ) )
-                throw new PainlessRouterException( '$uri that is passed into process( ) must be a string when Painless is running in CLI mode' );
+                throw new RouterException( '$uri that is passed into process( ) must be a string when Painless is running in CLI mode' );
 
             // If no method is provided, default to get
             if ( empty( $method ) ) $method = 'get';
@@ -165,13 +168,13 @@ class Router
 
         $woObj = Painless::get( "workflow/$module/$workflow" );
 
-        if ( empty( $woObj ) ) throw new PainlessWorkflowNotFoundException( "Unable to find workflow [$module/$workflow]" );
+        if ( empty( $woObj ) ) throw new WorkflowNotFoundException( "Unable to find workflow [$module/$workflow]" );
         $woObj->init( $module, $workflow );
 
         // construct the workflow
         $woObj->request( $method, $params, $contentType, $agent );
         $response = $woObj->run( );
-        if ( ! ( $response instanceof PainlessResponse ) ) throw new PainlessRouterException( "Invalid return type from the workflow dispatch" );
+        if ( ! ( $response instanceof Response ) ) throw new RouterException( "Invalid return type from the workflow dispatch" );
 
         return $response;
     }
@@ -345,5 +348,5 @@ class Router
     }
 }
 
-class PainlessRouterException extends ErrorException { }
-class PainlessWorkflowNotFoundException extends ErrorException { }
+class RouterException extends \ErrorException { }
+class WorkflowNotFoundException extends \ErrorException { }

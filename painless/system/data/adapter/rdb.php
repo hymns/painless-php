@@ -647,4 +647,4 @@ class Rdb extends Dao
     }
 }
 
-class RdbException extends ErrorException { }
+class RdbException extends \ErrorException { }

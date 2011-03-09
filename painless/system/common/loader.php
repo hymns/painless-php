@@ -88,7 +88,7 @@ class Loader
         // Explode the namespace string into an array to make it easier to work
         // with
         $nsa = explode( NSTOK, $ns );
-        if ( empty( $nsa ) || count( $nsa ) <= 1 ) throw new PainlessLoaderException( 'Namespace cannot be NULL or a malformed format [' . $ns . ']' );
+        if ( empty( $nsa ) || count( $nsa ) <= 1 ) throw new LoaderException( 'Namespace cannot be NULL or a malformed format [' . $ns . ']' );
 
         // The component type uses a dash convention, thus the need for this conversion
         $comType = dash_to_camel( $nsa[0] );
@@ -159,7 +159,7 @@ class Loader
 
         // Don't know what to return, so we'll be nice and return an exception
         // instead. :)
-        //throw new PainlessLoaderException( 'Unable to load the component [' . $ns . ']' );
+        //throw new LoaderException( 'Unable to load the component [' . $ns . ']' );
         return NULL;
     }
 
@@ -212,7 +212,7 @@ class Loader
     protected function module( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) !== 2 ) throw new PainlessLoaderException( 'Module namespace should follow this format: module/[module]' );
+        if ( count( $nsa ) !== 2 ) throw new LoaderException( 'Module namespace should follow this format: module/[module]' );
 
         // Don't use the $ns string passed in. The module's name is ALWAYS the
         // last token of the $nsa array
@@ -240,7 +240,7 @@ class Loader
     protected function workflow( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) !== 3 ) throw new PainlessLoaderException( 'Workflow namespace should follow this format: workflow/[module]/[workflow]' );
+        if ( count( $nsa ) !== 3 ) throw new LoaderException( 'Workflow namespace should follow this format: workflow/[module]/[workflow]' );
 
         // The second key in the $nsa array is always the module name, followed
         // by the workflow name
@@ -272,7 +272,7 @@ class Loader
     protected function model( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) !== 3 ) throw new PainlessLoaderException( 'Model namespace should follow this format: model/[module]/[model]' );
+        if ( count( $nsa ) !== 3 ) throw new LoaderException( 'Model namespace should follow this format: model/[module]/[model]' );
 
         // The second key in the $nsa array is always the module name, followed
         // by the model name
@@ -302,7 +302,7 @@ class Loader
     protected function view( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) !== 3 ) throw new PainlessLoaderException( 'View namespace should follow this format: view/[module]/[view]' );
+        if ( count( $nsa ) !== 3 ) throw new LoaderException( 'View namespace should follow this format: view/[module]/[view]' );
         
         // The second key in the $nsa array is always the module name, followed
         // by the view name
@@ -331,7 +331,7 @@ class Loader
     protected function viewCompiler( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) !== 2 ) throw new PainlessLoaderException( 'View Compiler namespace should follow this format: view-compiler/[type]' );
+        if ( count( $nsa ) !== 2 ) throw new LoaderException( 'View Compiler namespace should follow this format: view-compiler/[type]' );
 
         // The second key in the $nsa array is always the compiler type
         $type = $nsa[1];
@@ -359,7 +359,7 @@ class Loader
     protected function dao( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) < 3 ) throw new PainlessLoaderException( 'DAO namespace should follow this format: dao/[module]/[dao]/[adapter] or dao/[module]/[dao]' );
+        if ( count( $nsa ) < 3 ) throw new LoaderException( 'DAO namespace should follow this format: dao/[module]/[dao]/[adapter] or dao/[module]/[dao]' );
 
         // The second key in the $nsa array is always the module name, followed
         // by the view name
@@ -396,13 +396,13 @@ class Loader
     protected function adapter( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) !== 2 ) throw new PainlessLoaderException( 'DAO namespace should follow this format: adapter/[adapter-type]' );
+        if ( count( $nsa ) !== 2 ) throw new LoaderException( 'DAO namespace should follow this format: adapter/[adapter-type]' );
 
         $cn = dash_to_pascal( $nsa[1] );
 
         // If by any chance $nsa[1] is 'dao', then don't proceed
         if ( $nsa[1] == 'dao' )
-            return new PainlessLoaderException( '"dao" is not an adapter' );
+            return new LoaderException( '"dao" is not an adapter' );
 
         // Get PainlessDao definition
         Painless::get( 'system/data/dao', LP_DEF_ONLY );
@@ -417,4 +417,4 @@ class Loader
     }
 }
 
-class PainlessLoaderException extends ErrorException { }
+class LoaderException extends \ErrorException { }

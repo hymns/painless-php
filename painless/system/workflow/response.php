@@ -37,7 +37,9 @@
  * @link        http://painless-php.com
  */
 
-class PainlessResponse
+namespace Painless\System\Workflow;
+
+class Response
 {
     /**-------------------------------------------------------------------------
      * The HTTP/REST status code of the response. Note that by default, PainlessModel

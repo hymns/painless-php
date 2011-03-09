@@ -225,7 +225,7 @@ class Security
             }
             catch ( Exception $e )
             {
-                throw new PainlessSecurityException( $e );
+                throw new SecurityException( $e );
             }
         }
 
@@ -270,4 +270,4 @@ class Security
     }
 }
 
-class PainlessSecurityException extends Exception { }
+class SecurityException extends \ErrorException { }

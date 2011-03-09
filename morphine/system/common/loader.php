@@ -40,7 +40,7 @@ class MorphineLoader extends PainlessLoader
 {
     public function tpl( $nsa, $ns )
     {
-        if ( count( $nsa ) !== 3 ) throw new PainlessLoaderException( 'Template file (tpl) namespace should follow this format: tpl/[module]/[template]' );
+        if ( count( $nsa ) !== 3 ) throw new LoaderException( 'Template file (tpl) namespace should follow this format: tpl/[module]/[template]' );
 
         // Get the module and template namespace
         $module = $nsa[1];

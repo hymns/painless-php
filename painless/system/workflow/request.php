@@ -37,7 +37,9 @@
  * @link        http://painless-php.com
  */
 
-class PainlessRequest
+namespace Painless\System\Workflow;
+
+class Request
 {
     /**
      * Supported Content Types
@@ -173,11 +175,11 @@ class PainlessRequest
     public function getMethodList( )
     {
         return array(
-            PainlessRequest::GET,
-            PainlessRequest::POST,
-            PainlessRequest::DELETE,
-            PainlessRequest::OPTIONS,
-            PainlessRequest::CONNECT,
+            Request::GET,
+            Request::POST,
+            Request::DELETE,
+            Request::OPTIONS,
+            Request::CONNECT,
         );
     }
 
@@ -219,7 +221,7 @@ class PainlessRequest
         if ( ! is_array( $params ) )
         {
             $params = explode( '/', $params );
-            if ( FALSE === $params ) throw new PainlessRequestException( "Malformed parameter string [$params]" );
+            if ( FALSE === $params ) throw new RequestException( "Malformed parameter string [$params]" );
         }
 
         // parse the parameter string as an array
@@ -261,8 +263,8 @@ class PainlessRequest
             $config = Painless::get( 'system/common/config' );
             $routes = $config->get( 'routes.uri.map' );
 
-            if ( empty( $routes ) ) throw new PainlessRequestException( 'PS_CONFIG parameter parsing style can only be used if routes are properly set up (routes.uri.map)' );
-            if ( empty( $this->parent ) ) throw new PainlessRequestException( 'PS_CONFIG will not work if the invoking workflow was not instantiated before-hand. Please ensure that the router had instantiated the workflow and set a reference to it in $this->workflow before calling init( )' );
+            if ( empty( $routes ) ) throw new RequestException( 'PS_CONFIG parameter parsing style can only be used if routes are properly set up (routes.uri.map)' );
+            if ( empty( $this->parent ) ) throw new RequestException( 'PS_CONFIG will not work if the invoking workflow was not instantiated before-hand. Please ensure that the router had instantiated the workflow and set a reference to it in $this->workflow before calling init( )' );
 
             $module     = $this->parent->module;
             $workflow   = $this->parent->name;
@@ -276,7 +278,7 @@ class PainlessRequest
             if ( ! isset( $routes[$method][$key] ) )
             {
                 if ( ! isset( $routes['*'][$key] ) )
-                    throw new PainlessRequestException( "The route map [$map] is not found in the routes config. Please make sure the route map exists." );
+                    throw new RequestException( "The route map [$map] is not found in the routes config. Please make sure the route map exists." );
                 else
                     $map = $routes['*'][$key];
             }
@@ -300,8 +302,8 @@ class PainlessRequest
         // parse the parameter string using PS_DEFER
         elseif ( $style === self::PS_DEFER )
         {
-            if ( empty( $this->workflow ) ) throw new PainlessRequestException( 'PS_DEFER will not work if the invoking workflow was not instantiated before-hand. Please ensure that the router had instantiated the workflow and set a reference to it in $this->workflow before calling init( )' );
-            if ( ! method_exists( $this->workflow, 'processParams' ) ) throw new PainlessRequestException( 'PS_DEFER requires the invoking workflow [' . get_class( $this->workflow ) . '] to implement the method processParams( $params ) to work.' );
+            if ( empty( $this->workflow ) ) throw new RequestException( 'PS_DEFER will not work if the invoking workflow was not instantiated before-hand. Please ensure that the router had instantiated the workflow and set a reference to it in $this->workflow before calling init( )' );
+            if ( ! method_exists( $this->workflow, 'processParams' ) ) throw new RequestException( 'PS_DEFER requires the invoking workflow [' . get_class( $this->workflow ) . '] to implement the method processParams( $params ) to work.' );
 
             $params = $this->workflow->processParams( $params );
         }
@@ -333,4 +335,4 @@ class PainlessRequest
     }
 }
 
-class PainlessRequestException extends ErrorException { }
+class RequestException extends \ErrorException { }

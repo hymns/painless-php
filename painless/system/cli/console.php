@@ -37,13 +37,15 @@
  * @link        http://painless-php.com
  */
 
+namespace Painless\System\Cli;
+
 /**
- * PainlessConsole
+ * Console
  *
  * This provides a simple interface to writing CLI applications easily by handling
  * the input and output of a console
  */
-class PainlessConsole
+class Console
 {
 
     /**
