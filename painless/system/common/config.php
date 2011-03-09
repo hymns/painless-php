@@ -36,7 +36,9 @@
  * @link        http://painless-php.com
  */
 
-class PainlessConfig
+namespace Painless\Common;
+
+class Config
 {
     protected $config = array( );
 

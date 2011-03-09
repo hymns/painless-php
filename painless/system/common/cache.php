@@ -36,6 +36,8 @@
  * @link        http://painless-php.com
  */
 
-class PainlessCache
+namespace Painless\Common;
+
+class Cache
 {
 }
