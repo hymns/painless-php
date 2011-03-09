@@ -334,3 +334,5 @@ class Email
         return TRUE;
 	}
 }
+
+class EmailException extends \ErrorException { }

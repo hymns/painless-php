@@ -185,4 +185,4 @@ class Core
     }
 }
 
-class PainlessCoreException extends ErrorException { }
+class CoreException extends \ErrorException { }

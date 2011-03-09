@@ -97,3 +97,5 @@ class PainlessCookie
         
     }
 }
+
+class CookieException extends \ErrorException { }
