@@ -39,8 +39,6 @@
 
 defined( 'EXT' ) or define( 'EXT', '.php' );
 
-define( 'CORE_VERSION', '1.0' );
-
 define( 'DEV', 'dev' );
 define( 'LIVE', 'live' );
 define( 'TEST', 'test' );
@@ -57,25 +55,24 @@ define( 'STAGE', 'stage' );
  */
 class Painless
 {
-    public static $core = NULL;
-    public static $loader = NULL;
-
-    /**
-     * CORE_PATH - the path to this file (painless.php)
-     * IMPL_PATH - the path to the implementor
-     * IMPL_NAME - the name of the implementor
-     * @var string  env paths and names
-     */
-    public static $CORE_PATH    = '';
-    public static $IMPL_PATH    = '';
-    public static $IMPL_NAME    = '';
-    public static $PROFILE      = '';
-
-    /**
-     * The original command that invoked this HTTP Request/REST Call/CLI Process
-     * @var string  this will stay empty until the first call to $router builds it
-     */
-    public static $origin = '';
+    /* Loading parameters */
+    const LP_DEF        = 1;
+    const LP_SEEK       = 2;
+    const LP_CACHE      = 4;
+    const LP_RET        = 8;
+    const LP_ALL        = 15;       // LP_DEF | LP_CACHE | LP_RET | LP_SEEK
+    const LP_LOAD_NEW   = 9;        // LP_DEF | LP_RET
+    
+    /* Logging parameters */
+    const LOG_INFO      = 'info';
+    const LOG_ERROR     = 'error';
+    const LOG_WARNING   = 'warning';
+    
+    public static $apps = array( );
+    
+    public $profile     = '';
+    public $core        = NULL;
+    public $loader      = NULL;
 
     /**
      * Checks what profile is this package using (DEV, LIVE, etc)
@@ -84,33 +81,20 @@ class Painless
      */
     public static function isProfile( $type )
     {
-        if ( static::$PROFILE === $type )
+        if ( static::get( )->profile === $type )
             return TRUE;
 
         return FALSE;
     }
     
-    /**
-     * Gets data from a namespaced stream:
-     *  http://     - uses the HTTP client to get a HTTP resource
-     *  rest://     - uses the REST client to get a REST resource
-     *  package://  - uses an internal client to get a resource from another package
-     *  workflow:// - uses an internal client to get a resource from a workflow in the same package
-     * 
-     * The syntax goes like this: [method] [protocol]://[namespace/uri]
-     * 
-     * For example:
-     *  GET http://api.google.com/foo/bar   - makes a HTTP call to http://api.google.com/foo/bar
-     *  PUT package://flight-plan/id/123    - creates a new flight plan with the id 123
-     * 
-     * @static
-     * @param string $uri       the URI to send a request to
-     * @param mixed $data       the data to attach to the request
-     * @param PainlessResponse  a response object
-     */
-    public static function request( $uri, $data )
+    public static function profile( $val = '' )
     {
-        return;
+        $painless = static::get( );
+        if ( ! empty( $val ) )
+            return $painless->profile;
+        
+        $painless->profile = $val;
+        return $painless;
     }
 
     /**
@@ -119,106 +103,72 @@ class Painless
      * @param string $message   the message to log
      * @return void 
      */
-    public static function log( $message )
-    {
-        if ( ! isset( static::$loader ) ) return FALSE;
-        
-        $log = self::$loader->get( 'system/common/log' );
-        $log->info( $message );
+    public static function log( $type, $message )
+    {   
+        $log = Painless::load( 'com://system/common/log' );
+        $log->set( $type, $message );
     }
-
+    
     /**
-     * Bootstraps this service locator and initializes the engine. Always call this
-     * function first before attempting to run any services or components from
-     * Painless.
-     * @static
-     * @author	Ruben Tan Long Zheng <ruben@rendervault.com>
-     * @copyright   Copyright (c) 2009, Rendervault Solutions
-     * @return	object	the component that is requested
+     * 
+     * @param string $uri
+     * @param mixed $payload
+     * @param array $attachments
+     * @return mixed 
      */
-    public static function bootstrap( $implName, $implPath, $loader = NULL )
+    public static function request( $uri, $payload = FALSE, $attachments = array( ) )
     {
-        // Make sure all env consts are set        
-        if ( empty( $implPath ) )
-            throw new ErrorException( 'Implementor\'s path is not defined', 2 );
+        return static::$core->request( $uri, $payload, $attachments );
+    }
+    
+    public static function get( $appName )
+    {
+        if ( empty( static::$apps[$appName] ) )
+            static::$apps[$appName] = new static;
         
-        if ( empty( $implName ) )
-            throw new ErrorException( 'Implementor\'s name is not defined', 3 );
-
+        return static::$apps[$appName];
+    }
+    
+    public static function execute( $appName, $appPath, $useExtLoader = TRUE )
+    {
+        $painless = static::get( $appName );
+        
         // Set default values for non-critical env consts if none are set
         defined( 'ERROR_REPORTING' ) or define( 'ERROR_REPORTING', E_ALL | E_STRICT );
-        defined( 'NSTOK' ) or define( 'NSTOK', '/' );
+        defined( 'NS' ) or define( 'NS', '/' );
         ( ! empty( static::$PROFILE ) ) or self::$PROFILE = DEV;
-
-        // Set the system paths
-        static::$CORE_PATH = dirname( __FILE__ ) . '/';
-        static::$IMPL_PATH = $implPath;
-        static::$IMPL_NAME = $implName;
-
-        // Instantitate a version of the loader first if none provided. Usually,
-        // to improve performance, if the implementor decides to use their own
-        // version of the loader, it would be advisable to perform the initialization
-        // in index.php and pass in the loader through the parameter $loader
-        // rather than leaving it as a NULL
-        if ( NULL === $loader )
+        
+        // Append a backslash to $implPath if none is provided
+        if ( end( $appPath ) !== '/' ) $appPath .= '/';
+        
+        // See if we have a loader or not
+        $loaderPath = __DIR__ . '/system/common/loader' . EXT;
+        if ( TRUE === $useExtLoader )
         {
-            require_once static::$CORE_PATH . 'system/common/loader' . EXT;
-            $loader = new PainlessLoader;
-
-            // Replace itself with a proper loader
-            $loader = $loader->get( 'system/common/loader' );
+            // Check if there's an extended loader in the application's directory
+            $extLoaderPath = $appPath . 'system/common/loader' . EXT;
+            if ( file_exists( $extLoaderPath ) )
+                $loaderPath = $extLoaderPath;
         }
         
-        static::$loader = $loader;
-        static::$core = $loader->get( 'system/common/core' );
+        require $loaderPath;
+        $cn = '\\' . dash_to_pascal( $appName ) . '\\System\\Common\\Loader';
+        $loader = new $cn;
         
-        // Include the fearsome Beholder
-        require_once static::$CORE_PATH . 'beholder.php';
+        // Set the application's paths
+        $loader->env( 'app_name', $appPath );
+        $loader->env( 'app_path', $appPath );
+        $loader->env( 'core', __DIR__ . '/' );
+        
+        // Save the loader here
+        $painless->loader = $loader;
+        $painless->core = $loader->load( 'system/common/core' );
+        
+        // Include the fearsome Beholder (Event Dispatcher)
+        require_once __DIR__ . '/beholder.php';
         Beholder::init( );
-
-        return static::$core;
-    }
-
-    /**
-     * Service locator function to load a component.
-     *
-     * @static
-     * @author  Ruben Tan Long Zheng <ruben@rendervault.com>
-     * @copyright   Copyright (c) 2009, Rendervault Solutions
-     * @param	string	$namespace	the namespace of the component to load from
-     * @param	array	$options	a list of load options like LP_DEF_ONLY, LP_EXT_ONLY, etc
-     * @return	object	the component that is requested
-     */
-    public static function get( $namespace, $options = LP_ALL )
-    {
-        // offload the loading back to PainlessCore
-        return static::$loader->get( $namespace, $options );
-    }
-
-    /**
-     * This executes an operation, which most of the time would be a workflow
-     * referenced by a URI namespace. In the future this should be expanded to
-     * be able to execute shell commands, cascading workflows, conditional
-     * workflows, and so forth.
-     *
-     * @static
-     * @author  Ruben Tan Long Zheng <ruben@rendervault.com>
-     * @copyright   Copyright (c) 2009, Rendervault Solutions
-     * @param   string    $op    the operation to run. In most use cases, this is a URI
-     * @return  mixed   the result of the operation that is executed
-     */
-    public static function exec( $op = '' )
-    {
-        return static::$core->exec( $op );
-    }
-
-    /**
-     * Autoloads a class in the system
-     * @param string $cn    the class name to load
-     */
-    public static function autoload( $cn )
-    {
-        static::$loader->autoload( $cn );
+        
+        return $painless->core->execute( );
     }
 }
 
@@ -233,12 +183,12 @@ function array_get( $array, $key, $defaultReturn = FALSE )
 
 function dash_to_pascal( $string )
 {
-    return str_replace( ' ', '', ucwords( str_replace( CNTOK, ' ', $string ) ) );
+    return preg_replace( '/(^|-)(.)/e', "strtoupper('\\2')", $string );
 }
 
 function dash_to_camel( $string )
 {
-    $string = str_replace( ' ', '', ucwords( str_replace( CNTOK, ' ', $string ) ) );
+    $string = preg_replace( '/(^|-)(.)/e', "strtoupper('\\2')", $string );
     $string[0] = strtolower( $string[0] );
     return $string;
 }
@@ -249,22 +199,14 @@ function dash_to_underscore( $string )
 }
 
 function underscore_to_pascal( $string )
-{}
+{
+    return preg_replace( '/(^|_)(.)/e', "strtoupper('\\2')", $string );
+}
 
 function underscore_to_camel( $string )
 {
-    if ( FALSE !== strpos( $string, '_' ) )
-    {
-        $arr = explode( '_', $string );
-        $count = count( $arr );
-        $string = '';
-        for( $i = 0; $i < $count; $i++ )
-        {
-            if ( $i !== 0 ) $arr[$i] = ucwords( $arr[$i] );
-            $string .= $arr[$i];
-        }
-    }
-
+    $string = preg_replace( '/(^|_)(.)/e', "strtoupper('\\2')", $string );
+    $string[0] = strtolower( $string[0] );
     return $string;
 }
 

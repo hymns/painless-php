@@ -37,10 +37,23 @@
  * @link        http://painless-php.com
  */
 
+/**
+ * Usage:
+ * 
+ *	To get a Core object as a singleton
+ *		$core = Painless::get( 'core://system/common/core' );
+ * 
+ *	To get just the Core's class definition
+ *		Painless::get( 'core//system/common/core', LP_DEF_ONLY );
+ * 
+ *	To get a fresh copy of the Core object
+ *		$core = Painless::get( 'core://system/common/core', LP_LOAD_NEW );
+ */
+
 namespace Painless\System\Common;
 
-defined( 'NSTOK' ) or define( 'NSTOK', '/' );
-defined( 'CNTOK' ) or define( 'CNTOK', '-' );
+defined( 'NS' ) or define( 'NS', '/' );
+defined( 'CN' ) or define( 'CN', '-' );
 
 define( 'LP_DEF_CORE', 1 );         // load the definition for the core component
 define( 'LP_DEF_EXT', 2 );          // load the definition for the extended component
@@ -57,19 +70,55 @@ define( 'LP_EXT_ONLY', 42 );        // short for LP_DEF_EXT | LP_CACHE_EXT | LP_
 define( 'LP_CORE_ONLY', 21 );       // short for LP_DEF_CORE | LP_CACHE_CORE | LP_RET_CORE
 
 class Loader
-{
-    public $name = '';
-    public $base = '';
-    public $impl = '';
+{   
+    protected $appPath  = '';
+    protected $appName  = '';
+    protected $corePath = '';
 
     protected static $cache = array( );
-
-    public function __construct( )
+    
+    public function env( $key = '', $value = '' )
     {
-        // Set the system paths here for reference
-        $this->base = Painless::$CORE_PATH;
-        $this->impl = Painless::$IMPL_PATH;
-        $this->name = Painless::$IMPL_NAME;
+        if ( empty( $value ) && ! empty( $this->{$key} ) )
+            return $this->{$key};
+            
+        $this->{$key} = $value;
+    }
+	
+	public function load( $namespace, $opt = LP_ALL )
+	{   
+        // Localize variables
+        $protocol   = 'com';
+        $method     = 'get';
+        $returnType = 'obj';
+        
+        // Split the string by :// first to find out the protocol and the namespace
+        if ( FALSE !== strpos( $namespace, '://' ) )
+        {
+            list( $protocol, $namespace ) = explode( '://', $namespace );
+        }
+        
+        // If the protocol 
+	}
+    
+    protected function com( $namespace, $opt = \Painless::LP_ALL )
+    {
+        
+    }
+    
+    protected function mod( $namespace, $opt = \Painless::LP_ALL )
+    {
+        
+    }
+    
+    protected function app( $uri, $payload, $attachments )
+    {
+        
+    }
+    
+    protected function http( $uri, $payload, $attachments )
+    {
+        
     }
 
     /**
@@ -178,7 +227,7 @@ class Loader
             'load_obj'  => ucwords( $this->name ) . $cn,
             
             'base_path' => $this->base . $ns . EXT,
-            'base_obj'  => 'Painless' . $cn,
+            'base_obj'  => $cn,
         );
     }
 
@@ -220,7 +269,7 @@ class Loader
         $cn = dash_to_pascal( $ns );
 
         // Load the base object manually
-        Painless::get( 'system/workflow/module', LP_DEF_ONLY );
+        Painless::load( 'com://system/workflow/module', LP_DEF_ONLY );
 
         return array(            
             'load_path' => $this->impl . 'module/' . $ns . '/module' . EXT,
@@ -252,7 +301,7 @@ class Loader
         $cn = dash_to_pascal( $module . CNTOK . $workflow );
 
         // Load the base object manually
-        Painless::get( 'system/workflow/workflow', LP_DEF_ONLY );
+        Painless::load( 'com://system/workflow/workflow', LP_DEF_ONLY );
 
         return array(
             'load_path' => $this->impl . 'module/' . $module . '/workflow/' . $workflow . EXT,
@@ -282,7 +331,7 @@ class Loader
         $cn = dash_to_pascal( $module . CNTOK . $model );
 
         // Load the base object manually
-        Painless::get( 'system/workflow/model', LP_DEF_ONLY );
+        Painless::load( 'com://system/workflow/model', LP_DEF_ONLY );
 
         return array(
             'load_path' => $this->impl . 'module/' . $module . '/model/' . $model . EXT,
@@ -312,7 +361,7 @@ class Loader
         $cn = dash_to_pascal( $module . CNTOK . $view );
 
         // load the base object manually
-        Painless::get( 'system/view/view', LP_DEF_ONLY );
+        Painless::load( 'system/view/view', LP_DEF_ONLY );
 
         return array(
             'load_path' => $this->impl . 'module/' . $module . '/view/' . $view . EXT,
@@ -320,33 +369,6 @@ class Loader
 
             'base_path' => FALSE,
             'base_obj'  => FALSE,
-        );
-    }
-
-    /**
-     * Loads a view compiler
-     * @param <type> $nsa
-     * @param <type> $ns
-     */
-    protected function viewCompiler( $nsa, $ns )
-    {
-        // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) !== 2 ) throw new LoaderException( 'View Compiler namespace should follow this format: view-compiler/[type]' );
-
-        // The second key in the $nsa array is always the compiler type
-        $type = $nsa[1];
-
-        $cn = dash_to_pascal( $type );
-
-        // Load the base object manually
-        Painless::get( 'system/view/compiler/base', LP_DEF_ONLY );
-
-        return array(
-            'load_path' => $this->impl . 'system/view/compiler/' . $type . EXT,
-            'load_obj'  => ucwords( $this->name ) . $cn . 'Compiler',
-
-            'base_path' => $this->base . 'system/view/compiler/' . $type . EXT,
-            'base_obj'  => 'Painless' . $cn . 'Compiler',
         );
     }
 
@@ -384,35 +406,6 @@ class Loader
 
             'base_path' => FALSE,
             'base_obj'  => FALSE,
-        );
-    }
-
-    /**
-     * Loads a data adapter component
-     * @param array $nsa    an array of tokens from the namespace string
-     * @param string $ns    the namespace string in full
-     * @return array        the meta data on how to load the component
-     */
-    protected function adapter( $nsa, $ns )
-    {
-        // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) !== 2 ) throw new LoaderException( 'DAO namespace should follow this format: adapter/[adapter-type]' );
-
-        $cn = dash_to_pascal( $nsa[1] );
-
-        // If by any chance $nsa[1] is 'dao', then don't proceed
-        if ( $nsa[1] == 'dao' )
-            return new LoaderException( '"dao" is not an adapter' );
-
-        // Get PainlessDao definition
-        Painless::get( 'system/data/dao', LP_DEF_ONLY );
-
-        return array(
-            'load_path' => $this->impl . 'system/data/adapter/' . $nsa[1] . EXT,
-            'load_obj'  => ucwords( $this->name ) . $cn,
-
-            'base_path' => $this->base . 'system/data/adapter/' . $nsa[1] . EXT,
-            'base_obj'  => 'Painless' . $cn,
         );
     }
 }

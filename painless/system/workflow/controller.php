@@ -41,7 +41,7 @@ namespace Painless\System\Workflow;
 use Painless\System\Workflow\Request as Request;
 use Painless\System\Workflow\Response as Response;
 
-class Workflow
+class Controller
 {
     /**
      * The workflow's dash-notation name
@@ -187,5 +187,3 @@ class Workflow
         return $methods;
     }
 }
-
-class WorkflowException extends \ErrorException { }
