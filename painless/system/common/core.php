@@ -50,60 +50,108 @@ define( 'PHP_VER', phpversion( ) );
 
 class Core
 {
-    protected $errorReportLevel = 0;
-
-    public function __construct( $useCustomExceptionPage = TRUE, $useCustomErrorPage = TRUE )
+    /* Constants for environment variables */
+    const APP_NAME  = 'app_name';
+    const APP_PATH  = 'app_path';
+    const RES_PATH  = 'res_path';
+    const CORE_PATH = 'core_path';
+    const PROFILE   = 'profile';
+    
+    /* Container for all environment variables */
+    protected $env  = array( );
+    
+    /* Container for all loaded components */
+    protected $com  = array( );
+    
+    /* Container for all chained tasks */
+    protected $work = array( );
+    
+    //--------------------------------------------------------------------------
+    /**
+     * Set or get an environment variable
+     * @param string $key   the key of the environment variable
+     * @param string $val   the value to set in $this->env[$key]
+     * @return mixed        if a $val is provided, then return the Core instance
+     *                      to allow for method chaining. Otherwise, return the
+     *                      value in $this->env[$key]. 
+     */
+    public function env( $key, $val = NULL )
     {
-        // set the error reporting level to highest
-        if ( !defined( 'ERROR_LEVEL' ) )
+        if ( NULL === $val && isset( $this->env[$key] ) )
         {
-            $this->errorReportLevel = E_STRICT | E_ALL;
-            error_reporting( $this->errorReportLevel );
+            return $this->env[$key];
         }
-        else
+        elseif ( ! isset( $this->env[$key] ) )
         {
-            $this->errorReportLevel = ERROR_LEVEL;
-            error_reporting( $this->errorReportLevel );
+            return NULL;
         }
-
-        // set to show errors
-        if ( Painless::isProfile( DEV ) )
-        {
-            ini_set( 'display_errors', 1 );
-        }
-
-        // define the error handlers if necessary
-        if ( $useCustomExceptionPage )
-        {
-            set_exception_handler( array( $this, 'handleException' ) );
-        }
-
-        if ( $useCustomErrorPage )
-        {
-            set_error_handler( array( $this, 'handleError' ) );
-        }
+        
+        $this->env[$key] = $val;
+        return $this;
     }
-
-    public function __destruct( )
+    
+    //--------------------------------------------------------------------------
+    /**
+     * Set or get a component
+     * @param string $uri   the namespace/uri of the component
+     * @param object $obj   the value to set in $this->com[$uri]
+     * @return mixed        if a $obj is provided, then return the Core instance
+     *                      to allow for method chaining. Otherwise, return the
+     *                      value in $this->com[$uri].
+     */
+    public function com( $uri, $obj = NULL )
     {
-        // destroy the logger first because it might still need a database
-        // connection
-        unset( $this->components['system/common/logger'] );
-        unset( $this->components['system/common/database'] );
+        if ( NULL === $obj && isset( $this->com[$uri] ) )
+        {
+            return $this->com[$uri];
+        }
+        elseif ( ! isset( $this->com[$uri] ) )
+        {
+            return NULL;
+        }
+        
+        $this->com[$uri] = $obj;
+        return $this;
     }
-
-    public function getErrorReportLevel( )
+    
+    //--------------------------------------------------------------------------
+    /**
+     * Set or get a worker object
+     * @param string $name  the name/id of the work
+     * @param object $obj   an instance of the Worker object
+     * @return Response     a response object returned by the worker object
+     */
+    public function work( $name, $obj = NULL )
     {
-        return $this->errorReportLevel;
+        if ( NULL === $obj && isset( $this->work[$name] ) )
+        {
+            return $this->work[$name]->execute( );
+        }
+        elseif ( ! isset( $this->work[$name] ) )
+        {
+            return NULL;
+        }
+        
+        // Only set it if it's a Worker object (or inherited from one)
+        if ( $obj instanceof \Painless\System\Common\Worker )
+        {
+            $this->work[$name] = $obj;
+            return $this;
+        }
+        
+        throw new ErrorException( '$obj passed into Core::work( ) must be an instance of the Worker class (\Painless\System\Common\Worker)' );
     }
+    
     /**
      * processes the current request and returns a response
      */
     public function dispatch( )
     {
+        Beholder::notify( 'core.dispatch.pre' );
+        
         // start the session on every dispatch
-        $session = Painless::get( 'system/common/session' );
-        $session->start( );
+        //$session = Painless::get( 'system/common/session' );
+        //$session->start( );
 
         // check and load the router
         $router = Painless::get( 'system/common/router' );
@@ -126,6 +174,8 @@ class Core
             $response->status = 500;
             $response->message = $e->getMessage( );
         }
+        
+        Beholder::notify( 'core.dispatch.post' );
 
         // pass the control to the renderer
         $render = Painless::get( 'system/common/render' );
@@ -157,32 +207,9 @@ class Core
         return $router->dispatch( $method, $module, $workflow, $contentType, $params, $agent );
     }
 
-    /**
-     * internal error handling function to output a properly formatted stack
-     * trace in Painless's error page
-     *
-     * @param int $errNo
-     * @param string $errStr
-     * @param string $errFile
-     * @param string $errLine
-     */
-    public function handleError( $errNo, $errStr, $errFile, $errLine )
+    
+    public static function error( )
     {
-        $error = Painless::get( 'system/common/error' );
-        $error->handleError( $errNo, $errStr, $errFile, $errLine );
-    }
-
-    /**
-     * internal error handling function to output a properly formatted stack
-     * trace in Painless's exception page
-     *
-     * @param object $exception an exception object
-     */
-    public function handleException( $exception )
-    {
-        $error = Painless::get( 'system/common/error' );
-        $error->handleException( $exception );
+        $error = Painless::load( 'system/common/debug' );
     }
 }
-
-class CoreException extends \ErrorException { }

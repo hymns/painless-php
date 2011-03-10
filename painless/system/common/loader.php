@@ -52,9 +52,6 @@
 
 namespace Painless\System\Common;
 
-defined( 'NS' ) or define( 'NS', '/' );
-defined( 'CN' ) or define( 'CN', '-' );
-
 define( 'LP_DEF_CORE', 1 );         // load the definition for the core component
 define( 'LP_DEF_EXT', 2 );          // load the definition for the extended component
 define( 'LP_CACHE_CORE', 4 );       // instantiate the core component and cache it
@@ -71,55 +68,15 @@ define( 'LP_CORE_ONLY', 21 );       // short for LP_DEF_CORE | LP_CACHE_CORE | L
 
 class Loader
 {   
-    protected $appPath  = '';
-    protected $appName  = '';
-    protected $corePath = '';
-
-    protected static $cache = array( );
-    
-    public function env( $key = '', $value = '' )
+    public static function dispense( )
     {
-        if ( empty( $value ) && ! empty( $this->{$key} ) )
-            return $this->{$key};
-            
-        $this->{$key} = $value;
+        
     }
-	
+    
 	public function load( $namespace, $opt = LP_ALL )
 	{   
-        // Localize variables
-        $protocol   = 'com';
-        $method     = 'get';
-        $returnType = 'obj';
         
-        // Split the string by :// first to find out the protocol and the namespace
-        if ( FALSE !== strpos( $namespace, '://' ) )
-        {
-            list( $protocol, $namespace ) = explode( '://', $namespace );
-        }
-        
-        // If the protocol 
 	}
-    
-    protected function com( $namespace, $opt = \Painless::LP_ALL )
-    {
-        
-    }
-    
-    protected function mod( $namespace, $opt = \Painless::LP_ALL )
-    {
-        
-    }
-    
-    protected function app( $uri, $payload, $attachments )
-    {
-        
-    }
-    
-    protected function http( $uri, $payload, $attachments )
-    {
-        
-    }
 
     /**
      * Loads a component
@@ -223,7 +180,7 @@ class Loader
         $cn = dash_to_pascal( end( $nsa ) );
         
         return array(            
-            'load_path' => $this->impl . $ns . EXT,
+            'load_path' => Painless::env( Core::APP_PATH ) . $ns . EXT,
             'load_obj'  => ucwords( $this->name ) . $cn,
             
             'base_path' => $this->base . $ns . EXT,
@@ -244,7 +201,7 @@ class Loader
         $cn = dash_to_pascal( $fn );
 
         return array(
-            'load_path' => $this->impl . $ns . '/' . $fn . EXT,
+            'load_path' => $this->app . $ns . '/' . $fn . EXT,
             'load_obj'  => ucwords( $this->name ) . $cn,
 
             'base_path' => $this->base . $ns . '/' . $fn . EXT,
@@ -272,7 +229,7 @@ class Loader
         Painless::load( 'com://system/workflow/module', LP_DEF_ONLY );
 
         return array(            
-            'load_path' => $this->impl . 'module/' . $ns . '/module' . EXT,
+            'load_path' => $this->app . 'module/' . $ns . '/module' . EXT,
             'load_obj'  => $cn . 'Module',
 
             'base_path' => FALSE,
@@ -304,7 +261,7 @@ class Loader
         Painless::load( 'com://system/workflow/workflow', LP_DEF_ONLY );
 
         return array(
-            'load_path' => $this->impl . 'module/' . $module . '/workflow/' . $workflow . EXT,
+            'load_path' => $this->app . 'module/' . $module . '/workflow/' . $workflow . EXT,
             'load_obj'  => $cn . 'Workflow',
 
             'base_path' => FALSE,
@@ -334,7 +291,7 @@ class Loader
         Painless::load( 'com://system/workflow/model', LP_DEF_ONLY );
 
         return array(
-            'load_path' => $this->impl . 'module/' . $module . '/model/' . $model . EXT,
+            'load_path' => $this->app . 'module/' . $module . '/model/' . $model . EXT,
             'load_obj'  => $cn . 'Model',
 
             'base_path' => FALSE,
@@ -364,7 +321,7 @@ class Loader
         Painless::load( 'system/view/view', LP_DEF_ONLY );
 
         return array(
-            'load_path' => $this->impl . 'module/' . $module . '/view/' . $view . EXT,
+            'load_path' => $this->app . 'module/' . $module . '/view/' . $view . EXT,
             'load_obj'  => $cn . 'View',
 
             'base_path' => FALSE,
@@ -401,7 +358,7 @@ class Loader
         }
 
         return array(
-            'load_path' => $this->impl . 'module/' . $module . '/dao/' . $dao . EXT,
+            'load_path' => $this->app . 'module/' . $module . '/dao/' . $dao . EXT,
             'load_obj'  => $cn,
 
             'base_path' => FALSE,
@@ -409,5 +366,3 @@ class Loader
         );
     }
 }
-
-class LoaderException extends \ErrorException { }

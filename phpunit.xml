@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<phpunit colors="true" stopOnFailure="false" bootstrap="./testcase/testcase.php">
+<phpunit colors="true" stopOnFailure="false" bootstrap="test-lab/test-lab.php">
 	<php>
-		<server name="core_path" value="../painless/system"/>
-		<server name="vendor_path" value="../painless/vendor"/>
-		<server name="morphine_path" value="../morphine-cli"/>
+		<server name="core_path" value="painless/system"/>
+		<server name="vendor_path" value="painless/vendor"/>
+		<server name="morphine_path" value="morphine-cli"/>
 	</php>
 	<testsuites>
 		<testsuite name="core">
-			<directory suffix=".php">./tests/painless/system/</directory>
+			<directory suffix=".php">test-lab/painless/system/</directory>
 		</testsuite>
 		<testsuite name="vendor">
-			<directory suffix=".php">./tests/painless/vendor/</directory>
+			<directory suffix=".php">test-lab/painless/vendor/</directory>
 		</testsuite>
 		<testsuite name="morphine">
-			<directory suffix=".php">./test/morphine-cli/</directory>
+			<directory suffix=".php">test-lab/test/morphine-cli/</directory>
 		</testsuite>
 	</testsuites>
 </phpunit>

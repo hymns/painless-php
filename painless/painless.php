@@ -45,130 +45,74 @@ define( 'TEST', 'test' );
 define( 'STAGE', 'stage' );
 
 /**
- * The class Painless is built as a concept of a singleton registry, where it is
- * a static alias to PainlessCore and provides the facilities to load components
- * easily. One of the other functions that Painless can handle is dependency
- * injection - either globally, or by targetting specific components.
+ * The core Painless class acts as a service locator primarily. It's built to
+ * accomodate multiple apps running at the same time, and each app will get their
+ * own instance of Core. This means that it is possible to run multiple apps out
+ * of one single codebase.
+ * 
+ * To make a call to another app:
+ *  Painless::request( 'GET app://[app-name]' )->execute( );
+ *      > 200 OK
+ *  Painless::request( 'GET app://[app-name]/[module]/[workflow]/[params]' )->execute( );
+ *  or
+ *  Painless::request( 'POST app://[app-name]/[module]/[workflow]/[params]' )->payload( '{ "id":"resource-id","data":"foobar"}' )->execute( );
  *
  * @author  Ruben Tan Long Zheng <ruben@rendervault.com>
  * @copyright   Copyright (c) 2009, Rendervault Solutions
  */
 class Painless
-{
-    /* Loading parameters */
-    const LP_DEF        = 1;
-    const LP_SEEK       = 2;
-    const LP_CACHE      = 4;
-    const LP_RET        = 8;
-    const LP_ALL        = 15;       // LP_DEF | LP_CACHE | LP_RET | LP_SEEK
-    const LP_LOAD_NEW   = 9;        // LP_DEF | LP_RET
+{   
+    public static $app  = array( );
     
-    /* Logging parameters */
-    const LOG_INFO      = 'info';
-    const LOG_ERROR     = 'error';
-    const LOG_WARNING   = 'warning';
-    
-    public static $apps = array( );
-    
-    public $profile     = '';
-    public $core        = NULL;
-    public $loader      = NULL;
-
-    /**
-     * Checks what profile is this package using (DEV, LIVE, etc)
-     * @param string $type  a profile type to check against
-     * @return boolean      TRUE if it matches, FALSE if otherwise 
-     */
-    public static function isProfile( $type )
+    public static function app( $name, $core = NULL )
     {
-        if ( static::get( )->profile === $type )
-            return TRUE;
-
-        return FALSE;
-    }
-    
-    public static function profile( $val = '' )
-    {
-        $painless = static::get( );
-        if ( ! empty( $val ) )
-            return $painless->profile;
-        
-        $painless->profile = $val;
-        return $painless;
-    }
-
-    /**
-     * A shorthand to log messages
-     * @static
-     * @param string $message   the message to log
-     * @return void 
-     */
-    public static function log( $type, $message )
-    {   
-        $log = Painless::load( 'com://system/common/log' );
-        $log->set( $type, $message );
-    }
-    
-    /**
-     * 
-     * @param string $uri
-     * @param mixed $payload
-     * @param array $attachments
-     * @return mixed 
-     */
-    public static function request( $uri, $payload = FALSE, $attachments = array( ) )
-    {
-        return static::$core->request( $uri, $payload, $attachments );
-    }
-    
-    public static function get( $appName )
-    {
-        if ( empty( static::$apps[$appName] ) )
-            static::$apps[$appName] = new static;
-        
-        return static::$apps[$appName];
-    }
-    
-    public static function execute( $appName, $appPath, $useExtLoader = TRUE )
-    {
-        $painless = static::get( $appName );
-        
-        // Set default values for non-critical env consts if none are set
-        defined( 'ERROR_REPORTING' ) or define( 'ERROR_REPORTING', E_ALL | E_STRICT );
-        defined( 'NS' ) or define( 'NS', '/' );
-        ( ! empty( static::$PROFILE ) ) or self::$PROFILE = DEV;
-        
-        // Append a backslash to $implPath if none is provided
-        if ( end( $appPath ) !== '/' ) $appPath .= '/';
-        
-        // See if we have a loader or not
-        $loaderPath = __DIR__ . '/system/common/loader' . EXT;
-        if ( TRUE === $useExtLoader )
+        if ( NULL === $core && isset( $this->app[$name] ) )
         {
-            // Check if there's an extended loader in the application's directory
-            $extLoaderPath = $appPath . 'system/common/loader' . EXT;
-            if ( file_exists( $extLoaderPath ) )
-                $loaderPath = $extLoaderPath;
+            return $this->app[$name];
+        }
+        elseif ( ! isset( $this->app[$name] ) )
+        {
+            return NULL;
         }
         
-        require $loaderPath;
-        $cn = '\\' . dash_to_pascal( $appName ) . '\\System\\Common\\Loader';
-        $loader = new $cn;
+        $this->app[$name] = $core;
+        return $this;
+    }
+    
+    public static function get( $ns, $opt = 0 )
+    {
+        
+    }
+    
+    public static function bootstrap( $appName, $appPath )
+    {
+        // Append a backslash to $implPath if none is provided
+        ( end( $appPath ) !== '/' ) or $appPath .= '/';
+        
+        // Instantiate the Core. Here's the thing - both Core (which contains
+        // instances of components, environment variables, etc) and Loader (which
+        // handles loading of components) can be extended by the App, and thus
+        // we will need to do some creative loading here.
+        //
+        // First, check if there's an extended version of a loader inside the 
+        // app's extensions. If there is (and $useExtLoader is set to TRUE),
+        // instantiate that and use it to load the Core. Then save the loader
+        // into Core.
+        $loaderPath = __DIR__ . '/system/common/loader' . EXT;
+        require_once $loaderPath;
+        $core = \Painless\System\Common\Loader::loadCore( $appName, $appPath, __DIR__ );
         
         // Set the application's paths
-        $loader->env( 'app_name', $appPath );
-        $loader->env( 'app_path', $appPath );
-        $loader->env( 'core', __DIR__ . '/' );
+        $core->env( Core::APP_NAME, $appName );
+        $core->env( Core::APP_PATH, $appPath );
+        $core->env( Core::CORE_PATH, __DIR__ . '/' );
+        $core->env( Core::PROFILE, DEV );
         
-        // Save the loader here
-        $painless->loader = $loader;
-        $painless->core = $loader->load( 'system/common/core' );
+        // Save the loader into Core
+        $core->com( 'system/common/loader', $loader );
         
-        // Include the fearsome Beholder (Event Dispatcher)
-        require_once __DIR__ . '/beholder.php';
-        Beholder::init( );
-        
-        return $painless->core->execute( );
+        // Register the app
+        Painless::app( $appName , $core );
     }
 }
 

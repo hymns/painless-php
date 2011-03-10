@@ -146,5 +146,3 @@ class Config
         }
     }
 }
-
-class ConfigException extends \ErrorException { }

@@ -11,14 +11,24 @@
  * definitions, which would not change on the server during upgrades.
  */
 
+namespace Test;
+
 date_default_timezone_set( 'UTC' );
 
 // Define the deployment profile
 define( 'ERROR_LEVEL', E_ALL | E_STRICT ); // Set to 0 for 'production', set to E_ALL for 'development'
 
+// Bootstrap Painless
+require_once __DIR__ . "/painless.php";
 
-$a = 'this-is-a-string';
-echo preg_replace( '/(^|-)(.)/e', "strtoupper('\\2')", $a );
+class Painless extends \Painless
+{
+    public static function get( $ns, $opt = 0 )
+    {
+        $app = static::app( 'sample' );
+        return $app->get( $ns, $opt );
+    }
+}
 
 exit;
 // Define environment paths
