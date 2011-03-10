@@ -1,13 +1,11 @@
 <?php
 
+namespace Sample;
+
 // Bootstrap Painless
 require_once __DIR__ . "/../painless/painless.php";
 
-class Painless extends \Painless
-{
-    public static function get( $ns, $opt = 0 )
-    {
-        $app = static::app( 'sample' );
-        return $app->get( $ns, $opt );
-    }
-}
+// Define the app name into a constant
+define( 'SAMPLE', 'sample' );
+
+Painless::app( SAMPLE )->load( 'something' );

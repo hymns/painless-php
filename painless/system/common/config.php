@@ -88,14 +88,14 @@ class Config
         $aclPath = '';
 
         // first, check if a deployment profile is issued
-        $profile = Painless::$PROFILE;
+        $profile = Painless::app( )->env( Core::PROFILE );
 
         // get the engine's implementor path if possible
-        if ( ! empty( Painless::$IMPL_PATH ) )
+        if ( ! empty( Painless::app( )->env( Core::APP_PATH ) ) )
         {
-            $configPath = Painless::$IMPL_PATH . 'config/' . Painless::$IMPL_NAME;
-            $aclPath    = Painless::$IMPL_PATH . 'config/' . Painless::$IMPL_NAME;
-            $routesPath = Painless::$IMPL_PATH . 'config/' . Painless::$IMPL_NAME;
+            $configPath = Painless::app( )->env( Core::APP_PATH ) . 'config/' . Painless::app( )->env( Core::APP_NAME );
+            $aclPath    = Painless::app( )->env( Core::APP_PATH ) . 'config/' . Painless::app( )->env( Core::APP_NAME );
+            $routesPath = Painless::app( )->env( Core::APP_PATH ) . 'config/' . Painless::app( )->env( Core::APP_NAME );
 
             if ( $profile ) $configPath .= '.' . $profile;
 

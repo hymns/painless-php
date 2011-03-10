@@ -37,6 +37,8 @@
  * @link        http://painless-php.com
  */
 
+namespace Painless;
+
 defined( 'EXT' ) or define( 'EXT', '.php' );
 
 define( 'DEV', 'dev' );
@@ -62,26 +64,31 @@ define( 'STAGE', 'stage' );
  */
 class Painless
 {   
-    public static $app  = array( );
+    private static $app  = array( );
+    private static $curr = '';
     
-    public static function app( $name, $core = NULL )
+    public static function app( $name = '', $core = NULL )
     {
-        if ( NULL === $core && isset( $this->app[$name] ) )
+        if ( NULL === $core && isset( static::$app[static::$curr] ) && empty( $name ) )
         {
-            return $this->app[$name];
+            return static::$app[static::$curr];
         }
-        elseif ( ! isset( $this->app[$name] ) )
+        elseif ( NULL === $core && isset( static::$app[$name] ) )
+        {
+            return static::$app[$name];
+        }
+        elseif ( ! isset( static::$app[$name] ) )
         {
             return NULL;
         }
         
-        $this->app[$name] = $core;
-        return $this;
+        static::$app[$name] = $core;
     }
-    
-    public static function get( $ns, $opt = 0 )
+
+    public static function load( $component, $opt = 0 )
     {
-        
+        $core = static::app( );
+        return $core->load( $component, $opt );
     }
     
     public static function bootstrap( $appName, $appPath )
@@ -113,6 +120,9 @@ class Painless
         
         // Register the app
         Painless::app( $appName , $core );
+
+        // Set the registered app as the active one
+        static::$curr = $appName;
     }
 }
 
