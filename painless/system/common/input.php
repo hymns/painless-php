@@ -157,6 +157,19 @@ class Input
         if ( ! $this->isInit ) $this->init( );
         return $this->fetchFromArray( $_FILES, $index, $default );
     }
+	
+	/**
+     * Fetch an item from the COOKIE array
+     *
+     * @param string $index     an key to search for in the array (none will return the entire array)
+     * @param boolean $default  the default value to return
+     * @return value/array      return a value or the entire array
+     */
+    public function cookie( $index = '', $default = FALSE )
+    {
+        if ( ! $this->isInit ) $this->init( );
+        return $this->fetchFromArray( $_COOKIE, $index, $default );
+    }
 
     /**
      * Fetch an item from the REQUEST array
