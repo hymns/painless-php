@@ -45,8 +45,8 @@ class ConfigManagerModel extends PainlessModel
     public function getConfig( $key )
     {
         // Get the config DAO
-        $daoMysql = Painless::get( 'dao/config/config/mysql' );
-        $daoSqlite = Painless::get( 'dao/config/config/sqlite' );
+        $daoMysql = Painless::app( )->load( 'dao/config/config/mysql' );
+        $daoSqlite = Painless::app( )->load( 'dao/config/config/sqlite' );
 
         $bo = $daoMysql->find( 1 );
         $daoSqlite->key = $bo->key;
@@ -61,7 +61,7 @@ class ConfigManagerModel extends PainlessModel
     public function addConfig( $key, $value )
     {
         // Get the config DAO
-        $dao = Painless::get( 'dao/config/config/sqlite' );
+        $dao = Painless::app( )->load( 'dao/config/config/sqlite' );
 
         // Set the values
         $dao->key   = $key;

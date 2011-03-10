@@ -61,7 +61,7 @@ class Memcached extends Dao
         // as usual, get the options from the config if not specified
         if ( empty( $this->params ) )
         {
-            $config = Painless::get( 'system/common/config' );
+            $config = Painless::app( )->load( 'system/common/config' );
             $this->params = $config->get( 'memcached.*' );
         }
 

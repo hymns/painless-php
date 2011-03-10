@@ -166,7 +166,7 @@ class Router
         if ( ! Beholder::notifyUntil( 'router.pre', array( $method, $module, $workflow, $contentType, $params, $agent ) ) )
             return FALSE;
 
-        $woObj = Painless::get( "workflow/$module/$workflow" );
+        $woObj = Painless::app( )->load( "workflow/$module/$workflow" );
 
         if ( empty( $woObj ) ) throw new WorkflowNotFoundException( "Unable to find workflow [$module/$workflow]" );
         $woObj->init( $module, $workflow );
@@ -228,7 +228,7 @@ class Router
     protected function processUri( $uri, & $module, & $workflow, & $contentType )
     {
         // Grab dependencies
-        $config = Painless::get( 'system/common/config' );
+        $config = Painless::app( )->load( 'system/common/config' );
 
         $params = array( );
 
@@ -324,7 +324,7 @@ class Router
     protected function mapAlias( $alias )
     {
         // Grab the dependencies
-        $config = Painless::get( 'system/common/config' );
+        $config = Painless::app( )->load( 'system/common/config' );
 
         // Grab the routes
         $routes = $config->get( 'routes.alias' );

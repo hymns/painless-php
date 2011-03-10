@@ -55,19 +55,19 @@ class Email
         // set the default content type if none specified.
         if ( '' === $this->contentType )
         {
-            $this->contentType = Painless::get( 'system/common/config' )->get( 'email.content_type' );
+            $this->contentType = Painless::app( )->load( 'system/common/config' )->get( 'email.content_type' );
         }
 
         // set the default charset if none specified.
         if ( '' === $this->charset )
         {
-            $this->charset = Painless::get( 'system/common/config' )->get( 'email.charset' );
+            $this->charset = Painless::app( )->load( 'system/common/config' )->get( 'email.charset' );
         }
         
         // set the default content transfer encoding if none specified.
         if ( '' === $this->contentTransferEncoding )
         {
-            $this->contentTransferEncoding = Painless::get( 'system/common/config' )->get( 'email.content_transfer_encoding' );
+            $this->contentTransferEncoding = Painless::app( )->load( 'system/common/config' )->get( 'email.content_transfer_encoding' );
         }
     }
 
@@ -185,7 +185,7 @@ class Email
 	{
         $this->init( );
         
-        $config = Painless::get( 'system/common/config' );
+        $config = Painless::app( )->load( 'system/common/config' );
         
         $smtpServer = $config->get( 'email.host' );
         $port = $config->get( 'email.port' );

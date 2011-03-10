@@ -45,7 +45,7 @@ class ConfigManagerWorkflow extends PainlessWorkflow
     public function get( )
     {
         // Get the Config model
-        $model = Painless::get( 'model/config/manager' );
+        $model = Painless::app( )->load( 'model/config/manager' );
 
         // A correctly formed URI would look like this: GET test/config/key/[config-key]
         $key = $this->request->getParam( 'key' );
@@ -73,7 +73,7 @@ class ConfigManagerWorkflow extends PainlessWorkflow
     public function put( )
     {
         // Get the Config model
-        $model = Painless::get( 'model/config/manager' );
+        $model = Painless::app( )->load( 'model/config/manager' );
 
         // Get the key and value
         $key    = $this->request->getParam( 'key' );
@@ -102,7 +102,7 @@ class ConfigManagerWorkflow extends PainlessWorkflow
     public function post( )
     {
         // Get the config model
-        $model = Painless::get( 'model/config/manager' );
+        $model = Painless::app( )->load( 'model/config/manager' );
 
         // Get the key to update and the value
         $key    = $this->request->getParam( 'key' );

@@ -117,8 +117,8 @@ class Session
     public function regenerateSessionId( )
     {
         // get dependencies.
-        $security = Painless::get( 'system/common/security' );
-        $config = Painless::get( 'system/common/config' );
+        $security = Painless::app( )->load( 'system/common/security' );
+        $config = Painless::app( )->load( 'system/common/config' );
 
         // get hash algorithm to use for session key generation.
         $hashAlgo = $config->get( 'session.id.hash_algo' );

@@ -51,7 +51,7 @@ class HelpTopicModel extends PainlessModel
         try
         {
             ob_start( );
-            Painless::get( "tpl/help/$topic", LP_DEF_ONLY );
+            Painless::app( )->load( "tpl/help/$topic", LP_DEF_ONLY );
             $topic = ob_get_flush( );
         }
         catch( ErrorException $e )

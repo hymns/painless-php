@@ -41,13 +41,13 @@
  * Usage:
  * 
  *	To get a Core object as a singleton
- *		$core = Painless::get( 'core://system/common/core' );
+ *		$core = Painless::app( )->load( 'core://system/common/core' );
  * 
  *	To get just the Core's class definition
- *		Painless::get( 'core//system/common/core', LP_DEF_ONLY );
+ *		Painless::app( )->load( 'core//system/common/core', LP_DEF_ONLY );
  * 
  *	To get a fresh copy of the Core object
- *		$core = Painless::get( 'core://system/common/core', LP_LOAD_NEW );
+ *		$core = Painless::app( )->load( 'core://system/common/core', LP_LOAD_NEW );
  */
 
 namespace Painless\System\Common;
@@ -68,15 +68,11 @@ define( 'LP_CORE_ONLY', 21 );       // short for LP_DEF_CORE | LP_CACHE_CORE | L
 
 class Loader
 {   
-    public static function dispense( )
+
+    public function load( $namespace, $opt = LP_ALL )
     {
         
     }
-    
-	public function load( $namespace, $opt = LP_ALL )
-	{   
-        
-	}
 
     /**
      * Loads a component
@@ -351,7 +347,7 @@ class Loader
             $adapter = $nsa[3];
 
             // Load the base object (the adapter) manually
-            Painless::get( 'adapter/' . $adapter, LP_DEF_ONLY );
+            Painless::app( )->load( 'adapter/' . $adapter, LP_DEF_ONLY );
 
             $dao .= CNTOK . $adapter;
             $cn .= CNTOK . $adapter;

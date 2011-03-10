@@ -79,7 +79,7 @@ class Rdb extends Dao
      */
     public function init( $profile = '' )
     {
-        $config = Painless::get( 'system/common/config' );
+        $config = Painless::app( )->load( 'system/common/config' );
         $connParams = array( );
         $prefix = 'mysql.';
 
@@ -612,7 +612,7 @@ class Rdb extends Dao
     public function sql( )
     {
         if ( empty( self::$queryBuilder ) )
-            self::$queryBuilder = Painless::get( 'system/data/sql/sql-factory' );
+            self::$queryBuilder = Painless::app( )->load( 'system/data/sql/sql-factory' );
 
         return self::$queryBuilder;
     }

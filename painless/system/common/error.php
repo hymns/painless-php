@@ -48,7 +48,7 @@ class Error
     public function handleException( $exception )
     {
         // load the renderer
-        $render = Painless::get( 'system/common/render' );
+        $render = Painless::app( )->load( 'system/common/render' );
 
         var_dump( $exception ); die;
     }
