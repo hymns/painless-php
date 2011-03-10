@@ -40,7 +40,7 @@
 namespace Painless\System\Data\Adapter;
 use Painless\System\Data\Dao as Dao;
 
-class Redis extends Dao
+class Couch extends Dao
 {
      /**--------------------------------------------------------------------------------------------------------------------------------------------------
      * lifecycle methods
