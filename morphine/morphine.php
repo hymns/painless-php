@@ -62,7 +62,7 @@ class Morphine extends Painless
 
         require_once self::$CORE_PATH . 'system/common/loader' . EXT;
         require_once self::$IMPL_PATH . 'system/common/loader' . EXT;
-        $loader = new MorphineLoader;
+        $loader = new Loader;
 
         self::$loader = $loader;
         self::$core = $loader->get( 'system/common/core' );

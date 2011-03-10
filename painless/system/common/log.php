@@ -68,4 +68,9 @@ class Log
             fwrite( $this->file, "$message\n" );
         }
     }
+    
+    public function set( $type, $message )
+    {
+        
+    }
 }

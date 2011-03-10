@@ -36,7 +36,7 @@
  * @link        http://painless-php.com
  */
 
-class ConfigModule extends PainlessConfig
+class ConfigModule extends \Painless\System\Workflow\Module
 {
     
 }
