@@ -37,14 +37,26 @@
  * @link        http://painless-php.com
  */
 
-namespace Painless;
-
 defined( 'EXT' ) or define( 'EXT', '.php' );
 
 define( 'DEV', 'dev' );
 define( 'LIVE', 'live' );
 define( 'TEST', 'test' );
 define( 'STAGE', 'stage' );
+
+define( 'LP_DEF_CORE', 1 );         // load the definition for the core component
+define( 'LP_DEF_EXT', 2 );          // load the definition for the extended component
+define( 'LP_CACHE_CORE', 4 );       // instantiate the core component and cache it
+define( 'LP_CACHE_EXT', 8 );        // instantiate the extended component and cache it
+define( 'LP_RET_CORE', 16 );        // returns the core component. If this cannot be done, it'll return a NULL
+define( 'LP_RET_EXT', 32 );         // returns the extended component. If this cannot be done, it'll return the core component instead
+define( 'LP_SKIP_CACHE_LOAD', 64 ); // skip the cache lookup inside the loader
+
+define( 'LP_ALL', 63 );             // short for LP_DEF_CORE | LP_DEF_EXT | LP_CACHE_CORE | LP_CACHE_EXT | LP_RET_CORE | LP_RET_EXT
+define( 'LP_LOAD_NEW', 127 );       // short for LP_DEF_CORE | LP_DEF_EXT | LP_CACHE_CORE | LP_CACHE_EXT | LP_RET_CORE | LP_RET_EXT | LP_SKIP_CACHE_LOAD
+define( 'LP_DEF_ONLY', 3 );         // short for LP_DEF_CORE | LP_DEF_EXT
+define( 'LP_EXT_ONLY', 42 );        // short for LP_DEF_EXT | LP_CACHE_EXT | LP_RET_EXT
+define( 'LP_CORE_ONLY', 21 );       // short for LP_DEF_CORE | LP_CACHE_CORE | LP_RET_CORE
 
 /**
  * The core Painless class acts as a service locator primarily. It's built to
@@ -66,7 +78,15 @@ class Painless
 {   
     private static $app  = array( );
     private static $curr = '';
-    
+
+    //--------------------------------------------------------------------------
+    /**
+     * Sets or gets a Core instance associated with an app
+     * @param string $name  the name of the app. If none provided, the current
+     *                      app will be used
+     * @param object $core  the Core object that is to be associatd with the app
+     * @return Core         returns an instance of Core
+     */
     public static function app( $name = '', $core = NULL )
     {
         if ( NULL === $core && isset( static::$app[static::$curr] ) && empty( $name ) )
@@ -85,13 +105,29 @@ class Painless
         static::$app[$name] = $core;
     }
 
-    public static function load( $component, $opt = 0 )
+    //--------------------------------------------------------------------------
+    /**
+     * Shorthand to load a component from the current app
+     * @param string $component the name of the component to be loaded
+     * @param int $opt          the loading parameters
+     * @return object           the loaded component
+     */
+    public static function load( $component, $opt = LP_ALL )
     {
-        $core = static::app( );
-        return $core->load( $component, $opt );
+        return static::app( )->load( $component, $opt );
     }
-    
-    public static function bootstrap( $appName, $appPath )
+
+    //--------------------------------------------------------------------------
+    /**
+     * Initializes an application
+     * @param string $appName       the name of the application (dash-delimited)
+     * @param string $appPath       the path of the application (dash-delimited)
+     * @param boolean $useExtLoader set to TRUE to have the loader check for the
+     *                              existence of an extended loader inside the
+     *                              app's extensions, or FALSE to save time and
+     *                              cycles
+     */
+    public static function initApp( $appName, $appPath, $useExtLoader = TRUE )
     {
         // Append a backslash to $implPath if none is provided
         ( end( $appPath ) !== '/' ) or $appPath .= '/';
@@ -107,16 +143,7 @@ class Painless
         // into Core.
         $loaderPath = __DIR__ . '/system/common/loader' . EXT;
         require_once $loaderPath;
-        $core = \Painless\System\Common\Loader::loadCore( $appName, $appPath, __DIR__ );
-        
-        // Set the application's paths
-        $core->env( Core::APP_NAME, $appName );
-        $core->env( Core::APP_PATH, $appPath );
-        $core->env( Core::CORE_PATH, __DIR__ . '/' );
-        $core->env( Core::PROFILE, DEV );
-        
-        // Save the loader into Core
-        $core->com( 'system/common/loader', $loader );
+        $core = \Painless\System\Common\Loader::init( $appName, $appPath, __DIR__, $useExtLoader );
         
         // Register the app
         Painless::app( $appName , $core );
@@ -150,6 +177,17 @@ function dash_to_camel( $string )
 function dash_to_underscore( $string )
 {
     return str_replace( '-', '_', $string );
+}
+
+function dash_to_namespace( $string )
+{
+    // TODO: Use preg_replace for this
+    $sp = explode( '/', $string );
+    foreach( $sp as $i => $s )
+    {
+        $sp[$i] = dash_to_pascal( $s );
+    }
+    return implode( '\\', $sp );
 }
 
 function underscore_to_pascal( $string )

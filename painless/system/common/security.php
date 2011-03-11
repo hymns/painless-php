@@ -52,7 +52,7 @@ class Security
     protected function loadAcl( )
     {
         if ( empty( $this->acl ) )
-            $this->acl = Painless::app( )->load( 'system/common/config' )->get( 'acl.*' );
+            $this->acl = \Painless::app( )->load( 'system/common/config' )->get( 'acl.*' );
     }
 
     /*
@@ -131,7 +131,7 @@ class Security
         if ( ! empty( $this->identity ) )
             return $this->identity;
 
-        $user = Painless::app( )->load( 'system/common/session' )->get( 'user' );
+        $user = \Painless::app( )->load( 'system/common/session' )->get( 'user' );
         return $user;
     }
 
@@ -158,7 +158,7 @@ class Security
         unset( $user['password'] );
         unset( $user['salt'] );
 
-        Painless::app( )->load( 'system/common/session' )->set( 'user', $user );
+        \Painless::app( )->load( 'system/common/session' )->set( 'user', $user );
 
         $this->identity = $user;
     }
@@ -171,7 +171,7 @@ class Security
 
     public function logout( )
     {
-        Painless::app( )->load( 'system/common/session' )->destroy( );
+        \Painless::app( )->load( 'system/common/session' )->destroy( );
 
         $this->identity = NULL;
     }

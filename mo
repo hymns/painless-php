@@ -36,9 +36,6 @@
  * @link        http://painless-php.com
  */
 
-// define the deployment profile
-define( 'ERROR_REPORTING', E_ALL | E_STRICT ); // Set to 0 for 'production', set to E_ALL for 'development'
-
 date_default_timezone_set( 'UTC' );
 
 // DO NOT CHANGE THIS LINE!!!!!!!!!!!!!!!!!!!!!
@@ -48,7 +45,7 @@ include $CORE . 'painless.php';
 include $IMPL . 'morphine.php';
 
 // create the workfloo object and define a distribution
-$app = Morphine::bootstrap( 'morphine', $IMPL );
+Painless::bootstrap( 'morphine', $IMPL );
 $app->argv = $argv;
 echo $app->dispatch( );
 ?>

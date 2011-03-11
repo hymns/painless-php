@@ -141,6 +141,11 @@ class Core
         
         throw new ErrorException( '$obj passed into Core::work( ) must be an instance of the Worker class (\Painless\System\Common\Worker)' );
     }
+
+    public function run( )
+    {
+        
+    }
     
     /**
      * processes the current request and returns a response
@@ -150,11 +155,11 @@ class Core
         Beholder::notify( 'core.dispatch.pre' );
         
         // start the session on every dispatch
-        //$session = Painless::app( )->load( 'system/common/session' );
+        //$session = \Painless::app( )->load( 'system/common/session' );
         //$session->start( );
 
         // check and load the router
-        $router = Painless::app( )->load( 'system/common/router' );
+        $router = \Painless::app( )->load( 'system/common/router' );
 
         try
         {
@@ -164,13 +169,13 @@ class Core
         catch( PainlessWorkflowNotFoundException $e )
         {
             // construct a 404 response
-            $response = Painless::app( )->load( 'system/workflow/response', LP_LOAD_NEW );
+            $response = \Painless::app( )->load( 'system/workflow/response', LP_LOAD_NEW );
             $response->status = 404;
             $response->message = 'Unable to locate workflow';
         }
         catch( ErrorException $e )
         {
-            $response = Painless::app( )->load( 'system/workflow/response', LP_LOAD_NEW );
+            $response = \Painless::app( )->load( 'system/workflow/response', LP_LOAD_NEW );
             $response->status = 500;
             $response->message = $e->getMessage( );
         }
@@ -178,7 +183,7 @@ class Core
         Beholder::notify( 'core.dispatch.post' );
 
         // pass the control to the renderer
-        $render = Painless::app( )->load( 'system/common/render' );
+        $render = \Painless::app( )->load( 'system/common/render' );
         $output = $render->process( $response );
 
         return $output;
@@ -203,7 +208,7 @@ class Core
         $contentType    = 'none';
         $agent          = 'painless';
 
-        $router = Painless::app( )->load( 'system/common/router' );
+        $router = \Painless::app( )->load( 'system/common/router' );
         return $router->dispatch( $method, $module, $workflow, $contentType, $params, $agent );
     }
 

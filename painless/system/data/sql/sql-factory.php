@@ -155,7 +155,7 @@ class SqlFactory
 
 /**
 Test WHERE clause generation:
-$sql = Painless::app( )->load( 'system/data/sql/sql-factory' );
+$sql = \Painless::app( )->load( 'system/data/sql/sql-factory' );
 $sql->where( 'id = 1' )
      ->open( )
      ->open( )

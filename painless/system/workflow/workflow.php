@@ -86,7 +86,7 @@ class Workflow
         $this->module = $module;
 
         // Remember to get a new instance of the request
-        $request = Painless::app( )->load( 'system/workflow/request', LP_LOAD_NEW );
+        $request = \Painless::app( )->load( 'system/workflow/request', LP_LOAD_NEW );
         $this->request = $request;
     }
 
@@ -150,7 +150,7 @@ class Workflow
         else
         {
             // remember to get a new instance of the response
-            $response = Painless::app( )->load( 'system/workflow/response', LP_LOAD_NEW );
+            $response = \Painless::app( )->load( 'system/workflow/response', LP_LOAD_NEW );
 
             $response->setWorkflow( $this );
             $response->status = (int) $status;
@@ -169,7 +169,7 @@ class Workflow
      */
     public function options( )
     {
-        $request = Painless::app( )->load( 'system/common/router/response' );
+        $request = \Painless::app( )->load( 'system/common/router/response' );
         $methods = $request->getMethodList( );
 
         // Run through the list of methods supported by the request object and then

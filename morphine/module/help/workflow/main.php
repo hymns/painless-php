@@ -54,7 +54,7 @@ class HelpMainWorkflow extends PainlessWorkflow
         }
 
         // Check if the topic is supported
-        $model = Painless::app( )->load( 'model/help/topic' );
+        $model = \Painless::app( )->load( 'model/help/topic' );
         $response = $model->getTopic( $topic );
  
         // Do nothing because there's no logic to handle. Let view handle it.

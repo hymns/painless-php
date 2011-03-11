@@ -1,11 +1,8 @@
 <?php
-
 namespace Sample;
 
 // Bootstrap Painless
 require_once __DIR__ . "/../painless/painless.php";
-
-// Define the app name into a constant
-define( 'SAMPLE', 'sample' );
-
-Painless::app( SAMPLE )->load( 'something' );
+Painless::initApp( 'sample', __DIR__ );
+echo Painless::app( 'sample' )->run( );
+?>

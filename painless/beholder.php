@@ -79,7 +79,7 @@ class Beholder
     {
         // Check if there's a trigger configuration
         $IMPL_PATH = Painless::$IMPL_PATH;
-        $config = Painless::app( )->load( 'system/common/config' );
+        $config = \Painless::app( )->load( 'system/common/config' );
         
         $triggers = $config->get( 'triggers.*' );
         

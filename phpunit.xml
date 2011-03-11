@@ -14,7 +14,7 @@
 			<directory suffix=".php">test-lab/painless/vendor/</directory>
 		</testsuite>
 		<testsuite name="morphine">
-			<directory suffix=".php">test-lab/test/morphine-cli/</directory>
+			<directory suffix=".php">test-lab/test/morphine/</directory>
 		</testsuite>
 	</testsuites>
 </phpunit>

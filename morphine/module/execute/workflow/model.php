@@ -48,7 +48,7 @@ class MorphineExecuteModel extends PainlessWorkflow
         $params = $this->request->getParam( 'params' );
 
         // Get the model
-        $model = Painless::app( )->load( "model/$module/$model" );
+        $model = \Painless::app( )->load( "model/$module/$model" );
         if ( empty( $model ) ) return $this->response( 404, 'Model not found' );
 
         // Get the parameters

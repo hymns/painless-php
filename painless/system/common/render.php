@@ -70,13 +70,13 @@ class Render
         if ( empty( $module ) && empty( $workflow ) )
         {
             // Load the base class instead if no module or workflow is found
-            $view = Painless::app( )->load( 'system/view/view' );
+            $view = \Painless::app( )->load( 'system/view/view' );
             $view->response = $response;
         }
         else
         {
             // Load the correct view
-            $view = Painless::app( )->load( "view/$module/$workflow" );
+            $view = \Painless::app( )->load( "view/$module/$workflow" );
             $view->response = $response;
 
             // Get the output from the view by running the appropriate method. Once
@@ -88,14 +88,14 @@ class Render
         }
 
         // Load the appropriate view compiler
-        $compiler = Painless::app( )->load( "view-compiler/$contentType" );
+        $compiler = \Painless::app( )->load( "view-compiler/$contentType" );
 
         // If the content type is not suppoted, $compiler will be NULL. Handle
         // the error here
         if ( NULL === $compiler )
         {
             // Use the default HTML compiler
-            $compiler = Painless::app( )->load( "view-compiler/html" );
+            $compiler = \Painless::app( )->load( "view-compiler/html" );
         }
 
         // Return the processed output
