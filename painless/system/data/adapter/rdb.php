@@ -79,7 +79,7 @@ class Rdb extends Dao
      */
     public function init( $profile = '' )
     {
-        $config = \Painless::app( )->load( 'system/common/config' );
+        $config = \Painless::load( 'system/common/config' );
         $connParams = array( );
         $prefix = 'mysql.';
 
@@ -117,7 +117,7 @@ class Rdb extends Dao
 
         // make sure the PDO connection throws an exception during development
         // mode
-        if ( Painless::isProfile( DEV ) )
+        if ( Painless::app( )->env( Core::PROFILE ) === DEV )
             $this->_conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         return TRUE;
@@ -228,7 +228,7 @@ class Rdb extends Dao
         if ( $closeStmt && ! ( $ret instanceof PDOStatement ) ) $stmt->closeCursor( );
 
         // Save the return data if required
-        if ( Painless::isProfile( DEV ) )
+        if ( Painless::app( )->env( Core::PROFILE ) === DEV )
             $log[] = $ret;
 
         static::log( $log );
@@ -612,7 +612,7 @@ class Rdb extends Dao
     public function sql( )
     {
         if ( empty( self::$queryBuilder ) )
-            self::$queryBuilder = \Painless::app( )->load( 'system/data/sql/sql-factory' );
+            self::$queryBuilder = \Painless::load( 'system/data/sql/sql-factory' );
 
         return self::$queryBuilder;
     }

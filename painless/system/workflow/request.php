@@ -260,7 +260,7 @@ class Request
         elseif ( $style === self::PS_CONFIG )
         {
             // load the routes config file
-            $config = \Painless::app( )->load( 'system/common/config' );
+            $config = \Painless::load( 'system/common/config' );
             $routes = $config->get( 'routes.uri.map' );
 
             if ( empty( $routes ) ) throw new RequestException( 'PS_CONFIG parameter parsing style can only be used if routes are properly set up (routes.uri.map)' );

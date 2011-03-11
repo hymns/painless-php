@@ -109,7 +109,7 @@ abstract class Dao
             // $this->_profile[$name] already has the connection saved to it. If
             // this is not the case, throw an exception!
             if ( ! isset( $this->_profiles[$name] ) && empty( $this->_profiles[$name] ) )
-                throw new PainlessDaoException( '$this->profiles does not contain the new profile. Please call addProfile( ) to add the requested profile [' . $name . '] to the DAO' );
+                throw new ErrorException( '$this->profiles does not contain the new profile. Please call addProfile( ) to add the requested profile [' . $name . '] to the DAO' );
         }
         
         // Close the current connection
@@ -138,5 +138,3 @@ abstract class Dao
     abstract public function start( );
     abstract public function end( $rollback = FALSE );
 }
-
-class PainlessDaoException extends ErrorException { }

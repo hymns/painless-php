@@ -40,7 +40,7 @@
 
 namespace Painless\System\Common;
 
-class PainlessCookie
+class Cookie
 {
     protected $salt = 'This is workfloo';
     protected $expiration = 0;

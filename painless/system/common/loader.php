@@ -216,14 +216,12 @@ class Loader
     {
         $fn = end( $nsa );
 
-        $cn = dash_to_pascal( $fn );
-
         return array(
             'extpath'   => $core->env( Core::APP_PATH ) . $ns . '/' . $fn . EXT,
-            'extname'   => $core->env( Core::APP_NAME ) . $cn,
+            'extname'   => '',
 
-            'basepath'  => $this->base . $ns . '/' . $fn . EXT,
-            'basename'  => 'Painless' . $cn,
+            'basepath'  => $core->env( Core::CORE_PATH ) . $ns . '/' . $fn . EXT,
+            'basename'  => '',
         );
     }
 
@@ -249,7 +247,7 @@ class Loader
         $cn = dash_to_pascal( $module . CNTOK . $workflow );
 
         return array(
-            'extpath' => $this->app . 'module/' . $module . '/workflow/' . $workflow . EXT,
+            'extpath' => $core->env( Core::APP_PATH ) . 'module/' . $module . '/workflow/' . $workflow . EXT,
             'extname'  => $cn . 'Workflow',
 
             'basepath' => FALSE,
@@ -277,7 +275,7 @@ class Loader
         $cn = dash_to_pascal( $module . CNTOK . $model );
 
         return array(
-            'extpath' => $this->app . 'module/' . $module . '/model/' . $model . EXT,
+            'extpath' => $core->env( Core::APP_PATH ) . 'module/' . $module . '/model/' . $model . EXT,
             'extname'  => $cn . 'Model',
 
             'basepath' => FALSE,
@@ -305,7 +303,7 @@ class Loader
         $cn = dash_to_pascal( $module . CNTOK . $view );
 
         return array(
-            'extpath' => $this->app . 'module/' . $module . '/view/' . $view . EXT,
+            'extpath' => $core->env( Core::APP_PATH ) . 'module/' . $module . '/view/' . $view . EXT,
             'extname'  => $cn . 'View',
 
             'basepath' => FALSE,
@@ -343,7 +341,7 @@ class Loader
         }
 
         return array(
-            'extpath' => $this->app . 'module/' . $module . '/dao/' . $dao . EXT,
+            'extpath' => $core->env( Core::APP_PATH ) . 'module/' . $module . '/dao/' . $dao . EXT,
             'extname'  => $cn,
 
             'basepath' => FALSE,

@@ -61,7 +61,7 @@ class Model
         // object
         if ( ! is_int( $status ) )
         {
-            \Painless::app( )->load( 'system/workflow/response', LP_DEF_ONLY );
+            \Painless::load( 'system/workflow/response', LP_DEF_ONLY );
             if ( ! ( $status instanceof Response ) )
                 throw new WorkflowException( '$status must only be an int or an instance of PainlessResponse' );
 
@@ -70,7 +70,7 @@ class Model
         else
         {
             // remember to get a new instance of the response
-            $response = \Painless::app( )->load( 'system/workflow/response', LP_LOAD_NEW );
+            $response = \Painless::load( 'system/workflow/response', LP_LOAD_NEW );
             $response->status = (int) $status;
             $response->message = $message;
             $response->payload = $data;

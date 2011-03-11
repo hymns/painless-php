@@ -347,6 +347,3 @@ class Router
         return array_shift( $this->uri );
     }
 }
-
-class RouterException extends \ErrorException { }
-class WorkflowNotFoundException extends \ErrorException { }

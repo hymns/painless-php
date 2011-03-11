@@ -65,7 +65,7 @@ class Session
     public function __construct( )
     {
         // Initialize the namespace
-        $this->namespace = Painless::$IMPL_NAME;
+        $this->namespace = Painless::app( )->env( Core::APP_NAME );
     }
 
     /**
@@ -117,8 +117,8 @@ class Session
     public function regenerateSessionId( )
     {
         // get dependencies.
-        $security = \Painless::app( )->load( 'system/common/security' );
-        $config = \Painless::app( )->load( 'system/common/config' );
+        $security = \Painless::load( 'system/common/security' );
+        $config = \Painless::load( 'system/common/config' );
 
         // get hash algorithm to use for session key generation.
         $hashAlgo = $config->get( 'session.id.hash_algo' );

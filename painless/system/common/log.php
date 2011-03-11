@@ -62,7 +62,7 @@ class Log
 
     public function info( $message )
     {
-        if ( Painless::isProfile( DEV ) )
+        if ( Painless::app( )->env( Core::PROFILE ) === DEV )
         {
             $this->open( );
             fwrite( $this->file, "$message\n" );

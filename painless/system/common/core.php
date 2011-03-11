@@ -155,11 +155,11 @@ class Core
         Beholder::notify( 'core.dispatch.pre' );
         
         // start the session on every dispatch
-        //$session = \Painless::app( )->load( 'system/common/session' );
+        //$session = $this->load( 'system/common/session' );
         //$session->start( );
 
         // check and load the router
-        $router = \Painless::app( )->load( 'system/common/router' );
+        $router = $this->load( 'system/common/router' );
 
         try
         {
@@ -169,13 +169,13 @@ class Core
         catch( PainlessWorkflowNotFoundException $e )
         {
             // construct a 404 response
-            $response = \Painless::app( )->load( 'system/workflow/response', LP_LOAD_NEW );
+            $response = $this->load( 'system/workflow/response', LP_LOAD_NEW );
             $response->status = 404;
             $response->message = 'Unable to locate workflow';
         }
         catch( ErrorException $e )
         {
-            $response = \Painless::app( )->load( 'system/workflow/response', LP_LOAD_NEW );
+            $response = $this->load( 'system/workflow/response', LP_LOAD_NEW );
             $response->status = 500;
             $response->message = $e->getMessage( );
         }
@@ -183,7 +183,7 @@ class Core
         Beholder::notify( 'core.dispatch.post' );
 
         // pass the control to the renderer
-        $render = \Painless::app( )->load( 'system/common/render' );
+        $render = $this->load( 'system/common/render' );
         $output = $render->process( $response );
 
         return $output;
@@ -208,13 +208,13 @@ class Core
         $contentType    = 'none';
         $agent          = 'painless';
 
-        $router = \Painless::app( )->load( 'system/common/router' );
+        $router = $this->load( 'system/common/router' );
         return $router->dispatch( $method, $module, $workflow, $contentType, $params, $agent );
     }
 
     
     public static function error( )
     {
-        $error = Painless::app( )->load( 'system/common/debug' );
+        $error = $this->load( 'system/common/debug' );
     }
 }
