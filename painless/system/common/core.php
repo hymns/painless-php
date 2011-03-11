@@ -141,11 +141,6 @@ class Core
         
         throw new ErrorException( '$obj passed into Core::work( ) must be an instance of the Worker class (\Painless\System\Common\Worker)' );
     }
-
-    public function run( )
-    {
-        
-    }
     
     /**
      * processes the current request and returns a response
@@ -212,9 +207,8 @@ class Core
         return $router->dispatch( $method, $module, $workflow, $contentType, $params, $agent );
     }
 
-    
-    public static function error( )
+    public function run( $profile = DEV )
     {
-        $error = $this->load( 'system/common/debug' );
+        
     }
 }

@@ -41,13 +41,13 @@
  * Usage:
  * 
  *	To get a Core object as a singleton
- *		$core = \Painless::app( )->load( 'core://system/common/core' );
+ *		$core = \Painless::load( 'system/common/core' );
  * 
  *	To get just the Core's class definition
- *		\Painless::app( )->load( 'core//system/common/core', LP_DEF_ONLY );
+ *		\Painless::load( 'system/common/core', LP_DEF_ONLY );
  * 
  *	To get a fresh copy of the Core object
- *		$core = \Painless::app( )->load( 'core://system/common/core', LP_LOAD_NEW );
+ *		$core = \Painless::load( 'system/common/core', LP_LOAD_NEW );
  */
 
 namespace Painless\System\Common;
@@ -58,19 +58,57 @@ class Loader
     protected $appPath  = '';
     protected $corePath = '';
 
+    public function __construct( $appName, $appPath, $corePath )
+    {
+        $this->appName = $appName;
+        $this->appPath = $appPath;
+        $this->corePath = $corePath;
+    }
+
+    public static function autoload( $class )
+    {
+        // Get a copy of the core first
+        $core = Painless::app( );
+
+        // If there's no namespace on this, skip the autoloading
+        if ( FALSE === strpos( $class, '\\' ) ) return;
+
+        // Remove the first forward slash if it exists
+        if ( $class[0] === '\\' ) $class = substr( $class, 1 );
+
+        // Extract the first token of the class's namespace
+        $app = substr( $class, 0, strpos( $class, '\\' ) );
+
+        // If $app is Painless, convert the string to a dash delimited format
+        if ( $app === 'Painless' )
+        {
+            $path = $core->env( Core::CORE_PATH ) . namespace_to_dash( $class ) . EXT;
+            if ( file_exists( $path ) ) require_once $path;
+            return;
+        }
+        // Convert the namespaced class into backward slashed namespace
+        else
+        {
+            $core = Painless::app( strtolower( $app ) );
+            $path = $core->env( Core::APP_PATH ) . namespace_to_dash( substr( $class, strpos( $class, '\\' ) ) ) . EXT;
+            if ( file_exists( $path ) ) require_once $path;
+            return;
+        }
+    }
+
     public static function init( $appName, $appPath, $corePath, $useExt = TRUE )
     {
         $loader = '\\Painless\\System\\Common\\Loader';
         if ( $useExt )
         {
             $path = $appPath . 'system/common/loader.php';
-            if ( file_exists( $path ) ) include $path;
+            if ( file_exists( $path ) ) require_once $path;
 
             $class = '\\' . dash_to_pascal( $appName ) . '\\System\\Common\\Loader';
-            if ( class_exists( $class ) )
+            if ( class_exists( $class, FALSE ) )
                 $loader = $class;
         }
-        $loader = new $loader;
+        $loader = new $loader( $appName, $appPath, $corePath );
 
         // Create the core and assign the environment variables. Remember to use
         // LP_LOAD_NEW to prevent loader from caching the Core instance, which
@@ -95,16 +133,19 @@ class Loader
      * @param int $opt      loading parameters
      * @return mixed        returned value depends on the loading parameters
      */
-    public function get( $ns, $opt = LP_ALL )
+    public function load( $ns, $opt = LP_ALL )
     {
         // Localize the Core instance for multiple access
-        $core = Painless::app( );
+        $app = \Painless::app( );
 
-        // If LP_LOAD_NEW is not defined, try to see if the component has already
-        // been cached and return that instead if so
-        $com = $core->com( $ns );
-        if ( ! empty( $ns ) && ! empty( $com ) && ! ( $opt & LP_SKIP_CACHE_LOAD ) )
-            return $com;
+        if ( ! empty( $app ) )
+        {
+            // If LP_LOAD_NEW is not defined, try to see if the component has already
+            // been cached and return that instead if so
+            $com = $core->com( $ns );
+            if ( ! empty( $ns ) && ! empty( $com ) && ! ( $opt & LP_SKIP_CACHE_LOAD ) )
+                return $com;
+        }
 
         // Explode the namespace string into an array to make it easier to work
         // with
@@ -115,7 +156,7 @@ class Loader
         $comType = dash_to_camel( $nsa[0] );
 
         // Grab the load information from the respective component type handler
-        $meta = $this->$comType( $core, $nsa, $ns );
+        $meta = $this->$comType( $nsa, $ns );
 
         // Declare the variables and constants to use as a good engineering
         // practice :)
@@ -142,7 +183,7 @@ class Loader
 
             // If caching is required (by enabling the LP_CACHE_CORE flag), save
             // the instantiated object into Painless's central cache
-            if ( $isCacheCore ) $core->com( $ns, $comBase );
+            if ( $isCacheCore && ! empty( $app ) ) $app->com( $ns, $comBase );
         }
 
         // Load the definition of the ext class, if possible
@@ -159,7 +200,7 @@ class Loader
             // If caching is required (by enabling the LP_CACHE_EXT flag), save
             // the instantiated object into Painless's central cache (overwrite
             // LP_CACHE_CORE if possible
-            if ( $isCacheExt ) self::$cache[$ns] = $comExt;
+            if ( $isCacheExt && ! empty( $app ) ) $app->com( $ns, $comExt );
         }
 
         // Now that we have done all the loading bit, figure out what to return.
@@ -186,69 +227,66 @@ class Loader
 
     /**
      * Loads a system component
-     * @param Core $core    an instance of the Core object
      * @param array $nsa    an array of tokens from the namespace string
      * @param string $ns    the namespace string in full
      * @return array        the meta data on how to load the component
      */
-    protected function system( $core, $nsa, $ns )
+    protected function system( $nsa, $ns )
     {
         // The namespace ( $ns ) looks like this:
         // [system|vendor]/[category]/[component|[sub-category]/[sub-component]]
         $cns = '\\' . dash_to_namespace( $ns );
         return array(            
-            'extpath'   => $core->env( Core::APP_PATH ) . $ns . EXT,
-            'extname'   => '\\' . $core->env( Core::APP_NAME ) . $cns,
+            'extpath'   => $this->appPath . $ns . EXT,
+            'extname'   => '\\' . dash_to_pascal( $this->appName ) . $cns,
             
-            'basepath'  => $core->env( Core::CORE_PATH ) . $ns . EXT,
+            'basepath'  => $this->corePath . $ns . EXT,
             'basename'  => '\\Painless' . $cns,
         );
     }
 
     /**
      * Loads a library
-     * @param Core $core    an instance of the Core object
      * @param array $nsa    an array of tokens from the namespace string
      * @param string $ns    the namespace string in full
      * @return array        the meta data on how to load the component
      */
-    protected function library( $core, $nsa, $ns )
+    protected function library( $nsa, $ns )
     {
         $fn = end( $nsa );
 
         return array(
-            'extpath'   => $core->env( Core::APP_PATH ) . $ns . '/' . $fn . EXT,
+            'extpath'   => $this->appPath . $ns . '/' . $fn . EXT,
             'extname'   => '',
 
-            'basepath'  => $core->env( Core::CORE_PATH ) . $ns . '/' . $fn . EXT,
+            'basepath'  => $this->corePath . $ns . '/' . $fn . EXT,
             'basename'  => '',
         );
     }
 
     /**
      * Loads a controller
-     * @param Core $core    an instance of the Core object
      * @param array $nsa    an array of tokens from the namespace string
      * @param string $ns    the namespace string in full
      * @return array        the meta data on how to load the component
      */
-    protected function controller( $core, $nsa, $ns )
+    protected function controller( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) !== 3 ) throw new LoaderException( 'Workflow namespace should follow this format: workflow/[module]/[workflow]' );
+        if ( count( $nsa ) !== 3 ) throw new ErrorException( 'Controller namespace should follow this format: workflow/[module]/[workflow]' );
 
         // The second key in the $nsa array is always the module name, followed
         // by the workflow name
         $module = $nsa[1];
-        $workflow = $nsa[2];
+        $controller = $nsa[2];
 
         // Implode the rest of the elements into a dash delimited format, and
         // then convert it into pascal form
-        $cn = dash_to_pascal( $module . CNTOK . $workflow );
+        $cn = dash_to_pascal( $controller );
 
         return array(
-            'extpath' => $core->env( Core::APP_PATH ) . 'module/' . $module . '/workflow/' . $workflow . EXT,
-            'extname'  => $cn . 'Workflow',
+            'extpath' => $this->appPath . 'module/' . $module . '/controller/' . $controller . EXT,
+            'extname'  => '\\' . dash_to_pascal( $this->appName ) . '\\Module\\' . dash_to_pascal( $module ) . '\\Controller\\' . $cn . 'Controller',
 
             'basepath' => FALSE,
             'basename'  => FALSE,
@@ -257,26 +295,25 @@ class Loader
 
     /**
      * Loads a model component
-     * @param Core $core    an instance of the Core object
      * @param array $nsa    an array of tokens from the namespace string
      * @param string $ns    the namespace string in full
      * @return array        the meta data on how to load the component
      */
-    protected function model( $core, $nsa, $ns )
+    protected function model( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) !== 3 ) throw new LoaderException( 'Model namespace should follow this format: model/[module]/[model]' );
+        if ( count( $nsa ) !== 3 ) throw new ErrorException( 'Model namespace should follow this format: model/[module]/[model]' );
 
         // The second key in the $nsa array is always the module name, followed
         // by the model name
         $module = $nsa[1];
         $model = $nsa[2];
         
-        $cn = dash_to_pascal( $module . CNTOK . $model );
+        $cn = dash_to_pascal( $model );
 
         return array(
-            'extpath' => $core->env( Core::APP_PATH ) . 'module/' . $module . '/model/' . $model . EXT,
-            'extname'  => $cn . 'Model',
+            'extpath' => $this->appPath . 'module/' . $module . '/model/' . $model . EXT,
+            'extname'  => '\\' . dash_to_pascal( $this->appName ) . '\\Module\\' . dash_to_pascal( $module ) . '\\Model\\' . $cn . 'Model',
 
             'basepath' => FALSE,
             'basename'  => FALSE,
@@ -285,26 +322,23 @@ class Loader
 
     /**
      * Loads a view component
-     * @param Core $core    an instance of the Core object
      * @param array $nsa    an array of tokens from the namespace string
      * @param string $ns    the namespace string in full
      * @return array        the meta data on how to load the component
      */
-    protected function view( $core, $nsa, $ns )
+    protected function view( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) !== 3 ) throw new LoaderException( 'View namespace should follow this format: view/[module]/[view]' );
+        if ( count( $nsa ) !== 3 ) throw new ErrorException( 'View namespace should follow this format: view/[module]/[view]' );
         
         // The second key in the $nsa array is always the module name, followed
         // by the view name
         $module = $nsa[1];
         $view = $nsa[2];
 
-        $cn = dash_to_pascal( $module . CNTOK . $view );
-
         return array(
-            'extpath' => $core->env( Core::APP_PATH ) . 'module/' . $module . '/view/' . $view . EXT,
-            'extname'  => $cn . 'View',
+            'extpath' => $this->appPath . 'module/' . $module . '/view/' . $view . EXT,
+            'extname'  => '\\' . dash_to_pascal( $this->appName ) . '\\Module\\' . dash_to_pascal( $module ) . '\\View\\' . dash_to_pascal( $view ) . 'View',
 
             'basepath' => FALSE,
             'basename'  => FALSE,
@@ -313,21 +347,19 @@ class Loader
 
     /**
      * Loads a dao component
-     * @param Core $core    an instance of the Core object
      * @param array $nsa    an array of tokens from the namespace string
      * @param string $ns    the namespace string in full
      * @return array        the meta data on how to load the component
      */
-    protected function dao( $core, $nsa, $ns )
+    protected function dao( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) < 3 ) throw new LoaderException( 'DAO namespace should follow this format: dao/[module]/[dao]/[adapter] or dao/[module]/[dao]' );
+        if ( count( $nsa ) < 3 ) throw new ErrorException( 'DAO namespace should follow this format: dao/[module]/[dao]/[adapter] or dao/[module]/[dao]' );
 
         // The second key in the $nsa array is always the module name, followed
-        // by the view name
+        // by the dao name
         $module = $nsa[1];
         $dao = $nsa[2];
-        $cn = dash_to_pascal( $module . CNTOK . $dao );
 
         if ( isset( $nsa[3] ) )
         {
@@ -336,21 +368,42 @@ class Loader
             // Load the base object (the adapter) manually
             \Painless::load( 'adapter/' . $adapter, LP_DEF_ONLY );
 
-            $dao .= CNTOK . $adapter;
-            $cn .= CNTOK . $adapter;
+            $dao .= '-' . $adapter;
         }
 
         return array(
-            'extpath' => $core->env( Core::APP_PATH ) . 'module/' . $module . '/dao/' . $dao . EXT,
-            'extname'  => $cn,
+            'extpath' => $this->appPath . 'module/' . $module . '/dao/' . $dao . EXT,
+            'extname'  =>  '\\' . dash_to_pascal( $this->appName ) . '\\Module\\' . dash_to_pascal( $module ) . '\\Dao\\' . dash_to_pascal( $dao ),
 
             'basepath' => FALSE,
             'basename'  => FALSE,
         );
     }
 
-    protected function adapter( $core, $nsa, $ns )
+    /**
+     * Loads an adapter
+     * @param array $nsa    an array of tokens from the namespace string
+     * @param string $ns    the namespace string in full
+     * @return array        the meta data on how to load the component
+     */
+    protected function adapter( $nsa, $ns )
     {
-        
+        // Throw an exception of $nsa does not meet the correct length req.
+        if ( count( $nsa ) < 2 ) throw new ErrorException( 'Adapter namespace should follow this format: adapter/[adapter]' );
+
+        // The second key in the $nsa array is always the module name, followed
+        // by the dao name
+        $adapter = $nsa[1];
+
+        // Load the base class first
+        \Painless::load( 'system/data/adapter/base', LP_DEF_ONLY );
+
+        return array(
+            'extpath' => $this->appPath . 'module/' . $module . '/dao/' . $dao . EXT,
+            'extname'  =>  '\\' . dash_to_pascal( $this->appName ) . '\\Module\\' . dash_to_pascal( $module ) . '\\Dao\\' . dash_to_pascal( $dao ),
+
+            'basepath' => $this->corePath . 'system/data/adapter/' . $adapter . EXT,
+            'basename'  => '\\Painless\\System\\Data\\Adapter\\' . dash_to_pascal( $adapter ),
+        );
     }
 }

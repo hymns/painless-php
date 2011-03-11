@@ -88,7 +88,7 @@ class Painless
      * @return Core         returns an instance of Core
      */
     public static function app( $name = '', $core = NULL )
-    {
+    {    
         if ( NULL === $core && isset( static::$app[static::$curr] ) && empty( $name ) )
         {
             return static::$app[static::$curr];
@@ -97,7 +97,7 @@ class Painless
         {
             return static::$app[$name];
         }
-        elseif ( ! isset( static::$app[$name] ) )
+        elseif ( NULL === $core && ! isset( static::$app[$name] ) )
         {
             return NULL;
         }
@@ -130,7 +130,7 @@ class Painless
     public static function initApp( $appName, $appPath, $useExtLoader = TRUE )
     {
         // Append a backslash to $implPath if none is provided
-        ( end( $appPath ) !== '/' ) or $appPath .= '/';
+        ( $appPath[count( $appPath ) - 1] !== '/' ) or $appPath .= '/';
         
         // Instantiate the Core. Here's the thing - both Core (which contains
         // instances of components, environment variables, etc) and Loader (which
@@ -143,13 +143,18 @@ class Painless
         // into Core.
         $loaderPath = __DIR__ . '/system/common/loader' . EXT;
         require_once $loaderPath;
-        $core = \Painless\System\Common\Loader::init( $appName, $appPath, __DIR__, $useExtLoader );
+        $core = \Painless\System\Common\Loader::init( $appName, $appPath, __DIR__ . '/', $useExtLoader );
         
         // Register the app
         Painless::app( $appName , $core );
 
         // Set the registered app as the active one
         static::$curr = $appName;
+
+        // Register an autoloader
+        spl_autoload_register( '\Painless\System\Common\Loader::autoload' );
+
+        return $core;
     }
 }
 
@@ -170,8 +175,7 @@ function dash_to_pascal( $string )
 function dash_to_camel( $string )
 {
     $string = preg_replace( '/(^|-)(.)/e', "strtoupper('\\2')", $string );
-    $string[0] = strtolower( $string[0] );
-    return $string;
+    return ucwords( $string );
 }
 
 function dash_to_underscore( $string )
@@ -188,6 +192,11 @@ function dash_to_namespace( $string )
         $sp[$i] = dash_to_pascal( $s );
     }
     return implode( '\\', $sp );
+}
+
+function namespace_to_dash( $string )
+{
+    return str_replace( '\\', '/', strtolower( preg_replace( "/([a-z])([A-Z]{1})/", "$1\-$2", $string ) ) );
 }
 
 function underscore_to_pascal( $string )

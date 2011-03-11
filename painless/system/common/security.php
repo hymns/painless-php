@@ -215,7 +215,7 @@ class Security
         // an exception to realize that your code is running
         // in an insecure way
         // try to read from the windows RNG
-        if ( class_exists( 'COM' ) )
+        if ( class_exists( 'COM', FALSE ) )
         {
             try
             {
