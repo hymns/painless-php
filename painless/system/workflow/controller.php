@@ -38,10 +38,10 @@
  */
 
 namespace Painless\System\Workflow;
-use Painless\System\Workflow\Request as Request;
-use Painless\System\Workflow\Response as Response;
+use \Painless\System\Workflow\Request as Request;
+use \Painless\System\Workflow\Response as Response;
 
-class Controller
+class Controller extends \Painless\System\Common\Worker
 {
     /**
      * The workflow's dash-notation name
@@ -54,27 +54,6 @@ class Controller
      * @var string              the workflow's module name
      */
     public $module = '';
-
-    /**
-     * A request object of this workflow
-     * @var PainlessRequest     an instance of the PainlessRequest object
-     */
-    public $request = NULL;
-
-    /**
-     * A response object of this Workflow
-     * @var PainlessResponse    an instance of the PainlessResponse object
-     */
-    public $response = NULL;
-
-    /**
-     * before( ) and after( ) are called by the router both before dispatching
-     * and after dispatching. These hooks are useful for writing in general
-     * behaviors to the workflow that applies to all methods.
-     */
-    public function preRequest( )   { }
-    public function before( )       { }
-    public function after( )        { }
 
     /**
      * Initializes the workflow. Override this to use a custom parameter parsing
@@ -101,9 +80,7 @@ class Controller
         // Check if the method exists or not
         if ( ! method_exists( $this, $method ) ) return $this->response( 405, 'Method not supported' );
 
-        $this->before( );
         $this->response = $this->$method( );
-        $this->after( );
 
         return $this->response;
     }
@@ -130,37 +107,6 @@ class Controller
 
         $this->request = $request;
         return $this;
-    }
-
-    /**
-     * Creates a response object. Usually called at the end of any invoked methods
-     * @param int|PainlessResponse $status  a valid HTTP/REST status code
-     * @param string $message               the message explaining the status of the response
-     * @param mixed $payload                the payload of the workflow
-     * @return PainlessResponse             a response object
-     */
-    public function response( $status, $message = '', $payload = array( ) )
-    {
-        // Double check $status first. If it's not an INT, assume it's a response
-        // object
-        if ( $status instanceof Response )
-        {
-            $this->response = $status;
-        }
-        else
-        {
-            // remember to get a new instance of the response
-            $response = \Painless::load( 'system/workflow/response', LP_LOAD_NEW );
-
-            $response->setWorkflow( $this );
-            $response->status = (int) $status;
-            $response->message = $message;
-            $response->payload = $payload;
-
-            $this->response = $response;
-        }
-
-        return $this->response;
     }
 
     /**

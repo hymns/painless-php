@@ -39,24 +39,30 @@
 
 defined( 'EXT' ) or define( 'EXT', '.php' );
 
-define( 'DEV', 'dev' );
-define( 'LIVE', 'live' );
-define( 'TEST', 'test' );
-define( 'STAGE', 'stage' );
+defined( 'DEV' ) or define( 'DEV', 'dev' );
+defined( 'LIVE' ) or define( 'LIVE', 'live' );
+defined( 'TEST' ) or define( 'TEST', 'test' );
+defined( 'STAGE' ) or define( 'STAGE', 'stage' );
 
-define( 'LP_DEF_CORE', 1 );         // load the definition for the core component
-define( 'LP_DEF_EXT', 2 );          // load the definition for the extended component
-define( 'LP_CACHE_CORE', 4 );       // instantiate the core component and cache it
-define( 'LP_CACHE_EXT', 8 );        // instantiate the extended component and cache it
-define( 'LP_RET_CORE', 16 );        // returns the core component. If this cannot be done, it'll return a NULL
-define( 'LP_RET_EXT', 32 );         // returns the extended component. If this cannot be done, it'll return the core component instead
-define( 'LP_SKIP_CACHE_LOAD', 64 ); // skip the cache lookup inside the loader
+defined( 'LP_DEF_CORE' ) or define( 'LP_DEF_CORE', 1 );                 // load the definition for the core component
+defined( 'LP_DEF_EXT' ) or define( 'LP_DEF_EXT', 2 );                   // load the definition for the extended component
+defined( 'LP_CACHE_CORE' ) or define( 'LP_CACHE_CORE', 4 );             // instantiate the core component and cache it
+defined( 'LP_CACHE_EXT' ) or define( 'LP_CACHE_EXT', 8 );               // instantiate the extended component and cache it
+defined( 'LP_RET_CORE' ) or define( 'LP_RET_CORE', 16 );                // returns the core component. If this cannot be done, it'll return a NULL
+defined( 'LP_RET_EXT' ) or define( 'LP_RET_EXT', 32 );                  // returns the extended component. If this cannot be done, it'll return the core component instead
+defined( 'LP_SKIP_CACHE_LOAD' ) or define( 'LP_SKIP_CACHE_LOAD', 64 );  // skip the cache lookup inside the loader
 
-define( 'LP_ALL', 63 );             // short for LP_DEF_CORE | LP_DEF_EXT | LP_CACHE_CORE | LP_CACHE_EXT | LP_RET_CORE | LP_RET_EXT
-define( 'LP_LOAD_NEW', 127 );       // short for LP_DEF_CORE | LP_DEF_EXT | LP_CACHE_CORE | LP_CACHE_EXT | LP_RET_CORE | LP_RET_EXT | LP_SKIP_CACHE_LOAD
-define( 'LP_DEF_ONLY', 3 );         // short for LP_DEF_CORE | LP_DEF_EXT
-define( 'LP_EXT_ONLY', 42 );        // short for LP_DEF_EXT | LP_CACHE_EXT | LP_RET_EXT
-define( 'LP_CORE_ONLY', 21 );       // short for LP_DEF_CORE | LP_CACHE_CORE | LP_RET_CORE
+defined( 'LP_ALL' ) or define( 'LP_ALL', 63 );                          // short for LP_DEF_CORE | LP_DEF_EXT | LP_CACHE_CORE | LP_CACHE_EXT | LP_RET_CORE | LP_RET_EXT
+defined( 'LP_LOAD_NEW' ) or define( 'LP_LOAD_NEW', 127 );               // short for LP_DEF_CORE | LP_DEF_EXT | LP_CACHE_CORE | LP_CACHE_EXT | LP_RET_CORE | LP_RET_EXT | LP_SKIP_CACHE_LOAD
+defined( 'LP_DEF_ONLY' ) or define( 'LP_DEF_ONLY', 3 );                 // short for LP_DEF_CORE | LP_DEF_EXT
+defined( 'LP_EXT_ONLY' ) or define( 'LP_EXT_ONLY', 42 );                // short for LP_DEF_EXT | LP_CACHE_EXT | LP_RET_EXT
+defined( 'LP_CORE_ONLY' ) or define( 'LP_CORE_ONLY', 21 );              // short for LP_DEF_CORE | LP_CACHE_CORE | LP_RET_CORE
+
+defined( 'APP_NAME' ) or define( 'APP_NAME',  'app_name' );
+defined( 'APP_PATH' ) or define( 'APP_PATH',  'app_path' );
+defined( 'RES_PATH' ) or define( 'RES_PATH', 'res_path' );
+defined( 'CORE_PATH' ) or define( 'CORE_PATH', 'core_path' );
+defined( 'PROFILE' ) or define( 'PROFILE', 'profile' );
 
 /**
  * The core Painless class acts as a service locator primarily. It's built to
@@ -78,6 +84,18 @@ class Painless
 {   
     private static $app  = array( );
     private static $curr = '';
+
+    //--------------------------------------------------------------------------
+    /**
+     * Tests the current profile of an app
+     * @param string $profileToMatch    a profile to match with
+     * @return boolean                  TRUE if the profile matches, FALSE if otherwise
+     */
+    public static function isProfile( $profileToMatch )
+    {
+        $core = static::app( );
+        return ( $core->env( PROFILE ) === $profileToMatch );
+    }
 
     //--------------------------------------------------------------------------
     /**

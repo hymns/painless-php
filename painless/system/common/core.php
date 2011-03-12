@@ -40,31 +40,24 @@
  * PainlessCore is the core class, and is always included in every request. It serves
  * as a central registry for all loaded components, workflows, etc, and mainly acts
  * as the data store for Painless (the designated component locator).
- *
- * 
  */
-
 namespace Painless\System\Common;
 
-define( 'PHP_VER', phpversion( ) );
+defined( 'PHP_VER' ) or define( 'PHP_VER', phpversion( ) );
 
 class Core
-{
-    /* Constants for environment variables */
-    const APP_NAME  = 'app_name';
-    const APP_PATH  = 'app_path';
-    const RES_PATH  = 'res_path';
-    const CORE_PATH = 'core_path';
-    const PROFILE   = 'profile';
-    
+{    
     /* Container for all environment variables */
     protected $env  = array( );
     
     /* Container for all loaded components */
     protected $com  = array( );
-    
-    /* Container for all chained tasks */
-    protected $work = array( );
+
+    /* The originating request */
+    protected $origin = NULL;
+
+    /* The current active request */
+    protected $active = NULL;
     
     //--------------------------------------------------------------------------
     /**
@@ -112,34 +105,6 @@ class Core
         
         $this->com[$uri] = $obj;
         return $this;
-    }
-    
-    //--------------------------------------------------------------------------
-    /**
-     * Set or get a worker object
-     * @param string $name  the name/id of the work
-     * @param object $obj   an instance of the Worker object
-     * @return Response     a response object returned by the worker object
-     */
-    public function work( $name, $obj = NULL )
-    {
-        if ( NULL === $obj && isset( $this->work[$name] ) )
-        {
-            return $this->work[$name]->execute( );
-        }
-        elseif ( ! isset( $this->work[$name] ) )
-        {
-            return NULL;
-        }
-        
-        // Only set it if it's a Worker object (or inherited from one)
-        if ( $obj instanceof \Painless\System\Common\Worker )
-        {
-            $this->work[$name] = $obj;
-            return $this;
-        }
-        
-        throw new ErrorException( '$obj passed into Core::work( ) must be an instance of the Worker class (\Painless\System\Common\Worker)' );
     }
     
     /**
@@ -207,8 +172,32 @@ class Core
         return $router->dispatch( $method, $module, $workflow, $contentType, $params, $agent );
     }
 
-    public function run( $profile = DEV )
+    public function run( $cmd = '' )
     {
+        // Here we need to determine the entry point. There are only 3 of them:
+        // HTTP (includes REST calls), CLI (including cron jobs) and APP. The
+        // first two are fairly self-explanatory, but APP needs more explanation
+        // on this front.
+        //
+        // APP can come in through two ways - internal calls and service calls.
+        // Internal calls happen when an APP is located in the same machine as
+        // Painless, by registering its source as a file path inside the app
+        // registry. If a URL instead is provided, Painless would make a curl
+        // call instead of simply including its files, which would then become
+        // a HTTP/REST call.
+        //
+        //  Example:
+        //      Painless::request( 'GET app://flight-plan/id/123' );
+        //      will first search for the app's path inside the registry, and
+        //      if it looks like this:
+        //          $config['apps']['flight-plan'] = '/usr/local/web/htdocs/flight-plan';
+        //      then it is a local call, and if it looks like this:
+        //          $config['apps']['flight-plan'] = 'http://flight-plan.foo.com:8003';
+        //      then it is a REST call.
+
+        // Get the router
+        $router = \Painless::load( 'system/common/router' );
+
         
     }
 }

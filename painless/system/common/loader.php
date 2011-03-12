@@ -82,7 +82,7 @@ class Loader
         // If $app is Painless, convert the string to a dash delimited format
         if ( $app === 'Painless' )
         {
-            $path = $core->env( Core::CORE_PATH ) . namespace_to_dash( $class ) . EXT;
+            $path = $core->env( CORE_PATH ) . namespace_to_dash( $class ) . EXT;
             if ( file_exists( $path ) ) require_once $path;
             return;
         }
@@ -90,7 +90,7 @@ class Loader
         else
         {
             $core = Painless::app( strtolower( $app ) );
-            $path = $core->env( Core::APP_PATH ) . namespace_to_dash( substr( $class, strpos( $class, '\\' ) ) ) . EXT;
+            $path = $core->env( APP_PATH ) . namespace_to_dash( substr( $class, strpos( $class, '\\' ) ) ) . EXT;
             if ( file_exists( $path ) ) require_once $path;
             return;
         }
@@ -114,12 +114,12 @@ class Loader
         // LP_LOAD_NEW to prevent loader from caching the Core instance, which
         // would fail because as of now the Core object does not exist yet!
         $core = $loader->load( 'system/common/core', LP_LOAD_NEW );
-        $core->env( Core::APP_NAME, $appName );
-        $core->env( Core::APP_PATH, $appPath );
-        $core->env( Core::CORE_PATH, $corePath );
+        $core->env( APP_NAME, $appName );
+        $core->env( APP_PATH, $appPath );
+        $core->env( CORE_PATH, $corePath );
 
         // Set the PROFILE to DEV as a default
-        $core->env( Core::PROFILE, DEV );
+        $core->env( PROFILE, DEV );
 
         // Cache the loader in the core
         $core->com( 'system/common/loader', $loader );

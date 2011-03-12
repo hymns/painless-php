@@ -65,10 +65,16 @@ class Router
     protected $defaultRoute = array( 'module', 'workflow' );
 
     /**
-     * Processes the request and automatically discover the method, module, workflow, parameter string
-     * and the invoking agent.
-     * @param string $uri       an optional URI string. If nothing is passed in, it'll assume its a HTTP request call
-     * @param boolean $dispatch set to TRUE (default) to proceed with dispatching, FALSE to return the processed values
+     * Processes the request and automatically discover the method, module,
+     * workflow, parameter string and the invoking agent.
+     *
+     * There are 3 distinct entry points for the router: HTTP (which includes
+     * REST), CLI (which includes cron), and APP (where one app calls another).
+     * 
+     * @param string $uri       an optional URI string. If nothing is passed in,
+     *                          it'll assume its a HTTP request call
+     * @param boolean $dispatch set to TRUE (default) to proceed with dispatching,
+     *                          FALSE to return the processed values
      */
     public function process( $uri = '', $dispatch = TRUE )
     {
@@ -101,11 +107,11 @@ class Router
 
             // In CLI mode, $uri CANNOT be empty
             if ( empty( $uri ) )
-                throw new RouterException( '$uri that is passed into process( ) cannot be NULL when Painless is running in CLI mode' );
+                throw new ErrorException( '$uri that is passed into process( ) cannot be NULL when Painless is running in CLI mode' );
 
             // In CLI mode, $uri MUST be a string
             if ( ! is_string( $uri ) )
-                throw new RouterException( '$uri that is passed into process( ) must be a string when Painless is running in CLI mode' );
+                throw new ErrorException( '$uri that is passed into process( ) must be a string when Painless is running in CLI mode' );
 
             // If no method is provided, default to get
             if ( empty( $method ) ) $method = 'get';
@@ -166,15 +172,15 @@ class Router
         if ( ! Beholder::notifyUntil( 'router.pre', array( $method, $module, $workflow, $contentType, $params, $agent ) ) )
             return FALSE;
 
-        $woObj = \Painless::app( )->load( "workflow/$module/$workflow" );
+        $woObj = \Painless::load( "workflow/$module/$workflow" );
 
-        if ( empty( $woObj ) ) throw new WorkflowNotFoundException( "Unable to find workflow [$module/$workflow]" );
+        if ( empty( $woObj ) ) throw new ErrorException( "Unable to find workflow [$module/$workflow]" );
         $woObj->init( $module, $workflow );
 
         // construct the workflow
         $woObj->request( $method, $params, $contentType, $agent );
         $response = $woObj->run( );
-        if ( ! ( $response instanceof Response ) ) throw new RouterException( "Invalid return type from the workflow dispatch" );
+        if ( ! ( $response instanceof Response ) ) throw new ErrorException( "Invalid return type from the workflow dispatch" );
 
         return $response;
     }

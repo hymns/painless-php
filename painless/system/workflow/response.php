@@ -42,8 +42,7 @@ namespace Painless\System\Workflow;
 class Response
 {
     /**-------------------------------------------------------------------------
-     * The HTTP/REST status code of the response. Note that by default, PainlessModel
-     * uses 200 (successful) and 400 (failed) only
+     * The HTTP/REST status code of the response. 
      * @var int     a HTTP/REST status code
      */
     public $status      = 0;
@@ -68,8 +67,8 @@ class Response
      */
     public $parent      = NULL;
 
-    public $workflow    = '';
     public $module      = '';
+    public $controller  = '';
     public $method      = '';
     public $agent       = '';
     public $contentType = '';
@@ -98,5 +97,10 @@ class Response
     public function get( $key )
     {
         return array_get( $this->payload, $key, FALSE );
+    }
+
+    public function header( $header )
+    {
+        $this->header[] = $header;
     }
 }

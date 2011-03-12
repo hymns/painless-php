@@ -39,51 +39,10 @@
 
 namespace Painless\System\Workflow;
 
-class Model
+class Model extends \Painless\System\Common\Worker
 {
-    const SUCCESS = 200;
-    const CREATED = 201;
-    const FAILURE = 400;
-
-    protected $response = NULL;
-    
-    /**
-     * A shorthand to return a properly formed response object to the calling
-     * workflow.
-     * @param int $status       the HTTP status of the response object
-     * @param string $message   a message to return to the caller
-     * @param mixed $data       usually, either an array or a string
-     * @return array            an array where the key 'status' is TRUE or FALSE, and 'data' is the returned data
-     */
-    protected function response( $status, $message = '', $data = array( ) )
-    {
-        // Double check $status first. If it's not an INT, assume it's a response
-        // object
-        if ( ! is_int( $status ) )
-        {
-            \Painless::load( 'system/workflow/response', LP_DEF_ONLY );
-            if ( ! ( $status instanceof Response ) )
-                throw new WorkflowException( '$status must only be an int or an instance of PainlessResponse' );
-
-            $this->response = $status;
-        }
-        else
-        {
-            // remember to get a new instance of the response
-            $response = \Painless::load( 'system/workflow/response', LP_LOAD_NEW );
-            $response->status = (int) $status;
-            $response->message = $message;
-            $response->payload = $data;
-
-            $this->response = $response;
-        }
-        return $this->response;
-    }
-
     protected function validateNull( $v )                  { return empty( $v ); }
     protected function validateEmail( $v )                 { return ( filter_var( $v, FILTER_VALIDATE_EMAIL ) !== FALSE ); }
     protected function validateEquals( $v1, $v2 )          { return ( $v1 == $v2 ); }
     protected function validateIdentical( $v1, $v2 )       { return ( $v1 === $v2 ); }
 }
-
-class ModelException extends \ErrorException { }

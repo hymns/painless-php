@@ -56,6 +56,7 @@ class Request
     const POST      = 'post';
     const PUT       = 'put';
     const DELETE    = 'delete';
+    const HEAD      = 'head';
 
     /**
      * Request methods that are automatically handled by workflows themselves
@@ -332,6 +333,11 @@ class Request
     {
         $this->agent = $agent;
         return $this;
+    }
+
+    public function param( $name, $value = '', $type = '' )
+    {
+        
     }
 }
 
