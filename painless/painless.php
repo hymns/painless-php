@@ -39,31 +39,6 @@
 
 defined( 'EXT' ) or define( 'EXT', '.php' );
 
-defined( 'DEV' ) or define( 'DEV', 'dev' );
-defined( 'LIVE' ) or define( 'LIVE', 'live' );
-defined( 'TEST' ) or define( 'TEST', 'test' );
-defined( 'STAGE' ) or define( 'STAGE', 'stage' );
-
-defined( 'LP_DEF_CORE' ) or define( 'LP_DEF_CORE', 1 );                 // load the definition for the core component
-defined( 'LP_DEF_EXT' ) or define( 'LP_DEF_EXT', 2 );                   // load the definition for the extended component
-defined( 'LP_CACHE_CORE' ) or define( 'LP_CACHE_CORE', 4 );             // instantiate the core component and cache it
-defined( 'LP_CACHE_EXT' ) or define( 'LP_CACHE_EXT', 8 );               // instantiate the extended component and cache it
-defined( 'LP_RET_CORE' ) or define( 'LP_RET_CORE', 16 );                // returns the core component. If this cannot be done, it'll return a NULL
-defined( 'LP_RET_EXT' ) or define( 'LP_RET_EXT', 32 );                  // returns the extended component. If this cannot be done, it'll return the core component instead
-defined( 'LP_SKIP_CACHE_LOAD' ) or define( 'LP_SKIP_CACHE_LOAD', 64 );  // skip the cache lookup inside the loader
-
-defined( 'LP_ALL' ) or define( 'LP_ALL', 63 );                          // short for LP_DEF_CORE | LP_DEF_EXT | LP_CACHE_CORE | LP_CACHE_EXT | LP_RET_CORE | LP_RET_EXT
-defined( 'LP_LOAD_NEW' ) or define( 'LP_LOAD_NEW', 127 );               // short for LP_DEF_CORE | LP_DEF_EXT | LP_CACHE_CORE | LP_CACHE_EXT | LP_RET_CORE | LP_RET_EXT | LP_SKIP_CACHE_LOAD
-defined( 'LP_DEF_ONLY' ) or define( 'LP_DEF_ONLY', 3 );                 // short for LP_DEF_CORE | LP_DEF_EXT
-defined( 'LP_EXT_ONLY' ) or define( 'LP_EXT_ONLY', 42 );                // short for LP_DEF_EXT | LP_CACHE_EXT | LP_RET_EXT
-defined( 'LP_CORE_ONLY' ) or define( 'LP_CORE_ONLY', 21 );              // short for LP_DEF_CORE | LP_CACHE_CORE | LP_RET_CORE
-
-defined( 'APP_NAME' ) or define( 'APP_NAME',  'app_name' );
-defined( 'APP_PATH' ) or define( 'APP_PATH',  'app_path' );
-defined( 'RES_PATH' ) or define( 'RES_PATH', 'res_path' );
-defined( 'CORE_PATH' ) or define( 'CORE_PATH', 'core_path' );
-defined( 'PROFILE' ) or define( 'PROFILE', 'profile' );
-
 /**
  * The core Painless class acts as a service locator primarily. It's built to
  * accomodate multiple apps running at the same time, and each app will get their
@@ -81,7 +56,43 @@ defined( 'PROFILE' ) or define( 'PROFILE', 'profile' );
  * @copyright   Copyright (c) 2009, Rendervault Solutions
  */
 class Painless
-{   
+{
+    /* Core version */
+    const VERSION       = '1.0';
+
+    /* Base load parameters */
+    const LP_DEF_BASE   = 1;    // load the definition for the core component
+    const LP_DEF_APP    = 2;    // load the definition for the extended component
+    const LP_CACHE_BASE = 4;    // instantiate the core component and cache it
+    const LP_CACHE_APP  = 8;    // instantiate the extended component and cache it
+    const LP_RET_BASE   = 16;   // returns the core component. If this cannot be done, it'll return a NULL
+    const LP_RET_APP    = 32;   // returns the extended component. If this cannot be done, it'll return the core component instead
+    const LP_SKIP_CACHE = 64;   // skip the cache lookup
+
+    /* Shorthand load parameters */
+    const LP_ALL        = 63;   // short for LP_DEF_CORE | LP_DEF_EXT | LP_CACHE_CORE | LP_CACHE_EXT | LP_RET_CORE | LP_RET_EXT
+    const LP_LOAD_NEW   = 127;  // short for LP_DEF_CORE | LP_DEF_EXT | LP_CACHE_CORE | LP_CACHE_EXT | LP_RET_CORE | LP_RET_EXT | LP_SKIP_CACHE_LOAD
+    const LP_DEF_ONLY   = 2;    // short for LP_DEF_CORE | LP_DEF_EXT
+    const LP_APP_ONLY   = 42;   // short for LP_DEF_EXT | LP_CACHE_EXT | LP_RET_EXT
+    const LP_BASE_ONLY  = 21;   // short for LP_DEF_CORE | LP_CACHE_CORE | LP_RET_CORE
+
+    /* Profile names */
+    const DEV           = 'dev';
+    const LIVE          = 'live';
+    const STAGE         = 'stage';
+
+    /* Environment variable names */
+    const APP_NAME      = 'app_name';
+    const APP_PATH      = 'app_path';
+    const RES_PATH      = 'res_path';
+    const CORE_PATH     = 'core_path';
+    const PROFILE       = 'profile';
+
+    /* Entry points */
+    const RUN_HTTP      = 'http';
+    const RUN_CLI       = 'cli';
+    const RUN_APP       = 'app';
+
     private static $app  = array( );
     private static $curr = '';
 
@@ -94,7 +105,7 @@ class Painless
     public static function isProfile( $profileToMatch )
     {
         $core = static::app( );
-        return ( $core->env( PROFILE ) === $profileToMatch );
+        return ( $core->env( \Painless::PROFILE ) === $profileToMatch );
     }
 
     //--------------------------------------------------------------------------
@@ -130,7 +141,7 @@ class Painless
      * @param int $opt          the loading parameters
      * @return object           the loaded component
      */
-    public static function load( $component, $opt = LP_ALL )
+    public static function load( $component, $opt = \Painless::LP_ALL )
     {
         return static::app( )->com( 'system/common/loader' )->load( $component, $opt );
     }

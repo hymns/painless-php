@@ -172,19 +172,18 @@ class Core
         return $router->dispatch( $method, $module, $workflow, $contentType, $params, $agent );
     }
 
-    public function run( $cmd = '' )
+    public function run( $entry, $cmd = '' )
     {
         // Here we need to determine the entry point. There are only 3 of them:
         // HTTP (includes REST calls), CLI (including cron jobs) and APP. The
         // first two are fairly self-explanatory, but APP needs more explanation
         // on this front.
         //
-        // APP can come in through two ways - internal calls and service calls.
-        // Internal calls happen when an APP is located in the same machine as
-        // Painless, by registering its source as a file path inside the app
-        // registry. If a URL instead is provided, Painless would make a curl
-        // call instead of simply including its files, which would then become
-        // a HTTP/REST call.
+        // When a request to APP is made, Painless would automatically convert it
+        // to either HTTP or APP. First it'll look inside the app registry, and
+        // check the app's path. If the path starts with a http://, it'll convert
+        // the call to a HTTP call instead, and if not, it'll assume its a file
+        // path and use APP as is.
         //
         //  Example:
         //      Painless::request( 'GET app://flight-plan/id/123' );
@@ -198,15 +197,56 @@ class Core
         // Get the router
         $router = \Painless::load( 'system/common/router' );
 
-        // Use the router to parse the command and find out the module and controller
-        // to dispatch to. Process also returns an array of parameters in the
-        // URI string.
-        list( $method, $module, $controller, $params ) = $router->process( $cmd );
+        // Depending on the entry point, call different processing functions
+        $response = NULL;
+        switch( $entry )
+        {
+            case \Painless::HTTP :
+                $response = $router->processHttp( $cmd );
+                break;
+            case \Painless::CLI :
+                $response = $router->processCli( $cmd );
+                break;
+            case \Painless::APP :
+                $response = $router->processApp( $cmd );
+                break;
+            default :
+                throw new ErrorException( 'Unrecognized entry point identifier: [' . $entry . ']' );
+        }
 
-        // Create a request object
-        $request = \Painless::load( 'system/common/request', LP_LOAD_NEW );
+        // Now that router has done processing the request, we should have $method,
+        // $agent, $module, $controller and $param saved inside the Response object.
+        // The possible return statuses are:
+        //  200 - the module and controller are found, everything is okay
+        //  400 - the $cmd string is invalid
+        //  404 - the module or controller is not found
+        //  405 - the method is not supported by the controller
+        //  500 - general exceptions
+        switch( $response->status )
+        {
+            // In this case, we will create a request object and dispatch it to
+            // the designated controller, which would give us a response object.
+            case 200 :
+                // Get the $method, $module, $controller and $param from the
+                // response payload
+                $method     = $response->payload['method'];
+                $module     = $response->payload['module'];
+                $controller = $response->payload['controller'];
+                $param      = $response->payload['param'];
 
-        // Initialize the request object with the parameters
-        $request->init( $params );
+                // Dispatch and return a new response
+                $response   = $router->dispatch( $method, $module, $controller, $param );
+                break;
+            case 400 :
+            case 404 :
+            case 405 :
+                // Compile a proper response
+                
+                break;
+            case 500 :
+                break;
+        }
+
+        return NULL;
     }
 }

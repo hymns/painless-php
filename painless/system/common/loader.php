@@ -68,7 +68,7 @@ class Loader
     public static function autoload( $class )
     {
         // Get a copy of the core first
-        $core = Painless::app( );
+        $core = \Painless::app( );
 
         // If there's no namespace on this, skip the autoloading
         if ( FALSE === strpos( $class, '\\' ) ) return;
@@ -82,7 +82,7 @@ class Loader
         // If $app is Painless, convert the string to a dash delimited format
         if ( $app === 'Painless' )
         {
-            $path = $core->env( CORE_PATH ) . namespace_to_dash( $class ) . EXT;
+            $path = $core->env( \Painless::CORE_PATH ) . namespace_to_dash( substr( $class, strpos( $class, '\\' ) ) ) . EXT;
             if ( file_exists( $path ) ) require_once $path;
             return;
         }
@@ -90,7 +90,7 @@ class Loader
         else
         {
             $core = Painless::app( strtolower( $app ) );
-            $path = $core->env( APP_PATH ) . namespace_to_dash( substr( $class, strpos( $class, '\\' ) ) ) . EXT;
+            $path = $core->env( \Painless::APP_PATH ) . namespace_to_dash( substr( $class, strpos( $class, '\\' ) ) ) . EXT;
             if ( file_exists( $path ) ) require_once $path;
             return;
         }
@@ -113,13 +113,13 @@ class Loader
         // Create the core and assign the environment variables. Remember to use
         // LP_LOAD_NEW to prevent loader from caching the Core instance, which
         // would fail because as of now the Core object does not exist yet!
-        $core = $loader->load( 'system/common/core', LP_LOAD_NEW );
-        $core->env( APP_NAME, $appName );
-        $core->env( APP_PATH, $appPath );
-        $core->env( CORE_PATH, $corePath );
+        $core = $loader->load( 'system/common/core', \Painless::LP_LOAD_NEW );
+        $core->env( \Painless::APP_NAME, $appName );
+        $core->env( \Painless::APP_PATH, $appPath );
+        $core->env( \Painless::CORE_PATH, $corePath );
 
-        // Set the PROFILE to DEV as a default
-        $core->env( PROFILE, DEV );
+        // Set the \Painless::PROFILE to DEV as a default
+        $core->env( \Painless::PROFILE, \Painless::DEV );
 
         // Cache the loader in the core
         $core->com( 'system/common/loader', $loader );
@@ -133,7 +133,7 @@ class Loader
      * @param int $opt      loading parameters
      * @return mixed        returned value depends on the loading parameters
      */
-    public function load( $ns, $opt = LP_ALL )
+    public function load( $ns, $opt = \Painless::LP_ALL )
     {
         // Localize the Core instance for multiple access
         $app = \Painless::app( );
@@ -143,7 +143,7 @@ class Loader
             // If LP_LOAD_NEW is not defined, try to see if the component has already
             // been cached and return that instead if so
             $com = $app->com( $ns );
-            if ( ! empty( $ns ) && ! empty( $com ) && ! ( $opt & LP_SKIP_CACHE_LOAD ) )
+            if ( ! empty( $ns ) && ! empty( $com ) && ! ( $opt & \Painless::LP_SKIP_CACHE ) )
                 return $com;
         }
 
@@ -162,12 +162,12 @@ class Loader
         // practice :)
         $comBase        = NULL;
         $comExt         = NULL;
-        $isDefCore      = (bool) ( $opt & LP_DEF_CORE );
-        $isDefExt       = (bool) ( $opt & LP_DEF_EXT );
-        $isCacheCore    = (bool) ( $opt & LP_CACHE_CORE );
-        $isCacheExt     = (bool) ( $opt & LP_CACHE_EXT );
-        $isRetCore      = (bool) ( $opt & LP_RET_CORE );
-        $isRetExt       = (bool) ( $opt & LP_RET_EXT );
+        $isDefCore      = (bool) ( $opt & \Painless::LP_DEF_BASE );
+        $isDefExt       = (bool) ( $opt & \Painless::LP_DEF_APP );
+        $isCacheCore    = (bool) ( $opt & \Painless::LP_CACHE_BASE );
+        $isCacheExt     = (bool) ( $opt & \Painless::LP_CACHE_APP );
+        $isRetCore      = (bool) ( $opt & \Painless::LP_RET_BASE );
+        $isRetExt       = (bool) ( $opt & \Painless::LP_RET_APP );
 
         // Load the definition of the base class, if possible
         if ( FALSE !== $meta['basepath']
@@ -366,7 +366,7 @@ class Loader
             $adapter = $nsa[3];
 
             // Load the base object (the adapter) manually
-            \Painless::load( 'adapter/' . $adapter, LP_DEF_ONLY );
+            \Painless::load( 'adapter/' . $adapter, \Painless::LP_DEF_ONLY );
 
             $dao .= '-' . $adapter;
         }
@@ -396,7 +396,7 @@ class Loader
         $adapter = $nsa[1];
 
         // Load the base class first
-        \Painless::load( 'system/data/adapter/base', LP_DEF_ONLY );
+        \Painless::load( 'system/data/adapter/base', \Painless::LP_DEF_ONLY );
 
         return array(
             'extpath' => $this->appPath . 'module/' . $module . '/dao/' . $dao . EXT,
