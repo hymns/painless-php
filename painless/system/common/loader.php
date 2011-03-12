@@ -73,24 +73,25 @@ class Loader
         // If there's no namespace on this, skip the autoloading
         if ( FALSE === strpos( $class, '\\' ) ) return;
 
-        // Remove the first forward slash if it exists
-        if ( $class[0] === '\\' ) $class = substr( $class, 1 );
+        // Make sure the first character is a forward slash
+        if ( $class[0] !== '\\' ) $class = '\\' . $class;
 
         // Extract the first token of the class's namespace
-        $app = substr( $class, 0, strpos( $class, '\\' ) );
+        $app = substr( $class, 1, strpos( $class, '\\', 2 ) - 1 );
+        $class = substr( $class, strpos( $class, '\\', 2) + 1 );
 
         // If $app is Painless, convert the string to a dash delimited format
         if ( $app === 'Painless' )
         {
-            $path = $core->env( \Painless::CORE_PATH ) . namespace_to_dash( substr( $class, strpos( $class, '\\' ) ) ) . EXT;
+            $path = $core->env( \Painless::CORE_PATH ) . namespace_to_dash( $class ) . EXT; 
             if ( file_exists( $path ) ) require_once $path;
             return;
         }
         // Convert the namespaced class into backward slashed namespace
         else
         {
-            $core = Painless::app( strtolower( $app ) );
-            $path = $core->env( \Painless::APP_PATH ) . namespace_to_dash( substr( $class, strpos( $class, '\\' ) ) ) . EXT;
+            $core = \Painless::app( strtolower( $app ) );
+            $path = $core->env( \Painless::APP_PATH ) . namespace_to_dash( $class ) . EXT;
             if ( file_exists( $path ) ) require_once $path;
             return;
         }
