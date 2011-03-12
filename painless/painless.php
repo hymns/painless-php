@@ -132,7 +132,7 @@ class Painless
      */
     public static function load( $component, $opt = LP_ALL )
     {
-        return static::app( )->load( $component, $opt );
+        return static::app( )->com( 'system/common/loader' )->load( $component, $opt );
     }
 
     //--------------------------------------------------------------------------

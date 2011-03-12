@@ -142,7 +142,7 @@ class Loader
         {
             // If LP_LOAD_NEW is not defined, try to see if the component has already
             // been cached and return that instead if so
-            $com = $core->com( $ns );
+            $com = $app->com( $ns );
             if ( ! empty( $ns ) && ! empty( $com ) && ! ( $opt & LP_SKIP_CACHE_LOAD ) )
                 return $com;
         }

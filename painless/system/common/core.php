@@ -74,7 +74,7 @@ class Core
         {
             return $this->env[$key];
         }
-        elseif ( ! isset( $this->env[$key] ) )
+        elseif ( NULL === $val && ! isset( $this->env[$key] ) )
         {
             return NULL;
         }
@@ -98,7 +98,7 @@ class Core
         {
             return $this->com[$uri];
         }
-        elseif ( ! isset( $this->com[$uri] ) )
+        elseif ( NULL === $obj && ! isset( $this->com[$uri] ) )
         {
             return NULL;
         }
@@ -198,6 +198,15 @@ class Core
         // Get the router
         $router = \Painless::load( 'system/common/router' );
 
-        
+        // Use the router to parse the command and find out the module and controller
+        // to dispatch to. Process also returns an array of parameters in the
+        // URI string.
+        list( $method, $module, $controller, $params ) = $router->process( $cmd );
+
+        // Create a request object
+        $request = \Painless::load( 'system/common/request', LP_LOAD_NEW );
+
+        // Initialize the request object with the parameters
+        $request->init( $params );
     }
 }

@@ -45,10 +45,10 @@
  * freely pass data amongst each other.
  */
 
-namespace Painless\System\Router;
+namespace Painless\System\Common;
 
-use Painless\System\Workflow\Request as Request;
-use Painless\System\Workflow\Response as Response;
+use \Painless\System\Workflow\Request as Request;
+use \Painless\System\Workflow\Response as Response;
 
 class Router
 {
