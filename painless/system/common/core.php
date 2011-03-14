@@ -197,22 +197,22 @@ class Core
         // Get the router
         $router = \Painless::load( 'system/common/router' );
 
-        // Depending on the entry point, call different processing functions
+        // Depending on the entry point, call different processing functions,
+        // which will automatically create the request object inside the router.
         $response = NULL;
         switch( $entry )
         {
-            case \Painless::HTTP :
-                $response = $router->processHttp( $cmd );
-                break;
-            case \Painless::CLI :
-                $response = $router->processCli( $cmd );
-                break;
-            case \Painless::APP :
-                $response = $router->processApp( $cmd );
+            case \Painless::RUN_HTTP :
+            case \Painless::RUN_CLI :
+            case \Painless::RUN_APP :
+                $response = $router->process( $entry, $cmd );
                 break;
             default :
                 throw new ErrorException( 'Unrecognized entry point identifier: [' . $entry . ']' );
         }
+
+        // Get the renderer
+        $render = \Painless::load( 'system/common/render' );
 
         // Now that router has done processing the request, we should have $method,
         // $agent, $module, $controller and $param saved inside the Response object.
@@ -227,24 +227,24 @@ class Core
             // In this case, we will create a request object and dispatch it to
             // the designated controller, which would give us a response object.
             case 200 :
-                // Get the $method, $module, $controller and $param from the
-                // response payload
-                $method     = $response->payload['method'];
-                $module     = $response->payload['module'];
-                $controller = $response->payload['controller'];
-                $param      = $response->payload['param'];
-
-                // Dispatch and return a new response
-                $response   = $router->dispatch( $method, $module, $controller, $param );
-                break;
+                // Dispatch and return a new response. Calling dispatch( ) without
+                // any parameters will cause $router to use the existing request
+                // object.
+                $response = $router->dispatch( );
+                return $render->process( $response );
             case 400 :
             case 404 :
             case 405 :
-                // Compile a proper response
-                
-                break;
+                // Forward the response directly to the renderer
+                return $render->process( $response );
             case 500 :
-                break;
+                // Usually 500 is caused by thrown exceptions, and when this
+                // happens we'll need to force the renderer to use the debug
+                // compiler if the current profile is DEV. Otherwise, just handle
+                // it the same way as the 4xx status codes.
+                if ( \Painless::isProfile( \Painless::DEV ) )
+                    $render->compiler = 'debug';
+                return $render->process( $response );
         }
 
         return NULL;

@@ -50,7 +50,7 @@ namespace Painless\System\Common;
 use \Painless\System\Workflow\Request as Request;
 use \Painless\System\Workflow\Response as Response;
 
-class Router
+class Router extends \Painless\System\Common\Worker
 {
     /**
      * The queue of URI that is saved and checked to prevent redundancy
@@ -62,7 +62,72 @@ class Router
      * The default way to parse the URI
      * @var array   a default array of URI parameter
      */
-    protected $defaultRoute = array( 'module', 'workflow' );
+    protected $defaultRoute = array( 'module', 'controller' );
+
+    public function process2( $entry, $uri = '', $dispatch = TRUE )
+    {
+        // Localize the values
+        $agent      = '';
+        $method     = 'get';
+        $module     = '';
+        $controller = '';
+        $param      = array( );
+
+        // First, parse the $uri. They come in two formats, either:
+        // [method] [uri] or just [uri]. Let's see if it's the former.
+        $pos = strpos( $uri, ' ' );
+        if ( FALSE !== $pos )
+        {
+            $method = strtolower( substr( $uri, 0, $pos ) );
+            $uri = trim( substr( $uri, $pos + 1 ) );
+        }
+
+        // The URI is ready for processing now. Pass to the appropriate processing
+        // function
+        switch( $entry )
+        {
+            case \Painless::RUN_HTTP :
+                list( $module, $controller, $param ) = $this->processHttp( $uri );
+                break;
+            case \Painless::RUN_CLI :
+                list( $module, $controller, $param ) = $this->processCli( $uri );
+                break;
+            case \Painless::RUN_APP :
+                list( $module, $controller, $param ) = $this->processApp( $uri );
+                break;
+            default :
+                throw new ErrorException( 'Unknown entry point [' . $entry . ']' );
+        }
+
+        // If $module and $controller are empty, scream in panic and then load
+        // the defaults from config
+        if ( empty( $module ) || empty( $controller ) )
+        {
+            $config = \Painless::load( 'system/common/config' );
+
+            if ( empty( $module ) ) $module = $config->get( 'routes.uri.default.module' );
+            if ( empty( $controller ) ) $controller = $config->get( 'routes.uri.default.controller' );
+        }
+    }
+
+    protected function processHttp( $uri )
+    {
+        
+    }
+
+    protected function processCli( $uri )
+    {
+        // If coming from a CLI call, the URI must be given
+        if ( empty( $uri ) )
+            return array( FALSE, FALSE, array( ) );
+    }
+
+    protected function processApp( $uri )
+    {
+        // If it's an APP call, a URI must be given
+        if ( empty( $uri ) )
+            return array( FALSE, FALSE, array( ) );
+    }
 
     /**
      * Processes the request and automatically discover the method, module,
@@ -172,7 +237,7 @@ class Router
         if ( ! Beholder::notifyUntil( 'router.pre', array( $method, $module, $workflow, $contentType, $params, $agent ) ) )
             return FALSE;
 
-        $woObj = \Painless::load( "workflow/$module/$workflow" );
+        $woObj = \Painless::load( "controller/$module/$workflow" );
 
         if ( empty( $woObj ) ) throw new ErrorException( "Unable to find workflow [$module/$workflow]" );
         $woObj->init( $module, $workflow );
@@ -234,7 +299,7 @@ class Router
     protected function processUri( $uri, & $module, & $workflow, & $contentType )
     {
         // Grab dependencies
-        $config = \Painless::app( )->load( 'system/common/config' );
+        $config = \Painless::load( 'system/common/config' );
 
         $params = array( );
 
@@ -330,7 +395,7 @@ class Router
     protected function mapAlias( $alias )
     {
         // Grab the dependencies
-        $config = \Painless::app( )->load( 'system/common/config' );
+        $config = \Painless::load( 'system/common/config' );
 
         // Grab the routes
         $routes = $config->get( 'routes.alias' );
