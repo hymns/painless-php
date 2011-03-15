@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Painless PHP - the painless path to development
  *
@@ -39,18 +38,18 @@
 
 namespace Painless\System\View\Compiler;
 
-abstract class BaseCompiler
+abstract class Base
 {
     abstract public function process( $view );
 
-    protected function handleStatus( $response )
+    protected function handleStatus( $request, $response )
     {
         $status = $response->status;
 
         // See if there's an appropriate status handler for this response code
         $func = 'handle' . $status;
         if ( method_exists( $this, $func ) )
-            return $this->$func( $response );
+            return $this->$func( $request, $response );
 
         return FALSE;
     }

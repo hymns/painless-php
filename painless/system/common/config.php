@@ -83,25 +83,30 @@ class Config
 
     protected function init( )
     {
+        // Localize all external variables
+        $core = \Painless::app( );
+        $appPath = $core->env( \Painless::APP_PATH );
+        $appName = $core->env( \Painless::APP_NAME );
+
         $configPath = '';
         $profile = '';
         $aclPath = '';
 
         // first, check if a deployment profile is issued
-        $profile = Painless::app( )->env( Core::PROFILE );
+        $profile = $core->env( \Painless::PROFILE );
 
         // get the engine's implementor path if possible
-        if ( ! empty( Painless::app( )->env( Core::APP_PATH ) ) )
+        if ( ! empty( $appPath ) )
         {
-            $configPath = Painless::app( )->env( Core::APP_PATH ) . 'config/' . Painless::app( )->env( Core::APP_NAME );
-            $aclPath    = Painless::app( )->env( Core::APP_PATH ) . 'config/' . Painless::app( )->env( Core::APP_NAME );
-            $routesPath = Painless::app( )->env( Core::APP_PATH ) . 'config/' . Painless::app( )->env( Core::APP_NAME );
+            $configPath = $appPath . 'config/' . $appName;
+            $aclPath    = $appPath . 'config/' . $appName;
+            $routesPath = $appPath . 'config/' . $appName;
 
             if ( $profile ) $configPath .= '.' . $profile;
 
-            $configPath .= EXT;
-            $aclPath    .= '.acl' . EXT;
-            $routesPath .= '.route' . EXT;
+            $configPath .= '.php';
+            $aclPath    .= '.acl.php';
+            $routesPath .= '.route.php';
         }
 
         // check if the config path is correct
@@ -110,7 +115,7 @@ class Config
             require_once( $configPath );
 
             if ( !isset( $config ) )
-                throw new ConfigException( 'Unable to find the config array in [' . $configPath . ']' );
+                throw new ErrorException( 'Unable to find the config array in [' . $configPath . ']' );
 
             $this->config = $config;
 
@@ -119,7 +124,7 @@ class Config
         }
         else
         {
-            throw new ConfigException( 'Invalid config file [' . $configPath . ']' );
+            throw new ErrorException( 'Invalid config file [' . $configPath . ']' );
         }
 
         // load the acl array too

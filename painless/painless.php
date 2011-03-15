@@ -91,9 +91,10 @@ class Painless
     const PROFILE           = 'profile';        // the current deployment profile (DEV, LIVE or STAGE)
 
     /* Entry points */
-    const RUN_HTTP          = 'http';           // run this app as a HTTP app
-    const RUN_CLI           = 'cli';            // run this app as a CLI app
-    const RUN_APP           = 'app';            // run this app with an internal call (one app calling anohter)
+    const RUN_HTTP          = 1;                // run this app as a HTTP app
+    const RUN_CLI           = 2;                // run this app as a CLI app
+    const RUN_APP           = 3;                // run this app with an internal call (one app calling anohter)
+    const RUN_INTERNAL      = 4;                // run this request as an intra-app controller to controller call
 
     private static $app     = array( );
     private static $curr    = '';
@@ -168,7 +169,14 @@ class Painless
         if ( ! method_exists( $factory, $component ) )
             throw new ErrorException( 'Trying to manufacture a non-supported component [' . $component . ']' );
 
-        return call_user_func_array( array( $factory, $component ), $args );
+        // Create the component
+        $com = call_user_func_array( array( $factory, $component ), $args );
+
+        // Handle errors if necessary
+        if ( FALSE === $com )
+            throw new ErrorException( 'Unable to manufacture the component requested [' . $request . ']' );
+
+        return $com;
     }
 
     //--------------------------------------------------------------------------
@@ -209,6 +217,17 @@ class Painless
         spl_autoload_register( '\Painless\System\Common\Loader::autoload' );
 
         return $core;
+    }
+
+    //--------------------------------------------------------------------------
+    /**
+     * Executes a request command
+     * @param string $entry         the entry type of the app
+     * @param string $cmd           the command to run
+     */
+    public static function execute( $entry, $cmd = '' )
+    {
+        return static::app( )->execute( $entry, $cmd );
     }
 }
 
@@ -251,7 +270,7 @@ function dash_to_namespace( $string )
 
 function namespace_to_dash( $string )
 {
-    return str_replace( '\\', '/', strtolower( preg_replace( "/([a-z])([A-Z]{1})/", "$1\-$2", $string ) ) );
+    return str_replace( '\\', '/', strtolower( preg_replace( "/([a-z])([A-Z]{1})/", "$1-$2", $string ) ) );
 }
 
 function underscore_to_pascal( $string )

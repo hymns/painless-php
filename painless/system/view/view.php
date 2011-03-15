@@ -38,11 +38,9 @@
 
 namespace Painless\System\View;
 
-class View
+class View extends \Painless\System\Base\WorkUnit
 {
     const PATH = '_tpl';
-
-    public $response = NULL;
 
     /**
      * Redirects either to an external resource or to an internal workflow
@@ -78,7 +76,7 @@ class View
     {
         // Change the current response's method
         $method = strtolower( $method );
-        $this->response->method = $method;
+        $this->request->method = $method;
 
         return $this->$method( );
     }
@@ -97,7 +95,7 @@ class View
      * Pre processes the view
      * @return boolean  TRUE if the preProcessing succeeds
      */
-    public function preProcess( )
+    public function pre( )
     {
         return TRUE;
     }
@@ -105,15 +103,15 @@ class View
     /**
      * Post processes the view
      */
-    public function postProcess( )
+    public function post( )
     {
         // Localize the variables
-        $response   = $this->response;
-        $module     = $response->module;
-        $workflow   = $response->workflow;
-        $method     = $response->method;
+        $request    = $this->request;
+        $module     = $request->module;
+        $controller = $request->controller;
+        $method     = $request->method;
 
         // Construct the PATH value
-        $this->assign( self::PATH, "$module/tpl/$workflow.$method.tpl" );
+        $this->assign( self::PATH, "$module/tpl/$controller.$method.tpl" );
     }
 }

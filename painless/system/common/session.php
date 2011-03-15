@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Painless PHP - the painless path to development
  *
@@ -65,7 +64,7 @@ class Session
     public function __construct( )
     {
         // Initialize the namespace
-        $this->namespace = Painless::app( )->env( Core::APP_NAME );
+        $this->namespace = \Painless::app( )->env( \Painless::APP_NAME );
     }
 
     /**

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Painless PHP - the painless path to development
  *
@@ -36,76 +35,42 @@
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
-
 namespace Painless\System\Common;
 
 class Render
 {
-    protected $response = NULL;
-
-    public function process( $response )
+    public function process( $request, $response )
     {
-        // set the response for use later 
-        $this->response = $response;
-
-        // render the view
-        $output = $this->render( );
-
-        return $output;
-    }
-
-    protected function render( )
-    {
-        // Trigger the pre-render action. Don't proceed if it failed.
-        if ( ! Beholder::notifyUntil( 'render.pre' ) ) return '';
-
         // Localize the variables
-        $response       = $this->response;
-        $method         = $response->method;
-        $module         = $response->module;
-        $workflow       = $response->workflow;
-        $contentType    = ( $response->contentType ) ? $response->contentType : 'html';
+        $method         = $request->method;
+        $module         = $request->module;
+        $controller     = $request->controller;
+        $contentType    = $request->contentType;
+        
+        // Load the correct view
+        $view = \Painless::load( "view/$module/$controller" );
+        $view->request = $request;
+        $view->response = $response;
 
-        $view = NULL;
-        if ( empty( $module ) && empty( $workflow ) )
-        {
-            // Load the base class instead if no module or workflow is found
-            $view = \Painless::load( 'system/view/view' );
-            $view->response = $response;
-        }
-        else
-        {
-            // Load the correct view
-            $view = \Painless::load( "view/$module/$workflow" );
-            $view->response = $response;
-
-            // Get the output from the view by running the appropriate method. Once
-            // the method has been run, it's safe to assume that $view has properly
-            // post-processed all necessary data and payload, and that now the
-            // compiler should have enough information to render the output
-            if ( $view->preProcess( ) ) $view->$method( );
-            $view->postProcess( );
-        }
+        // Get the output from the view by running the appropriate method. Once
+        // the method has been run, it's safe to assume that $view has properly
+        // post-processed all necessary data and payload, and that now the
+        // compiler should have enough information to render the output
+        if ( $view->pre( ) ) $view->$method( );
+        $view->post( );
 
         // Load the appropriate view compiler
-        $compiler = \Painless::load( "view-compiler/$contentType" );
+        $compiler = \Painless::load( "system/view/compiler/$contentType" );
 
         // If the content type is not suppoted, $compiler will be NULL. Handle
         // the error here
         if ( NULL === $compiler )
         {
             // Use the default HTML compiler
-            $compiler = \Painless::load( "view-compiler/html" );
+            $compiler = \Painless::load( "system/view/compiler/html" );
         }
 
         // Return the processed output
-        $output = $compiler->process( $view );
-
-        // Trigger the post-render action
-        Beholder::notify( 'render.post', $output );
-        
-        return $output;
+        return $compiler->process( $view );
     }
 }
-
-class RenderException extends \ErrorException { }

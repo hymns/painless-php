@@ -83,7 +83,7 @@ class Loader
         // If $app is Painless, convert the string to a dash delimited format
         if ( $app === 'Painless' )
         {
-            $path = $core->env( \Painless::CORE_PATH ) . namespace_to_dash( $class ) . EXT; 
+            $path = $core->env( \Painless::CORE_PATH ) . namespace_to_dash( $class ) . EXT;
             if ( file_exists( $path ) ) require_once $path;
             return;
         }

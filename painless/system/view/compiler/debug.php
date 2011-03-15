@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Painless PHP - the painless path to development
  *
@@ -39,7 +38,7 @@
 
 namespace Painless\System\View\Compiler;
 
-class DebugCompiler extends BaseCompiler
+class Debug extends \Painless\System\View\Compiler\Base
 {
     
 }

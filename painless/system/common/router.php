@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Painless PHP - the painless path to development
  *
@@ -36,19 +35,7 @@
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
-
-/**
- * One router, many workflows.
- *
- * Each router records a list of workflows run in succession, and allow these
- * workflows to share a common data domain. This is to say these workflows can
- * freely pass data amongst each other.
- */
-
 namespace Painless\System\Common;
-
-use \Painless\System\Workflow\Request as Request;
-use \Painless\System\Workflow\Response as Response;
 
 class Router
 {
@@ -56,7 +43,48 @@ class Router
      * The default way to parse the URI
      * @var array   a default array of URI parameter
      */
-    protected $defaultRoute = array( 'module', 'controller' );
+    protected $defaultRoute         = array( 'module', 'controller' );
+    
+    protected $defaultContentType   = array(
+        \Painless::RUN_HTTP     => 'html',
+        \Painless::RUN_CLI      => 'cli',
+        \Painless::RUN_APP      => 'json',
+        \Painless::RUN_INTERNAL => 'arr',
+    );
+
+    public function dispatch( \Painless\System\Workflow\Request $request )
+    {
+        // Localize the variables
+        $method = $request->method;
+        $module = $request->module;
+        $conName = $request->controller;
+
+        // Load the controller
+        $controller = \Painless::load( "controller/$module/$conName" );
+
+        // Throw a 404 not found if the controller cannot be loaded
+        if ( empty( $controller ) )
+            return \Painless::manufacture( 'response', 404, "Controller not found [$conName]" );
+
+        // Throw a 405 error if the method is not supported by the controller
+        if ( ! method_exists( $controller, $method ) )
+            return \Painless::manufacture( 'response', 405, "The method [$method] is not supported by the controller [$conName]" );
+
+        // Wrap the actual dispatch inside a try-catch to catch 500 errors
+        try
+        {
+            // Attach the request to the controller
+            $controller->request( $request );
+
+            // Return the response generated from the process
+            return $controller->$method( );
+        }
+        catch( Exception $e )
+        {
+            $message = $e->getMessage( );
+            return \Painless::manufacture( 'response', 500, "General server error [$message]" );
+        }
+    }
 
     public function process( $entry, $uri = '' )
     {
@@ -79,14 +107,34 @@ class Router
         switch( $entry )
         {
             case \Painless::RUN_HTTP :
-                return $this->processHttp( $method, $uri );
+                $request = $this->processHttp( $method, $uri );
+                break;
+
             case \Painless::RUN_CLI :
-                return $this->processCli( $method, $uri );
+                $request = $this->processCli( $method, $uri );
+                break;
+
             case \Painless::RUN_APP :
-                return $this->processApp( $method, $uri );
+                $request = $this->processApp( $method, $uri );
+                break;
+
+            case \Painless::RUN_INTERNAL :
+                $request = $this->processInternal( $method, $uri );
+                break;
+            
             default :
                 return FALSE;
         }
+
+        // Here, we check if contentType is empty. Content type is handled by the
+        // request object internally, but it WILL return an empty string if the
+        // request cannot figure out what kind of content type to use. Since
+        // request does not know anything about the entry type, we set the content
+        // type default here.
+        if ( empty( $request->contentType ) )
+            $request->contentType = $this->defaultContentType[$entry];
+
+        return $request;
     }
 
     protected function processHttp( $method, $uri )
@@ -103,6 +151,9 @@ class Router
         // be modified by a visitor.
         if ( $dir = trim( dirname( $_SERVER['SCRIPT_NAME'] ), '\,/' ) )
             $url .= "/$dir";
+
+        // Don't forget the trailing slash
+        $url .= '/';
 
         // Set the APP_URL env var into Core
         \Painless::app( )->env( \Painless::APP_URL, $url );
@@ -123,15 +174,20 @@ class Router
                 if ( ! isset( $scriptName[$i] ) ) $scriptName[$i] = '';
                 if ( ! isset( $requestURI[$i] ) ) $requestURI[$i] = '';
                 if ( $requestURI[$i] === $scriptName[$i] ) continue;
-
+                if ( empty( $requestURI[$i] ) ) continue;
                 $uri[] = $requestURI[$i];
             }
+
+            // Make sure $uri is an array. This can happen when $uri is empty.
+            if ( ! is_array( $uri ) )
+                $uri = array( $uri );
         }
 
         // At this point, the URI has been split into an array. Pass it to
         // mapUri to map to the correct module and controller.
         list( $module, $controller, $param, $contentType ) = $this->mapUri( $uri );
 
+        // Dispense the request object
         return \Painless::manufacture( 'request', $method, $module, $controller, $param, $contentType, $_SERVER['HTTP_USER_AGENT'] );
     }
 
@@ -166,40 +222,33 @@ class Router
 
         // If it's an APP call, a URI must be given
         if ( empty( $uri ) )
-            return $request;
+            return FALSE;
 
         // TODO: Finish this
 
-        return \Painless::manufacture( 'request', $method, $module, $controller, $param, '', 'PainlessPHP Internal App [v' . \Painless::CORE_VERSION . ']' );
+        return \Painless::manufacture( 'request', $method, $module, $controller, $param, '', 'PainlessPHP App [v' . \Painless::VERSION . ']' );
     }
 
-    /**
-     * Dispatches to the workflow directly
-     * @param string $method        GET, POST, PUT, etc
-     * @param string $module        the name of the module to dispatch to
-     * @param string $workflow      the workflow to dispatch to
-     * @param string $contentType   the type of the content invoked
-     * @param string $params        the parameter string/array to save into the request
-     * @param string $agent         the invoking agent
-     * @return PainlessResponse     returns an instance of the PainlessResponse object
-     
-    public function dispatch( $method, $module, $workflow, $contentType, $params, $agent )
+    protected function processInternal( $method, $uri )
     {
-        if ( ! Beholder::notifyUntil( 'router.pre', array( $method, $module, $workflow, $contentType, $params, $agent ) ) )
+        // Localize the variables
+        $module     = '';
+        $controller = '';
+        $param      = array( );
+
+        // If it's an INTERNAL call, a URI must be given
+        if ( empty( $uri ) )
             return FALSE;
 
-        $woObj = \Painless::load( "controller/$module/$workflow" );
+        // Split the $uri by backslash
+        $uri = explode( '/', $uri );
 
-        if ( empty( $woObj ) ) throw new ErrorException( "Unable to find workflow [$module/$workflow]" );
-        $woObj->init( $module, $workflow );
+        // At this point, the URI has been split into an array. Pass it to
+        // mapUri to map to the correct module and controller.
+        list( $module, $controller, $param, $contentType ) = $this->mapUri( $uri );
 
-        // construct the workflow
-        $woObj->request( $method, $params, $contentType, $agent );
-        $response = $woObj->run( );
-        if ( ! ( $response instanceof Response ) ) throw new ErrorException( "Invalid return type from the workflow dispatch" );
-
-        return $response;
-    }*/
+        return \Painless::manufacture( 'request', $method, $module, $controller, $param, '', 'PainlessPHP Internal [v' . \Painless::VERSION . ']' );
+    }
 
     /**
      * Processes the URI and returns the parameter array, as well as mapping out
@@ -208,7 +257,7 @@ class Router
      * @return array                an array of $module, $controller, $params and
      *                              $contentType
      */
-    protected function mapUri( $uri )
+    protected function mapUri( array $uri )
     {
         // Grab dependencies
         $config = \Painless::load( 'system/common/config' );
@@ -241,8 +290,8 @@ class Router
                     // rest of the URI into the params array. No point proceeding
                     // further as alias don't play well with module and workflow
                     $routeMap = $config->get( 'routes.alias' );
-                    if ( isset( $routeMap[$alias] ) )
-                        list( $module, $controller ) = $routeMap[$alias];
+                    if ( isset( $routeMap[$uri[$i]] ) )
+                        list( $module, $controller ) = $routeMap[$uri[$i]];
 
                     // Only do this if this is not the end of the URI array
                     if ( $i !== $count )
@@ -301,7 +350,7 @@ class Router
         }
         if ( empty( $controller ) )
         {
-            $controller = $config->get( 'routes.uri.default.workflow' );
+            $controller = $config->get( 'routes.uri.default.controller' );
         }
 
         return array( $module, $controller, $params, $contentType );

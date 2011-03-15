@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Painless PHP - the painless path to development
  *
@@ -38,77 +37,9 @@
  */
 
 namespace Painless\System\Workflow;
-use \Painless\System\Workflow\Request as Request;
-use \Painless\System\Workflow\Response as Response;
 
-class Controller extends \Painless\System\Common\Worker
+class Controller extends \Painless\System\Base\WorkUnit
 {
-    /**
-     * The workflow's dash-notation name
-     * @var string              the workflow's name
-     */
-    public $name = 'painless';
-
-    /**
-     * The module's dash-notation name
-     * @var string              the workflow's module name
-     */
-    public $module = '';
-
-    /**
-     * Initializes the workflow. Override this to use a custom parameter parsing
-     * style for the request.
-     */
-    public function init( $module, $workflow )
-    {
-        $this->name = $workflow;
-        $this->module = $module;
-
-        // Remember to get a new instance of the request
-        $request = \Painless::load( 'system/workflow/request', LP_LOAD_NEW );
-        $this->request = $request;
-    }
-
-    /**
-     * Runs the workflow depending on the method requested
-     * @return PainlessResponse     the response object returned by the method function
-     */
-    public function run( )
-    {
-        $method = $this->request->method;
-
-        // Check if the method exists or not
-        if ( ! method_exists( $this, $method ) ) return $this->response( 405, 'Method not supported' );
-
-        $this->response = $this->$method( );
-
-        return $this->response;
-    }
-
-    /**
-     * Creates a new request and attach to this workflow
-     * @param string $method        the method/action invoked by the request
-     * @param array $params         a parameter array to initialize the workflow with
-     * @param string $contentType   the content type that is invoked
-     * @param string $agent         the invoking agent
-     * @return PainlessWorkflow     returns itself to facilitate method chaining
-     */
-    public function request( $method, $params, $contentType = Request::HTML, $agent = 'painless' )
-    {
-        $request = $this->request;
-
-        // Use the defaults if $contentType is empty
-        if ( empty( $contentType ) ) $contentType = Request::HTML;
-        if ( empty( $agent ) ) $agent = 'painless';
-
-        // Initialize the request
-        $request->parent = & $this;
-        $request->init( $method, $params, $contentType, $agent );
-
-        $this->request = $request;
-        return $this;
-    }
-
     /**
      * Returns a list of actions supported by this workflow
      * @return array    an array of actions/methods supported by this workflow

@@ -77,8 +77,6 @@ class Request
 
     const PS_DEFER  = 4;            // Defers the parameter parsing to the invoked workflow
 
-    public $original            = '';
-
     /**
      * The current method requested
      * @var string  must match the list of methods supported by getMethodList()
@@ -111,273 +109,118 @@ class Request
      */
     public $paramStyle          = self::PS_PAIR;
 
-    /**
-     * A reference to the invoking workflow (may cause *RECURSION* when doing a var_dump)
-     * @var PainessWorkflow an instance of PainlessWorkflow
-     */
-    public $parent              = NULL;
-
-    /**
-     * Whether or not the parameter has been properly initialized
-     * @var boolean TRUE if the request is properly initialized, FALSE if otherwise
-     */
-    protected $isInitialized    = FALSE;
-
-    /**
-     * Initializes the request accordingly
-     * @param string $method        the method (GET, PUT, POST, etc) invoked
-     * @param string $params        the URI string that is to be converted into a parameter list
-     * @param string $contentType   the type of content the request is expecting
-     * @param string $agent         the invoking agent of this request (origin)
-     */
-    public function init( $method, $paramStr, $contentType, $agent )
-    {
-        // setter functions are used because the implementor might want to perform
-        // validation on each setter call. For example, the implementor might wish
-        // to ensure that only supported content types are passed in, and in the
-        // extension class add in the validation code into setContentType()
-        $this->setMethod( $method )
-             ->setParams( $paramStr )
-             ->setContentType( $contentType )
-             ->setAgent( $agent );
-
-        // don't forget this to allow error detection during getParam
-        $this->isInitialized = TRUE;
-    }
-
     public function execute( )
-    {
-        
-    }
-
-    public function method( $method = '' )
-    {
-        
-    }
-
-    public function module( $module = '', $dispense = FALSE )
-    {
-        
-    }
-
-    public function controller( $controller = '', $dispense = FALSE )
     {
         
     }
 
     public function param( $key )
     {
-        
-    }
-
-    public function params( $params = '' )
-    {
-        
-    }
-
-    public function contentType( $contentType = '' )
-    {
-        
-    }
-
-    public function agent( $agent = '' )
-    {
-        
-    }
-
-    /**
-     * Retrieves a request parameter
-     * @param mixed $key            the parameter's key (int for PS_INDEX, string for the rest)
-     * @param boolean $default
-     * @return mixed
-     */
-    public function getParam( $key = '', $default = FALSE )
-    {
-        // don't proceed if the request is not initialized
-        if ( ! $this->isInitialized ) return $default;
-
-        // if no key is specified, return the entire array. Useful for functions
-        // that need to access the parameter array heavily, as reading from a
-        // local variable is much faster than invoking a function call
-        if ( empty( $key ) && 0 !== $key )
-            return $this->params;
-
         // if the key cannot be found in the parameter array, return $default
         if ( isset( $this->params[$key] ) )
             return $this->params[$key];
-        else
-            return $default;
+
+        return FALSE;
     }
 
-    /**
-     * Returns a list of possible HTTP/REST methods supported implicitly by this
-     * request.
-     * @return array an indexed array whose value are the methods supported 
-     */
-    public function getMethodList( )
+    public function params( $params = NULL )
     {
-        return array(
-            Request::GET,
-            Request::POST,
-            Request::DELETE,
-            Request::OPTIONS,
-            Request::CONNECT,
-        );
-    }
-
-    /**
-     * Sets a parameter parsing style for the request. Must be called BEFORE
-     * init( ) is called, because setParams( ) occurs within init( ).
-     * @param int $style            the parameter style to set
-     */
-    public function setParamStyle( $style )
-    {
-        // Check if the style is supported
-        if ( $style !== self::PS_INDEX && $style !== self::PS_PAIR && $style !== self::PS_CONFIG && $style !== self::PS_DEFER ) return;
-
-        $this->paramStyle = $style;
-    }
-
-    /**
-     * Setter for $this->method
-     * @param string $method        the invoked method
-     * @return PainlessRequest      returns itself to allow function chaining
-     */
-    protected function setMethod( $method )
-    {
-        if ( ! empty( $method ) )
-            $this->method = $method;
-        return $this;
-    }
-
-    /**
-     * Setter for $this->params
-     * @param mixed $params         either an array or a string
-     * @return PainlessRequest      returns itself to allow function chaining
-     */
-    protected function setParams( $params )
-    {
-        if ( empty( $params ) ) return $this;
-
-        // convert $param into an array if not already so
-        if ( ! is_array( $params ) )
+        if ( NULL !== $params )
         {
-            $params = explode( '/', $params );
-            if ( FALSE === $params ) throw new RequestException( "Malformed parameter string [$params]" );
-        }
+            $style = $this->paramStyle;
 
-        // parse the parameter string as an array
-        $style = $this->paramStyle;
-
-        // parse the parameter string using PS_INDEX
-        if ( $style === self::PS_INDEX )
-        {
-            $params = array_values( $params );
-        }
-        // parse the parameter string using PS_PAIR
-        elseif ( $style === self::PS_PAIR )
-        {
-            $count = count( $params );
-            $tmp = array( );
-            
-            // make sure the size of $params is an odd number. If not, trim the last
-            // element off
-            if ( ( $count % 2 ) !== 0 )
+            // Parse the parameter string using PS_INDEX
+            if ( $style === self::PS_INDEX )
             {
-                unset ( $params[ $count - 1 ] );
-
-                // Re-count the parameter array
+                $params = array_values( $params );
+            }
+            // Parse the parameter string using PS_PAIR
+            elseif ( $style === self::PS_PAIR )
+            {
                 $count = count( $params );
+                $tmp = array( );
+
+                // make sure the size of $params is an odd number. If not, trim the last
+                // element off
+                if ( ( $count % 2 ) !== 0 )
+                {
+                    unset ( $params[ $count - 1 ] );
+
+                    // Re-count the parameter array
+                    $count = count( $params );
+                }
+
+                // Pair 'em up side by side; send 'em off in the dark of night. Watch
+                // them through your infra-sights; and don't you scream when the
+                // zombies bite...
+                for( $i = 0; $i < $count; $i += 2 )
+                {
+                    $tmp[$params[$i]] = $params[$i + 1];
+                }
+
+                unset( $params );
+                $params = $tmp;
             }
-
-            for( $i = 0; $i < $count; $i += 2 )
+            // Parse the parameter string using PS_CONFIG
+            elseif ( $style === self::PS_CONFIG )
             {
-                $tmp[$params[$i]] = $params[$i + 1];
-            }
+                // load the routes config file
+                $config = \Painless::load( 'system/common/config' );
+                $routes = $config->get( 'routes.uri.map' );
 
-            unset( $params );
-            $params = $tmp;
-        }
-        // parse the parameter string using PS_CONFIG
-        elseif ( $style === self::PS_CONFIG )
-        {
-            // load the routes config file
-            $config = \Painless::load( 'system/common/config' );
-            $routes = $config->get( 'routes.uri.map' );
+                if ( empty( $routes ) )
+                    throw new ErrorException( 'PS_CONFIG parameter parsing style can only be used if routes are properly set up (routes.uri.map)' );
+                if ( empty( $this->parent ) )
+                    throw new ErrorException( 'PS_CONFIG will not work if the invoking workflow was not instantiated before-hand. Please ensure that the router had instantiated the workflow and set a reference to it in $this->workflow before calling init( )' );
 
-            if ( empty( $routes ) ) throw new RequestException( 'PS_CONFIG parameter parsing style can only be used if routes are properly set up (routes.uri.map)' );
-            if ( empty( $this->parent ) ) throw new RequestException( 'PS_CONFIG will not work if the invoking workflow was not instantiated before-hand. Please ensure that the router had instantiated the workflow and set a reference to it in $this->workflow before calling init( )' );
+                $module     = $this->module;
+                $controller = $this->controller;
+                $method     = $this->method;
 
-            $module     = $this->parent->module;
-            $workflow   = $this->parent->name;
-            $method     = $this->method;
+                // construct the dispatch path
+                $key = "$module/$controller";
+                $map = array( );
 
-            // construct the workflow key
-            $key = "$module/$workflow";
-            $map = array( );
-
-            // see if there's a mapping for that workflow
-            if ( ! isset( $routes[$method][$key] ) )
-            {
-                if ( ! isset( $routes['*'][$key] ) )
-                    throw new RequestException( "The route map [$map] is not found in the routes config. Please make sure the route map exists." );
+                // see if there's a mapping for that workflow
+                if ( ! isset( $routes[$method][$key] ) )
+                {
+                    if ( ! isset( $routes['*'][$key] ) )
+                        throw new ErrorException( "The route map [$map] is not found in the routes config. Please make sure the route map exists." );
+                    else
+                        $map = $routes['*'][$key];
+                }
                 else
-                    $map = $routes['*'][$key];
+                {
+                    $map = $routes[$method][$key];
+                }
+
+                // start parsing the $params array by assigning them their respective keys
+                $tmp = array( );
+                $count = count( $params );
+                for( $i = 0; $i < $count; $i++ )
+                {
+                    if ( ! isset( $map[$i] ) ) break;
+
+                    $tmp[$map[$i]] = $params[$i];
+                }
+                unset( $params );
+                $params = $tmp;
             }
-            else
+            // Parse the parameter string using PS_DEFER
+            elseif ( $style === self::PS_DEFER )
             {
-                $map = $routes[$method][$key];
+                /* TODO: Finish this later
+                if ( empty( $this->controller ) )
+                        throw new ErrorException( 'PS_DEFER will not work if the invoking workflow was not instantiated before-hand. Please ensure that the router had instantiated the workflow and set a reference to it in $this->workflow before calling init( )' );
+                if ( ! method_exists( $this->controller, 'processParams' ) ) throw new ErrorException( 'PS_DEFER requires the invoking workflow [' . get_class( $this->workflow ) . '] to implement the method processParams( $params ) to work.' );
+
+                $params = $this->controller->processParams( $params );
+                 */
             }
 
-            // start parsing the $params array by assigning them their respective keys
-            $tmp = array( );
-            $count = count( $params );
-            for( $i = 0; $i < $count; $i++ )
-            {
-                if ( ! isset( $map[$i] ) ) break;
-
-                $tmp[$map[$i]] = $params[$i];
-            }
-            unset( $params );
-            $params = $tmp;
-        }
-        // parse the parameter string using PS_DEFER
-        elseif ( $style === self::PS_DEFER )
-        {
-            if ( empty( $this->workflow ) ) throw new RequestException( 'PS_DEFER will not work if the invoking workflow was not instantiated before-hand. Please ensure that the router had instantiated the workflow and set a reference to it in $this->workflow before calling init( )' );
-            if ( ! method_exists( $this->workflow, 'processParams' ) ) throw new RequestException( 'PS_DEFER requires the invoking workflow [' . get_class( $this->workflow ) . '] to implement the method processParams( $params ) to work.' );
-
-            $params = $this->workflow->processParams( $params );
+            $this->params = $params;
         }
 
-        $this->params = $params;
-        return $this;
-    }
-
-    /**
-     * Setter for $this->contentType
-     * @param string $contentType   the type of content to return
-     * @return PainlessRequest      returns itself to allow function chaining
-     */
-    protected function setContentType( $contentType )
-    {
-        $this->contentType = $contentType;
-        return $this;
-    }
-
-    /**
-     * Setter for $this->agent
-     * @param string $agent         the invoking agent
-     * @return PainlessRequest      returns itself to allow function chaining
-     */
-    protected function setAgent( $agent )
-    {
-        $this->agent = $agent;
-        return $this;
-    }
-
-    public function param( $name, $value = '', $type = '' )
-    {
-        
+        return $this->params;
     }
 }

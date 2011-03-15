@@ -39,12 +39,12 @@
 
 namespace Painless\System\View\Compiler;
 
-class HtmlCompiler extends BaseCompiler
+class Html extends \Painless\System\View\Compiler\Base
 {
-
     public function process( $view )
     {
         // Localize the data
+        $request    = $view->request;
         $response   = $view->response;
         $status     = $response->status;
         $message    = $response->message;
@@ -55,7 +55,7 @@ class HtmlCompiler extends BaseCompiler
         header( 'Content-Type: text/html' );
 
         // See if there's an appropriate status handler for this response code
-        $path = $this->handleStatus( $response );
+        $path = $this->handleStatus( $request, $response );
 
         // Load the file if it exists in the universe
         if ( file_exists( $path ) )
@@ -68,33 +68,33 @@ class HtmlCompiler extends BaseCompiler
         return '';
     }
 
-    protected function handleStatus( $response )
+    protected function handleStatus( $request, $response )
     {
-        $out = parent::handleStatus( $response );
+        $out = parent::handleStatus( $request, $response );
 
         // Localize the data
-        $module     = $response->module;
-        $workflow   = $response->workflow;
-        $method     = $response->method;
+        $module     = $request->module;
+        $controller = $request->controller;
+        $method     = $request->method;
 
-        if ( FALSE === $out ) $out = "$module/tpl/$workflow.$method.phtml";
+        if ( FALSE === $out ) $out = "$module/tpl/$controller.$method.phtml";
 
         return $out;
     }
 
-    protected function handle301( $response )
+    protected function handle301( $request, $response )
     {
-        header( 'Location: ' . $response->get( PainlessView::PATH ) );
+        header( 'Location: ' . $response->get( 'target' ) );
         return FALSE;
     }
 
-    protected function handle302( $response )
+    protected function handle302( $request, $response )
     {
-        return IMPL_PATH . 'view/error-301.tpl';
+        return \Painless::app( )->env( \Painless::APP_PATH ) . 'view/error-301.tpl';
     }
 
-    protected function handle404( $response )
+    protected function handle404( $request, $response )
     {
-        return IMPL_PATH . 'view/error-404.tpl';
+        return \Painless::app( )->env( \Painless::APP_PATH ) . 'view/error-404.tpl';
     }
 }

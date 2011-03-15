@@ -59,8 +59,8 @@ class Core
     /* The current active request */
     protected $active   = NULL;
 
-    /* Container for all loaded requests */
-    protected $requests = array( );
+    /* Container for all executions */
+    protected $elog     = array( );
     
     //--------------------------------------------------------------------------
     /**
@@ -109,73 +109,8 @@ class Core
         $this->com[$uri] = $obj;
         return $this;
     }
-    
-    /**
-     * processes the current request and returns a response
-     */
-    public function dispatch( )
-    {
-        Beholder::notify( 'core.dispatch.pre' );
-        
-        // start the session on every dispatch
-        //$session = $this->load( 'system/common/session' );
-        //$session->start( );
 
-        // check and load the router
-        $router = $this->load( 'system/common/router' );
-
-        try
-        {
-            // let the router process the business logic
-            $response = $router->process( );
-        }
-        catch( PainlessWorkflowNotFoundException $e )
-        {
-            // construct a 404 response
-            $response = $this->load( 'system/workflow/response', LP_LOAD_NEW );
-            $response->status = 404;
-            $response->message = 'Unable to locate workflow';
-        }
-        catch( ErrorException $e )
-        {
-            $response = $this->load( 'system/workflow/response', LP_LOAD_NEW );
-            $response->status = 500;
-            $response->message = $e->getMessage( );
-        }
-        
-        Beholder::notify( 'core.dispatch.post' );
-
-        // pass the control to the renderer
-        $render = $this->load( 'system/common/render' );
-        $output = $render->process( $response );
-
-        return $output;
-    }
-
-    public function exec( $uri )
-    {
-        // split the URI up
-        $segments = explode( ' ', $uri );
-        $method = 'GET';
-        $uri = '';
-
-        if ( count( $segments ) == 2 )
-        {
-            $method = $segments[0];
-            $uri = explode( '/', $segments[1] );
-        }
-
-        $module         = $uri[0];
-        $workflow       = $uri[1];
-        $params         = ( count( $uri ) > 2 ) ? array_slice( $uri, 2 ) : array( );
-        $contentType    = 'none';
-        $agent          = 'painless';
-
-        $router = $this->load( 'system/common/router' );
-        return $router->dispatch( $method, $module, $workflow, $contentType, $params, $agent );
-    }
-
-    public function run( $entry, $cmd = '' )
+    public function execute( $entry, $cmd = '' )
     {
         // Here we need to determine the entry point. There are only 3 of them:
         // HTTP (includes REST calls), CLI (including cron jobs) and APP. The
@@ -201,12 +136,12 @@ class Core
         $router = \Painless::load( 'system/common/router' );
 
         // Localize the response variable
-        $response = NULL;
+        $response = FALSE;
 
         // Send the command to the router to process, which will create a request
         // object containing all routing information (as well as some extra info
         // like agent string, content type, etc)
-        if ( \Painless::RUN_HTTP === $entry || \Painless::RUN_CLI === $entry || \Painless::RUN_APP === $entry )
+        if ( \Painless::RUN_HTTP === $entry || \Painless::RUN_CLI === $entry || \Painless::RUN_APP === $entry || \Painless::RUN_INTERNAL )
         {
             // Send the router the command to receive a request
             $request = $router->process( $entry, $cmd );
@@ -226,10 +161,19 @@ class Core
             $response = \Painless::manufacture( 'response', 500, 'Invalid entry point' );
         }
 
+        // At this point, save both the request and response to the core's
+        // command log, along with the original command
+        $this->log( $entry, $cmd, $request, $response );
+
         // Get the renderer
         $render = \Painless::load( 'system/common/render' );
 
         // Process the request and response to get an output
         return $render->process( $request, $response );
+    }
+
+    public function log( $entry, $cmd, \Painless\System\Workflow\Request $request, \Painless\System\Workflow\Response $response )
+    {
+        $this->elog[] = array( $entry, $cmd, $request, $response );
     }
 }

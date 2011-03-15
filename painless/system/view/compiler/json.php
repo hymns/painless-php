@@ -39,7 +39,7 @@
 
 namespace Painless\System\View\Compiler;
 
-class JsonCompiler extends BaseCompiler
+class Json extends \Painless\System\View\Compiler\Base
 {
     public function process( $view )
     {
