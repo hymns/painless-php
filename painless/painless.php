@@ -58,43 +58,45 @@ defined( 'EXT' ) or define( 'EXT', '.php' );
 class Painless
 {
     /* Core version */
-    const VERSION       = '1.0';
+    const VERSION           = '1.0';
 
     /* Base load parameters */
-    const LP_DEF_BASE   = 1;    // load the definition for the core component
-    const LP_DEF_APP    = 2;    // load the definition for the extended component
-    const LP_CACHE_BASE = 4;    // instantiate the core component and cache it
-    const LP_CACHE_APP  = 8;    // instantiate the extended component and cache it
-    const LP_RET_BASE   = 16;   // returns the core component. If this cannot be done, it'll return a NULL
-    const LP_RET_APP    = 32;   // returns the extended component. If this cannot be done, it'll return the core component instead
-    const LP_SKIP_CACHE = 64;   // skip the cache lookup
+    const LP_DEF_BASE       = 1;                // load the definition for the core component
+    const LP_DEF_APP        = 2;                // load the definition for the extended component
+    const LP_CACHE_BASE     = 4;                // instantiate the core component and cache it
+    const LP_CACHE_APP      = 8;                // instantiate the extended component and cache it
+    const LP_RET_BASE       = 16;               // returns the core component. If this cannot be done, it'll return a NULL
+    const LP_RET_APP        = 32;               // returns the extended component. If this cannot be done, it'll return the core component instead
+    const LP_SKIP_CACHE     = 64;               // skip the cache lookup
 
     /* Shorthand load parameters */
-    const LP_ALL        = 63;   // short for LP_DEF_CORE | LP_DEF_EXT | LP_CACHE_CORE | LP_CACHE_EXT | LP_RET_CORE | LP_RET_EXT
-    const LP_LOAD_NEW   = 127;  // short for LP_DEF_CORE | LP_DEF_EXT | LP_CACHE_CORE | LP_CACHE_EXT | LP_RET_CORE | LP_RET_EXT | LP_SKIP_CACHE_LOAD
-    const LP_DEF_ONLY   = 2;    // short for LP_DEF_CORE | LP_DEF_EXT
-    const LP_APP_ONLY   = 42;   // short for LP_DEF_EXT | LP_CACHE_EXT | LP_RET_EXT
-    const LP_BASE_ONLY  = 21;   // short for LP_DEF_CORE | LP_CACHE_CORE | LP_RET_CORE
+    const LP_ALL            = 63;               // short for LP_DEF_CORE | LP_DEF_EXT | LP_CACHE_CORE | LP_CACHE_EXT | LP_RET_CORE | LP_RET_EXT
+    const LP_LOAD_NEW       = 127;              // short for LP_DEF_CORE | LP_DEF_EXT | LP_CACHE_CORE | LP_CACHE_EXT | LP_RET_CORE | LP_RET_EXT | LP_SKIP_CACHE_LOAD
+    const LP_DEF_ONLY       = 2;                // short for LP_DEF_CORE | LP_DEF_EXT
+    const LP_APP_ONLY       = 42;               // short for LP_DEF_EXT | LP_CACHE_EXT | LP_RET_EXT
+    const LP_BASE_ONLY      = 21;               // short for LP_DEF_CORE | LP_CACHE_CORE | LP_RET_CORE
 
     /* Profile names */
-    const DEV           = 'dev';
-    const LIVE          = 'live';
-    const STAGE         = 'stage';
+    const DEV               = 'dev';
+    const LIVE              = 'live';
+    const STAGE             = 'stage';
 
     /* Environment variable names */
-    const APP_NAME      = 'app_name';
-    const APP_PATH      = 'app_path';
-    const RES_PATH      = 'res_path';
-    const CORE_PATH     = 'core_path';
-    const PROFILE       = 'profile';
+    const APP_NAME          = 'app_name';       // the canonical name of the app
+    const APP_PATH          = 'app_path';       // the path to the app
+    const APP_URL           = 'app_url';        // the URL of the app (if it's a HTTP app)
+    const RES_PATH          = 'res_path';       // the path to the app's resources
+    const CORE_PATH         = 'core_path';      // the path to this file
+    const CLI_ARGV          = 'cli_argv';       // the arguments that are passed in from the command line
+    const PROFILE           = 'profile';        // the current deployment profile (DEV, LIVE or STAGE)
 
     /* Entry points */
-    const RUN_HTTP      = 'http';
-    const RUN_CLI       = 'cli';
-    const RUN_APP       = 'app';
+    const RUN_HTTP          = 'http';           // run this app as a HTTP app
+    const RUN_CLI           = 'cli';            // run this app as a CLI app
+    const RUN_APP           = 'app';            // run this app with an internal call (one app calling anohter)
 
-    private static $app  = array( );
-    private static $curr = '';
+    private static $app     = array( );
+    private static $curr    = '';
 
     //--------------------------------------------------------------------------
     /**

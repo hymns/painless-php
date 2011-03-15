@@ -38,14 +38,10 @@
 
 date_default_timezone_set( 'UTC' );
 
-// DO NOT CHANGE THIS LINE!!!!!!!!!!!!!!!!!!!!!
-$CORE = dirname( __FILE__ ) . '/painless/';
-$IMPL = dirname( __FILE__ ) . '/morphine/';
-include $CORE . 'painless.php';
-include $IMPL . 'morphine.php';
+include __DIR__ . '/painless/painless.php';
 
 // create the workfloo object and define a distribution
-Painless::bootstrap( 'morphine', $IMPL );
-$app->argv = $argv;
-echo $app->dispatch( );
+$core = \Painless::bootstrap( 'morphine', __DIR__ . '/morphine/' );
+$core->env( \Painless::CLI_ARGV, $argv );
+$core->run( \Painless::RUN_CLI );
 ?>

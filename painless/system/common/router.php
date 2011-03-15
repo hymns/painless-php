@@ -67,11 +67,7 @@ class Router extends \Painless\System\Common\Worker
     public function process2( $entry, $uri = '', $dispatch = TRUE )
     {
         // Localize the values
-        $agent      = '';
         $method     = 'get';
-        $module     = '';
-        $controller = '';
-        $param      = array( );
 
         // First, parse the $uri. They come in two formats, either:
         // [method] [uri] or just [uri]. Let's see if it's the former.
@@ -83,50 +79,138 @@ class Router extends \Painless\System\Common\Worker
         }
 
         // The URI is ready for processing now. Pass to the appropriate processing
-        // function
+        // function. Maybe in the future we should use a finite state machine
+        // instead?
         switch( $entry )
         {
             case \Painless::RUN_HTTP :
-                list( $module, $controller, $param ) = $this->processHttp( $uri );
+                $request = $this->processHttp( $method, $uri );
                 break;
             case \Painless::RUN_CLI :
-                list( $module, $controller, $param ) = $this->processCli( $uri );
+                $request = $this->processCli( $method, $uri );
                 break;
             case \Painless::RUN_APP :
-                list( $module, $controller, $param ) = $this->processApp( $uri );
+                $request = $this->processApp( $method, $uri );
                 break;
             default :
                 throw new ErrorException( 'Unknown entry point [' . $entry . ']' );
         }
 
-        // If $module and $controller are empty, scream in panic and then load
-        // the defaults from config
-        if ( empty( $module ) || empty( $controller ) )
-        {
-            $config = \Painless::load( 'system/common/config' );
-
-            if ( empty( $module ) ) $module = $config->get( 'routes.uri.default.module' );
-            if ( empty( $controller ) ) $controller = $config->get( 'routes.uri.default.controller' );
-        }
+        // Let the request object handle the rest of the execution, which will
+        // then return a response object
+        return $request->execute( );
     }
 
-    protected function processHttp( $uri )
+    protected function processHttp( $method, $uri )
     {
-        
-    }
+        // Create a new request
+        $request = \Painless::load( 'system/common/request', LP_LOAD_NEW );
 
-    protected function processCli( $uri )
-    {
-        // If coming from a CLI call, the URI must be given
+        // Set the agent
+        $request->agent( $_SERVER[ 'HTTP_USER_AGENT' ] );
+
+        // Localize the variables
+        $module     = '';
+        $controller = '';
+        $param      = array( );
+
+        // Determine and set the APP_URL env var
+        $url        = ( (isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] == 'on' ) ? 'https' : 'http' ) . '://' . $_SERVER['HTTP_HOST'];
+
+        // $_SERVER['SCRIPT_NAME'] can, in contrast to $_SERVER['PHP_SELF'], not
+        // be modified by a visitor.
+        if ( $dir = trim( dirname( $_SERVER['SCRIPT_NAME'] ), '\,/' ) )
+            $url .= "/$dir";
+
+        // Set the APP_URL env var into Core
+        \Painless::app( )->env( \Painless::APP_URL, $url );
+
+        // If the method is empty, read it from REQUEST_METHOD
+        if ( empty( $method ) ) $method = strtolower( $method );
+
+        // If the URI is emtpy, read it from the server array
         if ( empty( $uri ) )
-            return array( FALSE, FALSE, array( ) );
+        {
+            $requestURI = explode( '/', $_SERVER['REQUEST_URI'] );
+            $scriptName = explode( '/', $_SERVER['SCRIPT_NAME'] );
+            $count = count( $requestURI );
+
+            // Run through the array to remove the base
+            for ( $i = 0; $i < $count; $i++ )
+            {
+                if ( ! isset( $scriptName[$i] ) ) $scriptName[$i] = '';
+                if ( ! isset( $requestURI[$i] ) ) $requestURI[$i] = '';
+                if ( $requestURI[$i] === $scriptName[$i] ) continue;
+
+                $uri[] = $requestURI[$i];
+            }
+        }
+
+        // At this point, the URI has been split into an array. Pass it to
+        // mapUri to map to fill in the correct values for the request. Request
+        // is passed by reference (by default)
+        $this->mapUri( $uri, $request );
+
+        return $request;
     }
 
-    protected function processApp( $uri )
+    protected function processCli( $method, $uri )
     {
+        // Create a new request
+        $request = \Painless::load( 'system/common/request', LP_LOAD_NEW );
+        
+        // Set the agent
+        $request->agent( PHP_SAPI );
+
+        // Localize the variables
+        $module     = '';
+        $controller = '';
+        $param      = array( );
+
         // If it's an APP call, a URI must be given
         if ( empty( $uri ) )
-            return array( FALSE, FALSE, array( ) );
+            return $request;
+
+        // Check if argv is set in the Core (which should be the case in the
+        // bootstrap process if writing for a CLI app)
+        $argv = \Painless::app( )->env( \Painless::CLI_ARGV );
+        if ( ! empty( $arv ) )
+        {
+            
+        }
+
+        
+        // Set the values for request
+        $request->module( $module );
+        $request->controller( $controller );
+        $request->param( $param );
+
+        return $request;
+    }
+
+    protected function processApp( $method, $uri )
+    {
+        // Create a new request
+        $request = \Painless::load( 'system/common/request', LP_LOAD_NEW );
+
+        // Set the agent
+        $request->agent( 'PainlessPHP Internal App [v' . \Painless::CORE_VERSION . ']' );
+
+        // Localize the variables
+        $module     = '';
+        $controller = '';
+        $param      = array( );
+
+        // If it's an APP call, a URI must be given
+        if ( empty( $uri ) )
+            return $request;
+
+        // Set the values for the request
+        $request->module( $module );
+        $request->controller( $controller );
+        $request->param( $param );
+
+        return $request;
     }
 
     /**
@@ -296,18 +380,23 @@ class Router extends \Painless\System\Common\Worker
      * @param string $contentType   the content type of this request
      * @return array                an array of parameters
      */
-    protected function processUri( $uri, & $module, & $workflow, & $contentType )
+    protected function mapUri( $uri, $request )
     {
         // Grab dependencies
         $config = \Painless::load( 'system/common/config' );
 
-        $params = array( );
+        // Localize the variables
+        $module         = '';
+        $controller     = '';
+        $contentType    = '';
+        $params         = array( );
 
         // Load the URI format from the routes config
         $routes = $config->get( 'routes.uri.config' );
 
         // Use the default routing if not configured (auto-routing)
-        if ( ! is_array( $routes ) ) $routes = $this->defaultRoute;
+        if ( ! is_array( $routes ) )
+            $routes = $this->defaultRoute;
 
         // Process the URI list
         $count = count( $uri );
@@ -323,7 +412,9 @@ class Router extends \Painless\System\Common\Worker
                     // Get the workflow and module mapping, and then append the
                     // rest of the URI into the params array. No point proceeding
                     // further as alias don't play well with module and workflow
-                    list( $module, $workflow ) = $this->mapAlias( $uri[$i] );
+                    $routeMap = $config->get( 'routes.alias' );
+                    if ( isset( $routeMap[$alias] ) )
+                        list( $module, $controller ) = $routeMap[$alias];
 
                     // Only do this if this is not the end of the URI array
                     if ( $i !== $count )
@@ -337,10 +428,10 @@ class Router extends \Painless\System\Common\Worker
                     // Grab the module
                     $module = $uri[$i];
                 }
-                elseif ( 'workflow' === $con )
+                elseif ( 'controller' === $con )
                 {
-                    // Grab the workflow
-                    $workflow = $uri[$i];
+                    // Grab the controller
+                    $controller = $uri[$i];
                 }
                 elseif ( 'param' === $con )
                 {
@@ -374,47 +465,21 @@ class Router extends \Painless\System\Common\Worker
             }
         }
 
-        // Ensure that module and workflow are defined. If they are not, try to
+        // Ensure that module and controller are defined. If they are not, try to
         // load them from the config file
         if ( empty( $module ) )
         {
             $module = $config->get( 'routes.uri.default.module' );
         }
-
-        if ( empty( $workflow ) )
+        if ( empty( $controller ) )
         {
-            $workflow = $config->get( 'routes.uri.default.workflow' );
+            $controller = $config->get( 'routes.uri.default.workflow' );
         }
 
-        // Join the URI back into a string
-        $params = implode( '/', $params );
-
-        return $params;
-    }
-
-    protected function mapAlias( $alias )
-    {
-        // Grab the dependencies
-        $config = \Painless::load( 'system/common/config' );
-
-        // Grab the routes
-        $routes = $config->get( 'routes.alias' );
-        if ( isset( $routes[$alias] ) ) return $routes[$alias];
-
-        return array( FALSE, FALSE );
-    }
-
-    protected function saveUri( $uri, $method, $params )
-    {
-        // Rebuild the URI string
-        $uri = implode( '/', $uri );
-        
-        $this->uri[$uri] = "$method $uri";
-    }
-
-    public function getOrigin( )
-    {
-        // TODO: Don't use array_shift!
-        return array_shift( $this->uri );
+        // Fill in the request object
+        $request->module( $module );
+        $request->controller( $controller );
+        $request->params( $params );
+        $request->contentType( $contentType );
     }
 }
