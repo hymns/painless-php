@@ -84,7 +84,8 @@ class Painless
     /* Environment variable names */
     const APP_NAME          = 'app_name';       // the canonical name of the app
     const APP_PATH          = 'app_path';       // the path to the app
-    const APP_URL           = 'app_url';        // the URL of the app (if it's a HTTP app)
+    const APP_URL           = 'app_url';        // the URL of the app (if it's a HTTP app) (no params)
+    const PAGE_URL          = 'page_url';       // the URL of the page
     const RES_PATH          = 'res_path';       // the path to the app's resources
     const CORE_PATH         = 'core_path';      // the path to this file
     const CLI_ARGV          = 'cli_argv';       // the arguments that are passed in from the command line

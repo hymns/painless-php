@@ -71,21 +71,23 @@ class Request
     const PS_PAIR   = 2;            // Params are paired up with the previous param being the ID
                                     // (e.g. $this->getParam( 'page' ) on "/user/profile/page/1" would return 1)
 
-    const PS_CONFIG = 3;            // Params are named resources defined by the routes config
+    const PS_ASSOC  = 3;            // Params are passed in as an associative array, so no processing is needed.
+
+    const PS_CONFIG = 4;            // Params are named resources defined by the routes config
                                     // (e.g. if the workflow says "/:action/:page-no",
                                     // $this->getParam( 'page-no' ) on "/user/profile/page/1" would return 1)
 
-    const PS_DEFER  = 4;            // Defers the parameter parsing to the invoked workflow
+    const PS_DEFER  = 5;            // Defers the parameter parsing to the invoked workflow
 
     /**
      * The current method requested
-     * @var string  must match the list of methods supported by getMethodList()
+     * @var string  
      */
     public $method              = self::GET;
 
     /**
      * The current content type requested
-     * @var string  must match the list of views supported by PainlessView
+     * @var string  
      */
     public $contentType         = self::HTML;
 
@@ -93,26 +95,21 @@ class Request
      * The agent that made the request. Note that if the agent is 'painless',
      * then it should be understood as an internal call (most probably used to
      * construct composite views)
-     * @var string  the agent that invoked this call (e.g. a browser, remote REST call, etc)
+     * @var string  
      */
     public $agent               = 'painless';
 
     /**
      * The parameters that are passed in along with the request
-     * @var array   an array of parameters compiled from the URI that is passed in
+     * @var array   
      */
     public $params              = array( );
 
     /**
      * How to parse the parameter string
-     * @var int     must match either one of the PS_* constants
+     * @var int     
      */
     public $paramStyle          = self::PS_PAIR;
-
-    public function execute( )
-    {
-        
-    }
 
     public function param( $key )
     {
@@ -123,11 +120,11 @@ class Request
         return FALSE;
     }
 
-    public function params( $params = NULL )
+    public function params( $params = NULL, $append = FALSE, $parseStyle = 0 )
     {
         if ( NULL !== $params )
         {
-            $style = $this->paramStyle;
+            $style = ( $parseStyle !== 0 ) ?: $this->paramStyle;
 
             // Parse the parameter string using PS_INDEX
             if ( $style === self::PS_INDEX )
@@ -218,7 +215,10 @@ class Request
                  */
             }
 
-            $this->params = $params;
+            if ( $append )
+                $this->params = array_merge( $this->params, $params );
+            else
+                $this->params = $params;
         }
 
         return $this->params;

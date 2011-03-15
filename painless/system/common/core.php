@@ -53,9 +53,6 @@ class Core
     /* Container for all loaded components */
     protected $com      = array( );
 
-    /* The originating request */
-    protected $origin   = NULL;
-
     /* The current active request */
     protected $active   = NULL;
 
@@ -110,7 +107,7 @@ class Core
         return $this;
     }
 
-    public function execute( $entry, $cmd = '' )
+    public function execute( $entry, $cmd = '', $data = array( ) )
     {
         // Here we need to determine the entry point. There are only 3 of them:
         // HTTP (includes REST calls), CLI (including cron jobs) and APP. The
@@ -146,6 +143,9 @@ class Core
             // Send the router the command to receive a request
             $request = $router->process( $entry, $cmd );
 
+            // Set this request as the active one
+            $this->active = $request;
+
             // If $request is FALSE, something baaaaadddddd has happened inside
             // the router. Use a 500 error response instead of dispatching it.
             if ( FALSE === $request )
@@ -157,13 +157,19 @@ class Core
         // Handle the error of an invalid entry point
         else
         {
+            // Manufacture an empty request
+            $request = \Painless::manufacture( 'request', '', '', '' );
+
+            // Set this request as the active one
+            $this->active = $request;
+
             // Manufacture a 500 error status response object
             $response = \Painless::manufacture( 'response', 500, 'Invalid entry point' );
         }
 
         // At this point, save both the request and response to the core's
         // command log, along with the original command
-        $this->log( $entry, $cmd, $request, $response );
+        $this->log( $entry, $request, $response );
 
         // Get the renderer
         $render = \Painless::load( 'system/common/render' );
@@ -172,8 +178,12 @@ class Core
         return $render->process( $request, $response );
     }
 
-    public function log( $entry, $cmd, \Painless\System\Workflow\Request $request, \Painless\System\Workflow\Response $response )
+    public function log( $entry, \Painless\System\Workflow\Request $request, \Painless\System\Workflow\Response $response )
     {
-        $this->elog[] = array( $entry, $cmd, $request, $response );
+        $this->elog[] = array( 
+            'protocol'  => $entry,
+            'request'   => $request,
+            'response'  => $response
+        );
     }
 }

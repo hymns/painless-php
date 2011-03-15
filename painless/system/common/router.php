@@ -36,6 +36,7 @@
  * @link        http://painless-php.com
  */
 namespace Painless\System\Common;
+use \Painless\System\Workflow\Request as Request;
 
 class Router
 {
@@ -52,7 +53,7 @@ class Router
         \Painless::RUN_INTERNAL => 'raw',
     );
 
-    public function dispatch( \Painless\System\Workflow\Request $request )
+    public function dispatch( Request $request )
     {
         // Localize the variables
         $method = $request->method;
@@ -89,8 +90,8 @@ class Router
     public function process( $entry, $uri = '' )
     {
         // Localize the values
-        $method     = 'get';
-        $original   = $uri;
+        $method     = '';
+        $command    = $uri;
 
         // First, parse the $uri. They come in two formats, either:
         // [method] [uri] or just [uri]. Let's see if it's the former.
@@ -140,6 +141,7 @@ class Router
     protected function processHttp( $method, $uri )
     {
         // Localize the variables
+        $core       = \Painless::app( );
         $module     = '';
         $controller = '';
         $param      = array( );
@@ -156,10 +158,10 @@ class Router
         $url .= '/';
 
         // Set the APP_URL env var into Core
-        \Painless::app( )->env( \Painless::APP_URL, $url );
+        $core->env( \Painless::APP_URL, $url );
 
         // If the method is empty, read it from REQUEST_METHOD
-        if ( empty( $method ) ) $method = strtolower( $method );
+        if ( empty( $method ) ) $method = strtolower( $_SERVER['REQUEST_METHOD'] );
 
         // If the URI is emtpy, read it from the server array
         if ( empty( $uri ) )
@@ -182,13 +184,27 @@ class Router
             if ( ! is_array( $uri ) )
                 $uri = array( $uri );
         }
+        
+        // Rebuild the URI as the env var PAGE_URL (don't replace it if it already
+        // exists!!)
+        $pageUrl = $core->env( \Painless::PAGE_URL );
+        if ( empty( $pageUrl ) )
+            $core->env( \Painless::PAGE_URL, implode( '/', $uri ) );
 
         // At this point, the URI has been split into an array. Pass it to
         // mapUri to map to the correct module and controller.
         list( $module, $controller, $param, $contentType ) = $this->mapUri( $uri );
 
         // Dispense the request object
-        return \Painless::manufacture( 'request', $method, $module, $controller, $param, $contentType, $_SERVER['HTTP_USER_AGENT'] );
+        $request = \Painless::manufacture( 'request', $method, $module, $controller, $param, $contentType, $_SERVER['HTTP_USER_AGENT'] );
+
+        // If the method is GET or POST, merge the arrays into params
+        if ( $method === Request::GET )
+            $request->params( $_GET, TRUE, Request::PS_ASSOC );
+        elseif ( $method === Request::POST || $method === Request::PUT )
+            $request->params( $_POST, TRUE, Request::PS_ASSOC );
+
+        return $request;
     }
 
     protected function processCli( $method, $uri )
@@ -200,7 +216,7 @@ class Router
 
         // If it's an APP call, a URI must be given
         if ( empty( $uri ) )
-            return $request;
+            return FALSE;
 
         // Check if argv is set in the Core (which should be the case in the
         // bootstrap process if writing for a CLI app)
@@ -209,13 +225,23 @@ class Router
         {
             // TODO: Finish this
         }
-        
-        return \Painless::manufacture( 'request', $method, $module, $controller, $param, '', PHP_SAPI );
+
+        // Dispense the request object
+        $request = \Painless::manufacture( 'request', $method, $module, $controller, $param, '', PHP_SAPI );
+
+        // If the method is GET or POST, merge the arrays into params
+        if ( $method === \Painless\System\Workflow\Request::GET )
+            $request->params( $_GET, TRUE );
+        elseif ( $method === \Painless\System\Workflow\Request::POST || $method === \Painless\System\Workflow\Request::PUT )
+            $request->params( $_POST, TRUE );
+
+        return $request;
     }
 
     protected function processApp( $method, $uri )
     {
         // Localize the variables
+        $method     = ( ! empty( $method ) ) ?: \Painless\System\Workflow\Request::GET;
         $module     = '';
         $controller = '';
         $param      = array( );
@@ -267,6 +293,7 @@ class Router
         $controller     = '';
         $contentType    = '';
         $params         = array( );
+        $command        = $uri;
 
         // Load the URI format from the routes config
         $routes = $config->get( 'routes.uri.config' );
