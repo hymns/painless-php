@@ -41,7 +41,7 @@ date_default_timezone_set( 'UTC' );
 include __DIR__ . '/painless/painless.php';
 
 // create the workfloo object and define a distribution
-$core = \Painless::bootstrap( 'morphine', __DIR__ . '/morphine/' );
+$core = \Painless::initApp( 'morphine', __DIR__ . '/morphine/' );
 $core->env( \Painless::CLI_ARGV, $argv );
 $core->run( \Painless::RUN_CLI );
 ?>

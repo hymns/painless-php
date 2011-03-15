@@ -121,17 +121,11 @@ class Painless
     public static function app( $name = '', $core = NULL )
     {    
         if ( NULL === $core && isset( static::$app[static::$curr] ) && empty( $name ) )
-        {
             return static::$app[static::$curr];
-        }
         elseif ( NULL === $core && isset( static::$app[$name] ) )
-        {
             return static::$app[$name];
-        }
         elseif ( NULL === $core && ! isset( static::$app[$name] ) )
-        {
             return NULL;
-        }
         
         static::$app[$name] = $core;
     }
@@ -146,6 +140,35 @@ class Painless
     public static function load( $component, $opt = \Painless::LP_ALL )
     {
         return static::app( )->com( 'system/common/loader' )->load( $component, $opt );
+    }
+
+    //--------------------------------------------------------------------------
+    /**
+     * Manufactures a component using the passed in parameters
+     * @param string $component the name of the component to be loaded
+     * @param array $opt        the loading parameters
+     * @return object           the manufactured component
+     */
+    public static function manufacture( )
+    {
+        // Get the list of arguments passed in
+        $args = func_get_args( );
+
+        // Don't continue if no component specified
+        if ( empty( $args ) || ! is_string( $args[0] ) )
+            throw new ErrorException( 'You need to specify a component type to manufacture by setting it as the first argument of manufacture( ).' );
+
+        // Extract the first segment of $args as the component type
+        $component = array_shift( $args );
+        
+        // All clear. Create the factory and manufacture away!
+        $factory = \Painless::load( 'system/common/factory' );
+
+        // Don't continue if the component is not suppoted!
+        if ( ! method_exists( $factory, $component ) )
+            throw new ErrorException( 'Trying to manufacture a non-supported component [' . $component . ']' );
+
+        return call_user_func_array( array( $factory, $component ), $args );
     }
 
     //--------------------------------------------------------------------------
@@ -191,7 +214,8 @@ class Painless
 
 /* -----------------------------------------------------------------------------
  * Bunch of useful functions
- * ---------------------------------------------------------------------------- */
+ * -----------------------------------------------------------------------------
+ */
 
 function array_get( $array, $key, $defaultReturn = FALSE )
 {

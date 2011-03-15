@@ -36,52 +36,15 @@
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
-
 namespace Painless\System\Workflow;
 
 class Response
 {
-    /**-------------------------------------------------------------------------
-     * The HTTP/REST status code of the response. 
-     * @var int     a HTTP/REST status code
-     */
+    /* Response object properties */
     public $status      = 0;
-
-    /**-------------------------------------------------------------------------
-     * The message explaining the status of the response. When used internally,
-     * this is the one that gets logged into the logs.
-     * @var string  a message string explaining the status of the response
-     */
     public $message     = '';
-
-    /**-------------------------------------------------------------------------
-     * The payload returned by the request. Usually an associative array so that
-     * the view can easily compile it into the proper format.
-     * @var mixed   the payload returned from the request
-     */
     public $payload     = NULL;
-
-    /**-------------------------------------------------------------------------
-     * A reference to the invoking workflow
-     * @var PainlessWorkflow    the workflow that invoked this response
-     */
-    public $parent      = NULL;
-
-    public $module      = '';
-    public $controller  = '';
-    public $method      = '';
-    public $agent       = '';
-    public $contentType = '';
-
-    public function setWorkflow( $workflow )
-    {
-        $this->parent       = $workflow;
-        $this->workflow     = $workflow->name;
-        $this->module       = $workflow->module;
-        $this->method       = $workflow->request->method;
-        $this->agent        = $workflow->request->agent;
-        $this->contentType  = $workflow->request->contentType;
-    }
+    public $headers     = array( );
 
     public function set( $key, $data )
     {
@@ -101,6 +64,6 @@ class Response
 
     public function header( $header )
     {
-        $this->header[] = $header;
+        $this->headers[] = $header;
     }
 }

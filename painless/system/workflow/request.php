@@ -77,6 +77,8 @@ class Request
 
     const PS_DEFER  = 4;            // Defers the parameter parsing to the invoked workflow
 
+    public $original            = '';
+
     /**
      * The current method requested
      * @var string  must match the list of methods supported by getMethodList()
@@ -141,6 +143,46 @@ class Request
 
         // don't forget this to allow error detection during getParam
         $this->isInitialized = TRUE;
+    }
+
+    public function execute( )
+    {
+        
+    }
+
+    public function method( $method = '' )
+    {
+        
+    }
+
+    public function module( $module = '', $dispense = FALSE )
+    {
+        
+    }
+
+    public function controller( $controller = '', $dispense = FALSE )
+    {
+        
+    }
+
+    public function param( $key )
+    {
+        
+    }
+
+    public function params( $params = '' )
+    {
+        
+    }
+
+    public function contentType( $contentType = '' )
+    {
+        
+    }
+
+    public function agent( $agent = '' )
+    {
+        
     }
 
     /**
@@ -339,5 +381,3 @@ class Request
         
     }
 }
-
-class RequestException extends \ErrorException { }

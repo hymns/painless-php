@@ -4,7 +4,7 @@ namespace Painless\System\String;
 
 class Inflector
 {
-	protected function camel( $str )
+    protected function camel( $str )
     {
         
     }

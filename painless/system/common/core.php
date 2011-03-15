@@ -48,16 +48,19 @@ defined( 'PHP_VER' ) or define( 'PHP_VER', phpversion( ) );
 class Core
 {    
     /* Container for all environment variables */
-    protected $env  = array( );
+    protected $env      = array( );
     
     /* Container for all loaded components */
-    protected $com  = array( );
+    protected $com      = array( );
 
     /* The originating request */
-    protected $origin = NULL;
+    protected $origin   = NULL;
 
     /* The current active request */
-    protected $active = NULL;
+    protected $active   = NULL;
+
+    /* Container for all loaded requests */
+    protected $requests = array( );
     
     //--------------------------------------------------------------------------
     /**
@@ -194,59 +197,39 @@ class Core
         //          $config['apps']['flight-plan'] = 'http://flight-plan.foo.com:8003';
         //      then it is a REST call.
 
-        // Get the router
+        // Load the router into the Core registry
         $router = \Painless::load( 'system/common/router' );
 
-        // Depending on the entry point, call different processing functions,
-        // which will automatically create the request object inside the router.
+        // Localize the response variable
         $response = NULL;
-        switch( $entry )
+
+        // Send the command to the router to process, which will create a request
+        // object containing all routing information (as well as some extra info
+        // like agent string, content type, etc)
+        if ( \Painless::RUN_HTTP === $entry || \Painless::RUN_CLI === $entry || \Painless::RUN_APP === $entry )
         {
-            case \Painless::RUN_HTTP :
-            case \Painless::RUN_CLI :
-            case \Painless::RUN_APP :
-                $response = $router->process( $entry, $cmd );
-                break;
-            default :
-                throw new ErrorException( 'Unrecognized entry point identifier: [' . $entry . ']' );
+            // Send the router the command to receive a request
+            $request = $router->process( $entry, $cmd );
+
+            // If $request is FALSE, something baaaaadddddd has happened inside
+            // the router. Use a 500 error response instead of dispatching it.
+            if ( FALSE === $request )
+                $response = \Painless::manufacture( 'response', 500, 'Fatal error when trying to process the command in router. See log for more details.' );
+            // Dispatch the request
+            else
+                $response = $router->dispatch( $request );
+        }
+        // Handle the error of an invalid entry point
+        else
+        {
+            // Manufacture a 500 error status response object
+            $response = \Painless::manufacture( 'response', 500, 'Invalid entry point' );
         }
 
         // Get the renderer
         $render = \Painless::load( 'system/common/render' );
 
-        // Now that router has done processing the request, we should have $method,
-        // $agent, $module, $controller and $param saved inside the Response object.
-        // The possible return statuses are:
-        //  200 - the module and controller are found, everything is okay
-        //  400 - the $cmd string is invalid
-        //  404 - the module or controller is not found
-        //  405 - the method is not supported by the controller
-        //  500 - general exceptions
-        switch( $response->status )
-        {
-            // In this case, we will create a request object and dispatch it to
-            // the designated controller, which would give us a response object.
-            case 200 :
-                // Dispatch and return a new response. Calling dispatch( ) without
-                // any parameters will cause $router to use the existing request
-                // object.
-                $response = $router->dispatch( );
-                return $render->process( $response );
-            case 400 :
-            case 404 :
-            case 405 :
-                // Forward the response directly to the renderer
-                return $render->process( $response );
-            case 500 :
-                // Usually 500 is caused by thrown exceptions, and when this
-                // happens we'll need to force the renderer to use the debug
-                // compiler if the current profile is DEV. Otherwise, just handle
-                // it the same way as the 4xx status codes.
-                if ( \Painless::isProfile( \Painless::DEV ) )
-                    $render->compiler = 'debug';
-                return $render->process( $response );
-        }
-
-        return NULL;
+        // Process the request and response to get an output
+        return $render->process( $request, $response );
     }
 }
