@@ -49,7 +49,7 @@ class Router
         \Painless::RUN_HTTP     => 'html',
         \Painless::RUN_CLI      => 'cli',
         \Painless::RUN_APP      => 'json',
-        \Painless::RUN_INTERNAL => 'arr',
+        \Painless::RUN_INTERNAL => 'raw',
     );
 
     public function dispatch( \Painless\System\Workflow\Request $request )

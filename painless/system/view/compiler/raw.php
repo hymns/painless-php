@@ -6,7 +6,10 @@
 
 namespace Painless\System\View\Compiler;
 
-class Arr extends \Painless\System\View\Compiler\Base
+class Raw extends \Painless\System\View\Compiler\Base
 {
-
+    public function process( $view )
+    {
+        return $view->response;
+    }
 }

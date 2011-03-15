@@ -114,10 +114,7 @@ class Input
     }
 
     public function init( )
-    {
-        if ( Beholder::notifyUntil( 'input.init', $this ) )
-            $this->isInit = TRUE;
-    }
+    { }
 
     /**
      * Fetch an item from the GET array
