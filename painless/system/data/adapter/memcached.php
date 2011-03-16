@@ -40,13 +40,13 @@ use Painless\System\Data\Dao as Dao;
 
 class Memcached extends Dao
 {
-
+    //--------------------------------------------------------------------------
     public function open( $options = array( ) )
     {
         // do not proceed if memcached is not available
         if ( ! extension_loaded( 'memcached' ) )
         {
-            throw new \MemcachedException( 'Memcached is not installed in your system.' );
+            throw new \ErrorException( 'Memcached is not installed in your system.' );
         }
 
         $this->params = $options;
@@ -67,6 +67,7 @@ class Memcached extends Dao
         return $this->conn->connect( $host, $port, $timeout );
     }
 
+    //--------------------------------------------------------------------------
     public function close( $options = array( ) )
     {
         if ( $this->isOpen( ) )
@@ -75,16 +76,19 @@ class Memcached extends Dao
         }
     }
 
+    //--------------------------------------------------------------------------
     public function get( $key )
     {
         return $this->execute( 'get', array( 'key' => $key ) );
     }
 
+    //--------------------------------------------------------------------------
     public function set( $key, $value )
     {
         return $this->execute( 'set', array( 'key' => $key, 'value' => $value ) );
     }
 
+    //--------------------------------------------------------------------------
     public function execute( $operation, $options = array( ) )
     {
         if ( ! $this->isOpen( ) ) { $this->open( ); }
@@ -104,5 +108,3 @@ class Memcached extends Dao
         }
     }
 }
-
-class MemcachedException extends ErrorException { }

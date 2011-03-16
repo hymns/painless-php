@@ -158,7 +158,7 @@ class Painless
 
         // Don't continue if no component specified
         if ( empty( $args ) || ! is_string( $args[0] ) )
-            throw new ErrorException( 'You need to specify a component type to manufacture by setting it as the first argument of manufacture( ).' );
+            throw new \ErrorException( 'You need to specify a component type to manufacture by setting it as the first argument of manufacture( ).' );
 
         // Extract the first segment of $args as the component type
         $component = array_shift( $args );
@@ -168,14 +168,14 @@ class Painless
 
         // Don't continue if the component is not suppoted!
         if ( ! method_exists( $factory, $component ) )
-            throw new ErrorException( 'Trying to manufacture a non-supported component [' . $component . ']' );
+            throw new \ErrorException( 'Trying to manufacture a non-supported component [' . $component . ']' );
 
         // Create the component
         $com = call_user_func_array( array( $factory, $component ), $args );
 
         // Handle errors if necessary
         if ( FALSE === $com )
-            throw new ErrorException( 'Unable to manufacture the component requested [' . $request . ']' );
+            throw new \ErrorException( 'Unable to manufacture the component requested [' . $request . ']' );
 
         return $com;
     }
@@ -193,7 +193,7 @@ class Painless
     public static function initApp( $appName, $appPath, $useExtLoader = TRUE )
     {
         // Append a backslash to $implPath if none is provided
-        ( $appPath[count( $appPath ) - 1] !== '/' ) or $appPath .= '/';
+        ( $appPath[count( $appPath ) - 1] !== '/' ) and $appPath .= '/';
         
         // Instantiate the Core. Here's the thing - both Core (which contains
         // instances of components, environment variables, etc) and Loader (which
@@ -209,7 +209,7 @@ class Painless
         $core = \Painless\System\Common\Loader::init( $appName, $appPath, __DIR__ . '/', $useExtLoader );
         
         // Register the app
-        Painless::app( $appName , $core );
+        \Painless::app( $appName , $core );
 
         // Set the registered app as the active one
         static::$curr = $appName;

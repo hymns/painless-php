@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Painless PHP - the painless path to development
  *
@@ -36,41 +35,36 @@
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
-
 namespace Painless\System\Common;
 
 class Log
 {
     protected $file = NULL;
 
+    //--------------------------------------------------------------------------
     public function __destruct( )
     {
         if ( $this->file )
-        {
             fclose( $this->file );
-        }
     }
 
+    //--------------------------------------------------------------------------
     public function open( )
     {
         if ( empty( $this->file ) )
         {
-            $path = IMPL_PATH . 'log.txt';
+            $path = \Painless::app( )->env( \Painless::APP_PATH ) . 'log.txt';
             $this->file = fopen( $path, 'a' );
         }
     }
 
+    //--------------------------------------------------------------------------
     public function info( $message )
     {
-        if ( Painless::app( )->env( Core::PROFILE ) === DEV )
+        if ( Painless::isProfile( \Painless::DEV ) )
         {
             $this->open( );
             fwrite( $this->file, "$message\n" );
         }
-    }
-    
-    public function set( $type, $message )
-    {
-        
     }
 }

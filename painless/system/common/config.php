@@ -42,6 +42,7 @@ class Config
 {
     protected $config = array( );
 
+    //--------------------------------------------------------------------------
     public function get( $namespace )
     {
         // check if the config file has been loaded or not
@@ -73,6 +74,7 @@ class Config
         }
     }
 
+    //--------------------------------------------------------------------------
     public function getAll( )
     {
         // lazy init
@@ -81,6 +83,7 @@ class Config
         return $this->config;
     }
 
+    //--------------------------------------------------------------------------
     protected function init( )
     {
         // Localize all external variables
@@ -115,7 +118,7 @@ class Config
             require_once( $configPath );
 
             if ( !isset( $config ) )
-                throw new ErrorException( 'Unable to find the config array in [' . $configPath . ']' );
+                throw new \ErrorException( 'Unable to find the config array in [' . $configPath . ']' );
 
             $this->config = $config;
 
@@ -124,7 +127,7 @@ class Config
         }
         else
         {
-            throw new ErrorException( 'Invalid config file [' . $configPath . ']' );
+            throw new \ErrorException( 'Invalid config file [' . $configPath . ']' );
         }
 
         // load the acl array too

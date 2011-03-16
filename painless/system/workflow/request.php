@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Painless PHP - the painless path to development
  *
@@ -36,7 +35,6 @@
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
-
 namespace Painless\System\Workflow;
 
 class Request
@@ -111,6 +109,7 @@ class Request
      */
     public $paramStyle          = self::PS_PAIR;
 
+    //--------------------------------------------------------------------------
     public function param( $key )
     {
         // if the key cannot be found in the parameter array, return $default
@@ -120,6 +119,7 @@ class Request
         return FALSE;
     }
 
+    //--------------------------------------------------------------------------
     public function params( $params = NULL, $append = FALSE, $parseStyle = 0 )
     {
         if ( NULL !== $params )
@@ -166,9 +166,9 @@ class Request
                 $routes = $config->get( 'routes.uri.map' );
 
                 if ( empty( $routes ) )
-                    throw new ErrorException( 'PS_CONFIG parameter parsing style can only be used if routes are properly set up (routes.uri.map)' );
+                    throw new \ErrorException( 'PS_CONFIG parameter parsing style can only be used if routes are properly set up (routes.uri.map)' );
                 if ( empty( $this->parent ) )
-                    throw new ErrorException( 'PS_CONFIG will not work if the invoking workflow was not instantiated before-hand. Please ensure that the router had instantiated the workflow and set a reference to it in $this->workflow before calling init( )' );
+                    throw new \ErrorException( 'PS_CONFIG will not work if the invoking workflow was not instantiated before-hand. Please ensure that the router had instantiated the workflow and set a reference to it in $this->workflow before calling init( )' );
 
                 $module     = $this->module;
                 $controller = $this->controller;
@@ -182,7 +182,7 @@ class Request
                 if ( ! isset( $routes[$method][$key] ) )
                 {
                     if ( ! isset( $routes['*'][$key] ) )
-                        throw new ErrorException( "The route map [$map] is not found in the routes config. Please make sure the route map exists." );
+                        throw new \ErrorException( "The route map [$map] is not found in the routes config. Please make sure the route map exists." );
                     else
                         $map = $routes['*'][$key];
                 }
@@ -208,8 +208,8 @@ class Request
             {
                 /* TODO: Finish this later
                 if ( empty( $this->controller ) )
-                        throw new ErrorException( 'PS_DEFER will not work if the invoking workflow was not instantiated before-hand. Please ensure that the router had instantiated the workflow and set a reference to it in $this->workflow before calling init( )' );
-                if ( ! method_exists( $this->controller, 'processParams' ) ) throw new ErrorException( 'PS_DEFER requires the invoking workflow [' . get_class( $this->workflow ) . '] to implement the method processParams( $params ) to work.' );
+                        throw new \ErrorException( 'PS_DEFER will not work if the invoking workflow was not instantiated before-hand. Please ensure that the router had instantiated the workflow and set a reference to it in $this->workflow before calling init( )' );
+                if ( ! method_exists( $this->controller, 'processParams' ) ) throw new \ErrorException( 'PS_DEFER requires the invoking workflow [' . get_class( $this->workflow ) . '] to implement the method processParams( $params ) to work.' );
 
                 $params = $this->controller->processParams( $params );
                  */

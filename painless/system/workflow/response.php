@@ -46,6 +46,7 @@ class Response
     public $payload     = NULL;
     public $headers     = array( );
 
+    //--------------------------------------------------------------------------
     public function set( $key, $data )
     {
         // Initialize the payload array if none available
@@ -57,11 +58,13 @@ class Response
         $this->payload[$key] = $data;
     }
 
+    //--------------------------------------------------------------------------
     public function get( $key )
     {
         return array_get( $this->payload, $key, FALSE );
     }
 
+    //--------------------------------------------------------------------------
     public function header( $header )
     {
         $this->headers[] = $header;

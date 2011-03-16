@@ -39,7 +39,7 @@
 
 namespace Painless\System\Workflow;
 
-class Model extends \Painless\System\Common\Worker
+class Model extends \Painless\System\Base\WorkUnit
 {
     protected function validateNull( $v )                  { return empty( $v ); }
     protected function validateEmail( $v )                 { return ( filter_var( $v, FILTER_VALIDATE_EMAIL ) !== FALSE ); }

@@ -53,6 +53,7 @@ class Router
         \Painless::RUN_INTERNAL => 'raw',
     );
 
+    //--------------------------------------------------------------------------
     public function dispatch( Request $request )
     {
         // Localize the variables
@@ -87,6 +88,7 @@ class Router
         }
     }
 
+    //--------------------------------------------------------------------------
     public function process( $entry, $uri = '' )
     {
         // Localize the values
@@ -138,6 +140,7 @@ class Router
         return $request;
     }
 
+    //--------------------------------------------------------------------------
     protected function processHttp( $method, $uri )
     {
         // Localize the variables
@@ -207,6 +210,7 @@ class Router
         return $request;
     }
 
+    //--------------------------------------------------------------------------
     protected function processCli( $method, $uri )
     {
         // Localize the variables
@@ -238,6 +242,7 @@ class Router
         return $request;
     }
 
+    //--------------------------------------------------------------------------
     protected function processApp( $method, $uri )
     {
         // Localize the variables
@@ -255,6 +260,7 @@ class Router
         return \Painless::manufacture( 'request', $method, $module, $controller, $param, '', 'PainlessPHP App [v' . \Painless::VERSION . ']' );
     }
 
+    //--------------------------------------------------------------------------
     protected function processInternal( $method, $uri )
     {
         // Localize the variables
@@ -275,7 +281,8 @@ class Router
 
         return \Painless::manufacture( 'request', $method, $module, $controller, $param, '', 'PainlessPHP Internal [v' . \Painless::VERSION . ']' );
     }
-
+    
+    //--------------------------------------------------------------------------
     /**
      * Processes the URI and returns the parameter array, as well as mapping out
      * module, workflow, and content type

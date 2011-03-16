@@ -49,12 +49,17 @@ class Security
 
     public $identity = NULL;
 
+    //--------------------------------------------------------------------------
+    /**
+     * Loads an ACL from the config by default
+     */
     protected function loadAcl( )
     {
         if ( empty( $this->acl ) )
             $this->acl = \Painless::load( 'system/common/config' )->get( 'acl.*' );
     }
 
+    //--------------------------------------------------------------------------
     /*
      * Check if user is allowed to execute a particular
      * module.workflow.method
@@ -108,6 +113,7 @@ class Security
         return FALSE;
     }
 
+    //--------------------------------------------------------------------------
     /*
      * Check if user is logged in
      *
@@ -120,6 +126,7 @@ class Security
         return ( $user != NULL );
     }
 
+    //--------------------------------------------------------------------------
     /*
      * Retrieves information about the logged in user.
      *
@@ -135,6 +142,7 @@ class Security
         return $user;
     }
 
+    //--------------------------------------------------------------------------
     /**
      * A shorthand to retrieve the user ID
      *
@@ -146,6 +154,7 @@ class Security
         return array_get( $user, $key, 0 );
     }
 
+    //--------------------------------------------------------------------------
     /*
      * Logs the user in. (after checking everything)
      *
@@ -163,6 +172,7 @@ class Security
         $this->identity = $user;
     }
 
+    //--------------------------------------------------------------------------
     /*
      * Logout the user.
      *
@@ -176,6 +186,7 @@ class Security
         $this->identity = NULL;
     }
 
+    //--------------------------------------------------------------------------
     /*
      * Tries a bunch of methods to get entropy in order
      * of preference and returns as soon as it has something
@@ -233,6 +244,7 @@ class Security
         return substr( uniqid( mt_rand( ), true ), $size );
     }
 
+    //--------------------------------------------------------------------------
     /*
      * Grabs entropy and hashes it to normalize the output
      *
@@ -246,6 +258,7 @@ class Security
         return hash( $algo, $entropy );
     }
 
+    //--------------------------------------------------------------------------
     /**
      * generate a password from a clear text with a salt value
      *
@@ -258,6 +271,7 @@ class Security
         return hash( 'sha512', $salt . $password );
     }
 
+    //--------------------------------------------------------------------------
     /**
      * creates a salt hash using a date string
      * 

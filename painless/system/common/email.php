@@ -50,6 +50,7 @@ class Email
     protected $contentTransferEncoding = '';
     protected $identity = '';
 
+    //--------------------------------------------------------------------------
     public function init( )
     {
         // set the default content type if none specified.
@@ -71,11 +72,13 @@ class Email
         }
     }
 
+    //--------------------------------------------------------------------------
     public function addTo( $name, $address )
     {
         $this->to[] = array( 'name' => $name, 'address' => $address );
     }
     
+    //--------------------------------------------------------------------------
     protected function generateFullToString( )
     {
         $toStr = '';
@@ -96,11 +99,13 @@ class Email
         return $toStr;
     }
     
+    //--------------------------------------------------------------------------
     public function addCc( $name, $address )
     {
         $this->cc[] = array( 'name' => $name, 'address' => $address );
     }
     
+    //--------------------------------------------------------------------------
     protected function generateFullCcString( )
     {
         $ccStr = '';
@@ -121,11 +126,13 @@ class Email
         return $ccStr;
     }
 
+    //--------------------------------------------------------------------------
     public function addBcc( $name, $address )
     {
         $this->bcc[] = array( 'name' => $name, 'address' => $address );
     }
     
+    //--------------------------------------------------------------------------
     protected function generateFullBccString( )
     {
         $bccStr = '';
@@ -146,36 +153,43 @@ class Email
         return $bccStr;
     }
 
+    //--------------------------------------------------------------------------
     public function setContent( $subject, $content )
     {
         $this->subject = $subject;
         $this->content = $content;
     }
 
+    //--------------------------------------------------------------------------
     public function setContentTemplate( $template )
     {
     }
 
+    //--------------------------------------------------------------------------
     public function setContentType( $contentType )
     {
         $this->contentType = $contentType;
     }
     
+    //--------------------------------------------------------------------------
     public function setCharset( $charset )
     {
         $this->charset = $charset;
     }
     
+    //--------------------------------------------------------------------------
     public function setContentTransferEncoding( $contentTransferEncoding )
     {
         $this->contentTransferEncoding = $contentTransferEncoding;
     }
     
+    //--------------------------------------------------------------------------
     public function setIdentity( $identity )
     {
         $this->identity = $identity;
     }
     
+    //--------------------------------------------------------------------------
     /*
      * Sends the e-mail.
      *

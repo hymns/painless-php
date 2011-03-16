@@ -54,7 +54,7 @@ class HelpTopicModel extends PainlessModel
             \Painless::app( )->load( "tpl/help/$topic", LP_DEF_ONLY );
             $topic = ob_get_flush( );
         }
-        catch( ErrorException $e )
+        catch( \ErrorException $e )
         {
             // Return a topic not found
             return $this->response( 404, $topic . ' not found' );

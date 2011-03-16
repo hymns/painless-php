@@ -37,14 +37,16 @@
  */
 namespace Painless\System\String;
 
+// TODO: PROGRESS = 60% 
+
 class Convention
 {
     /* Constants for different conventions */
-    const CAMEL         = 1;            // firstWordSmallCaps
-    const PASCAL        = 2;            // FirstWordUpperCaps
-    const DASH          = 3;            // dash-delimited-convention
-    const UNDERSCORE    = 4;            // underscore_delimited_convention
-    const PHP_NAMESPACE = 5;            // Php\Namespace\Using\PascalConvention
+    const CAMEL             = 1;            // firstWordSmallCaps
+    const PASCAL            = 2;            // FirstWordUpperCaps
+    const DASH              = 3;            // dash-delimited-convention
+    const UNDERSCORE        = 4;            // underscore_delimited_convention
+    const PHP_NAMESPACE     = 5;            // Php\Namespace\Using\PascalConvention
     
     //--------------------------------------------------------------------------
     /**

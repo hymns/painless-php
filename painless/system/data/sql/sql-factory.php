@@ -21,6 +21,7 @@ class SqlFactory
 
     protected $lastOp = '';
 
+    //--------------------------------------------------------------------------
     public function open( )
     {
         $op = $this->lastOp;
@@ -28,6 +29,7 @@ class SqlFactory
         return $this;
     }
 
+    //--------------------------------------------------------------------------
     public function close( )
     {
         $op = $this->lastOp;
@@ -35,6 +37,7 @@ class SqlFactory
         return $this;
     }
 
+    //--------------------------------------------------------------------------
     /**
      * WHERE Clause Builder
      *
@@ -81,6 +84,7 @@ class SqlFactory
         return $this;
     }
 
+    //--------------------------------------------------------------------------
     public function whereOr( $cond )
     {
         $this->where[]= array( ' OR ', $cond );
@@ -88,12 +92,14 @@ class SqlFactory
         return $this;
     }
 
+    //--------------------------------------------------------------------------
     public function limit( $count, $offset = 0 )
     {
         $this->limit = array( (int) $count, (int) $offset );
         return $this;
     }
 
+    //--------------------------------------------------------------------------
     public function build( $option = self::ALL )
     {
         $where      = '';

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Painless PHP - the painless path to development
  *
@@ -49,7 +48,6 @@
  *	To get a fresh copy of the Core object
  *		$core = \Painless::load( 'system/common/core', LP_LOAD_NEW );
  */
-
 namespace Painless\System\Common;
 
 class Loader
@@ -58,6 +56,7 @@ class Loader
     protected $appPath  = '';
     protected $corePath = '';
 
+    //--------------------------------------------------------------------------
     public function __construct( $appName, $appPath, $corePath )
     {
         $this->appName = $appName;
@@ -65,6 +64,7 @@ class Loader
         $this->corePath = $corePath;
     }
 
+    //--------------------------------------------------------------------------
     public static function autoload( $class )
     {
         // Get a copy of the core first
@@ -97,6 +97,7 @@ class Loader
         }
     }
 
+    //--------------------------------------------------------------------------
     public static function init( $appName, $appPath, $corePath, $useExt = TRUE )
     {
         $loader = '\\Painless\\System\\Common\\Loader';
@@ -128,6 +129,7 @@ class Loader
         return $core;
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Loads a component
      * @param string $ns    the component's namespace
@@ -151,7 +153,7 @@ class Loader
         // Explode the namespace string into an array to make it easier to work
         // with
         $nsa = explode( '/', $ns );
-        if ( empty( $nsa ) || count( $nsa ) <= 1 ) throw new ErrorException( 'Namespace cannot be NULL or a malformed format [' . $ns . ']' );
+        if ( empty( $nsa ) || count( $nsa ) <= 1 ) throw new \ErrorException( 'Namespace cannot be NULL or a malformed format [' . $ns . ']' );
 
         // The component type uses a dash convention, thus the need for this conversion
         $comType = dash_to_camel( $nsa[0] );
@@ -226,6 +228,7 @@ class Loader
         return NULL;
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Loads a system component
      * @param array $nsa    an array of tokens from the namespace string
@@ -246,6 +249,7 @@ class Loader
         );
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Loads a library
      * @param array $nsa    an array of tokens from the namespace string
@@ -265,6 +269,7 @@ class Loader
         );
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Loads a controller
      * @param array $nsa    an array of tokens from the namespace string
@@ -274,7 +279,7 @@ class Loader
     protected function controller( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) !== 3 ) throw new ErrorException( 'Controller namespace should follow this format: workflow/[module]/[workflow]' );
+        if ( count( $nsa ) !== 3 ) throw new \ErrorException( 'Controller namespace should follow this format: workflow/[module]/[workflow]' );
 
         // The second key in the $nsa array is always the module name, followed
         // by the workflow name
@@ -294,6 +299,7 @@ class Loader
         );
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Loads a model component
      * @param array $nsa    an array of tokens from the namespace string
@@ -303,7 +309,7 @@ class Loader
     protected function model( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) !== 3 ) throw new ErrorException( 'Model namespace should follow this format: model/[module]/[model]' );
+        if ( count( $nsa ) !== 3 ) throw new \ErrorException( 'Model namespace should follow this format: model/[module]/[model]' );
 
         // The second key in the $nsa array is always the module name, followed
         // by the model name
@@ -321,6 +327,7 @@ class Loader
         );
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Loads a view component
      * @param array $nsa    an array of tokens from the namespace string
@@ -330,7 +337,7 @@ class Loader
     protected function view( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) !== 3 ) throw new ErrorException( 'View namespace should follow this format: view/[module]/[view]' );
+        if ( count( $nsa ) !== 3 ) throw new \ErrorException( 'View namespace should follow this format: view/[module]/[view]' );
         
         // The second key in the $nsa array is always the module name, followed
         // by the view name
@@ -346,6 +353,7 @@ class Loader
         );
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Loads a dao component
      * @param array $nsa    an array of tokens from the namespace string
@@ -355,7 +363,7 @@ class Loader
     protected function dao( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) < 3 ) throw new ErrorException( 'DAO namespace should follow this format: dao/[module]/[dao]/[adapter] or dao/[module]/[dao]' );
+        if ( count( $nsa ) < 3 ) throw new \ErrorException( 'DAO namespace should follow this format: dao/[module]/[dao]/[adapter] or dao/[module]/[dao]' );
 
         // The second key in the $nsa array is always the module name, followed
         // by the dao name
@@ -381,6 +389,7 @@ class Loader
         );
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Loads an adapter
      * @param array $nsa    an array of tokens from the namespace string
@@ -390,7 +399,7 @@ class Loader
     protected function adapter( $nsa, $ns )
     {
         // Throw an exception of $nsa does not meet the correct length req.
-        if ( count( $nsa ) < 2 ) throw new ErrorException( 'Adapter namespace should follow this format: adapter/[adapter]' );
+        if ( count( $nsa ) < 2 ) throw new \ErrorException( 'Adapter namespace should follow this format: adapter/[adapter]' );
 
         // The second key in the $nsa array is always the module name, followed
         // by the dao name

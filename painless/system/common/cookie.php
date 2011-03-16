@@ -97,5 +97,3 @@ class Cookie
         
     }
 }
-
-class CookieException extends \ErrorException { }

@@ -127,7 +127,7 @@ class MorphineCore extends PainlessCore
             $response->status = 404;
             $response->message = 'Unable to locate workflow';
         }
-        catch( ErrorException $e )
+        catch( \ErrorException $e )
         {
             $response = \Painless::app( )->load( 'system/workflow/response', LP_LOAD_NEW );
             $response->status = 500;

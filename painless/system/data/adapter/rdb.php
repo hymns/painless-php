@@ -69,6 +69,7 @@ class Rdb extends Dao
      * -------------------------------------------------------------------------
      */
 
+    //--------------------------------------------------------------------------
     /**
      * Initializes the MYSQL connection via PDO
      * @return boolean      always return TRUE
@@ -89,10 +90,10 @@ class Rdb extends Dao
         {
             // Get the list of profiles from the config file
             $profiles   = $config->get( 'mysql.profiles' );
-            if ( empty( $profiles ) ) throw new RdbException( 'Profiles not properly defined in the config file' );
+            if ( empty( $profiles ) ) throw new \ErrorException( 'Profiles not properly defined in the config file' );
 
             // Only get the profile if there's a match
-            if ( ! array_values( $profile ) ) throw new RdbException( "The specified profile [$profile] is not defined in the config file" );
+            if ( ! array_values( $profile ) ) throw new \ErrorException( "The specified profile [$profile] is not defined in the config file" );
             $connParams = $config->get( "mysql.$profile.*" );
             $prefix .= $profile . '.';
         }
@@ -119,6 +120,7 @@ class Rdb extends Dao
         return TRUE;
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Closes the active connection
      * @return boolean      always return TRUE
@@ -135,6 +137,7 @@ class Rdb extends Dao
      * -------------------------------------------------------------------------
      */
 
+    //--------------------------------------------------------------------------
     /**
      * Executes an SQL query and returns the results.
      *
@@ -210,7 +213,7 @@ class Rdb extends Dao
                     $ret = $stmt;
 
                 default :
-                    throw new RdbException( 'Unsupported return type [' . $retType . ']' );
+                    throw new \ErrorException( 'Unsupported return type [' . $retType . ']' );
             }
         }
         catch( Exception $e )
@@ -232,21 +235,25 @@ class Rdb extends Dao
         return $ret;
     }
 
+    //--------------------------------------------------------------------------
     public function executeSelect( $sql, $return = self::RET_ASSOC, $close = self::STMT_CLOSE )
     {
         return $this->execute( $sql, array( 'return' => $return, 'close' => $close ) );
     }
 
+    //--------------------------------------------------------------------------
     public function executeInsert( $sql, $return = self::RET_ID, $close = self::STMT_CLOSE )
     {
         return $this->execute( $sql, array( 'return' => $return, 'close' => $close ) );
     }
 
+    //--------------------------------------------------------------------------
     public function executeUpdate( $sql, $return = self::RET_ROW_COUNT, $close = self::STMT_CLOSE )
     {
         return $this->execute( $sql, array( 'return' => $return, 'close' => $close ) );
     }
 
+    //--------------------------------------------------------------------------
     public function executeDelete( $sql, $return = self::RET_ROW_COUNT, $close = self::STMT_CLOSE )
     {
         return $this->execute( $sql, array( 'return' => $return, 'close' => $close ) );
@@ -257,6 +264,7 @@ class Rdb extends Dao
      * -------------------------------------------------------------------------
      */
 
+    //--------------------------------------------------------------------------
     /**
      * Starts a transaction and logs the details of the transacion
      */
@@ -268,6 +276,7 @@ class Rdb extends Dao
         $state = $this->_conn->beginTransaction( );
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Ends a transaction, along with the logs of the transaction
      * @param boolean $rollback     if set to TRUE, will perform a rollback instead of commit
@@ -294,6 +303,7 @@ class Rdb extends Dao
      * -------------------------------------------------------------------------
      */
     
+    //--------------------------------------------------------------------------
     /**
      * Adds a record into the database
      */
@@ -304,10 +314,10 @@ class Rdb extends Dao
         $conn = $this->_conn;
 
         if ( FALSE === $this->_tableName )
-            throw new RdbException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
+            throw new \ErrorException( 'When $_tableName is set to FALSE, ActiveRecord functions (add(), find(), save() and remove()) cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new RdbException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new \ErrorException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         // Get the list of public properties of this DAO
         $props = get_object_vars( $this );
@@ -344,6 +354,7 @@ class Rdb extends Dao
         return TRUE;
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Gets a record in the database
      * @param string $where the WHERE clause in string
@@ -355,10 +366,10 @@ class Rdb extends Dao
         if ( NULL == $this->_conn ) $this->init( );
 
         if ( FALSE === $this->_tableName )
-            throw new RdbException( 'When $_tableName is set to FALSE, ActiveRecord functions' );
+            throw new \ErrorException( 'When $_tableName is set to FALSE, ActiveRecord functions' );
 
         if ( empty( $this->_tableName ) )
-            throw new RdbException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new \ErrorException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         // Grab all properties in this object
         $fields = get_object_vars( $this );
@@ -411,6 +422,7 @@ class Rdb extends Dao
         return FALSE;
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Searches for a record in the database
      * @param string $where   WHERE conditions
@@ -424,10 +436,10 @@ class Rdb extends Dao
         if ( NULL == $this->_conn ) $this->init( );
 
         if ( FALSE === $this->_tableName )
-            throw new RdbException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
+            throw new \ErrorException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new RdbException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new \ErrorException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         $fields = get_object_vars( $this );
 
@@ -486,6 +498,7 @@ class Rdb extends Dao
         return $results;
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Updates the database with a record.
      * @param string $where     the WHERE clause
@@ -497,16 +510,16 @@ class Rdb extends Dao
         $conn = $this->_conn;
 
         if ( FALSE === $this->_tableName )
-            throw new RdbException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
+            throw new \ErrorException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new RdbException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new \ErrorException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         if ( FALSE === $this->_primaryKey && empty( $where ) )
-            throw new RdbException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
+            throw new \ErrorException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
 
         if ( empty( $this->_primaryKey ) || ( empty( $where ) && NULL === $this->{$this->_primaryKey} ) )
-            throw new RdbException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
+            throw new \ErrorException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
 
         // Get the list of public properties of this DAO
         $props = get_object_vars( $this );
@@ -552,6 +565,7 @@ class Rdb extends Dao
         return $this->executeUpdate( $sql );
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Deletes a record from the DB using a primary key
      * @param array $opt    an array of options ( NOT SUPPORTED )
@@ -559,16 +573,16 @@ class Rdb extends Dao
     public function delete( $where = '' )
     {        
         if ( FALSE === $this->_tableName )
-            throw new RdbException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
+            throw new \ErrorException( 'When $_tableName is set to FALSE, ActiveRecord functions cannot be used' );
 
         if ( empty( $this->_tableName ) )
-            throw new RdbException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
+            throw new \ErrorException( '$_tableName is not defined. Please set $_tableName to use ActiveRecord functions' );
 
         if ( FALSE === $this->_primaryKey && empty( $where ) )
-            throw new RdbException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
+            throw new \ErrorException( 'When $_primaryKey is set to FALSE (and no WHERE clause is passed in), ActiveRecord functions save() and remove() cannot be used' );
 
         if ( empty( $this->_primaryKey ) || ( empty( $where ) && NULL === $this->{$this->_primaryKey} ) )
-            throw new RdbException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
+            throw new \ErrorException( '$_primaryKey is not defined (and no WHERE clause is passed in). Please set $_primaryKey to use save() and remove() functions' );
 
         // If no $where is provided as a parameter, use the primary key instead
         $pkName = $this->_primaryKey;
@@ -587,6 +601,7 @@ class Rdb extends Dao
         return $this->executeDelete( $sql );
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Resets all the fields in the DAO to NULL
      */
@@ -606,6 +621,8 @@ class Rdb extends Dao
      * SQL query factory
      * -------------------------------------------------------------------------
      */
+    
+    //--------------------------------------------------------------------------
     public function sql( )
     {
         if ( empty( self::$queryBuilder ) )
@@ -618,6 +635,8 @@ class Rdb extends Dao
      * self-sanitization
      * -------------------------------------------------------------------------
      */
+    
+    //--------------------------------------------------------------------------
     protected function sanitizeForDb( )
     {
         // lazy init the connection
@@ -633,15 +652,16 @@ class Rdb extends Dao
      * debug
      * -------------------------------------------------------------------------
      */
+    
+    //--------------------------------------------------------------------------
     public static function debug( )
     {
         var_dump( self::$queryLog );
     }
 
+    //--------------------------------------------------------------------------
     public static function log( $log )
     {
         self::$queryLog[] = $log;
     }
 }
-
-class RdbException extends \ErrorException { }

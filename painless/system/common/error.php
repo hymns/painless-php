@@ -40,11 +40,13 @@ namespace Painless\System\Common;
 
 class Error
 {
+    //--------------------------------------------------------------------------
     public function handleError( $errNo, $errStr, $errFile, $errLine )
     {
         var_dump($errNo, $errStr, $errFile, $errLine);die;
     }
 
+    //--------------------------------------------------------------------------
     public function handleException( $exception )
     {
         // load the renderer
@@ -53,6 +55,7 @@ class Error
         var_dump( $exception ); die;
     }
 
+    //--------------------------------------------------------------------------
     protected function generateRequest( )
     {
         return array(
@@ -62,6 +65,7 @@ class Error
         );
     }
 
+    //--------------------------------------------------------------------------
     protected function generateResponse( )
     {
         return array(

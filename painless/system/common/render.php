@@ -39,6 +39,7 @@ namespace Painless\System\Common;
 
 class Render
 {
+    //--------------------------------------------------------------------------
     public function process( $request, $response )
     {
         // Localize the variables
@@ -49,7 +50,8 @@ class Render
         
         // Load the correct view
         $view = \Painless::load( "view/$module/$controller" );
-        $view->request = $request;
+        
+        $view->request  = $request;
         $view->response = $response;
 
         // Get the output from the view by running the appropriate method. Once
