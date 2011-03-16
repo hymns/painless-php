@@ -1,9 +1,9 @@
 <?php
 
 // Attempt to load PUPUnit.  If it fails, we are done.
-if ( ! @include_once('PHPUnit/Autoload.php'))
+if ( ! @include_once('PHPUnit/Autoload.php') )
 {
-	die(PHP_EOL.'PHPUnit does not appear to be installed properly.'.PHP_EOL.PHP_EOL.'Please visit http://phpunit.de and re-install.'.PHP_EOL.PHP_EOL);
+	die( PHP_EOL . 'PHPUnit does not appear to be installed properly.' . PHP_EOL . 'Please visit http://phpunit.de and re-install.' . PHP_EOL . PHP_EOL );
 }
 
 /**
@@ -14,4 +14,4 @@ ini_set('display_errors', 1);
 
 // Bootstrap Painless PHP
 require_once __DIR__ . "/../painless/painless.php";
-Painless::bootstrap( 'core', '/' );
+Painless::initApp( 'core', '/' );

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Painless PHP - the painless path to development
  *
@@ -36,12 +35,6 @@
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
-
-/* 
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 namespace Painless\System\Data\Adapter;
 use Painless\System\Data\Dao as Dao;
 

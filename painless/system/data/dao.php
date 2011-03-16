@@ -58,22 +58,27 @@ abstract class Dao
     /**
      * Determines whether or not this adapter will be automatically killed upon
      * system shutdown.
-     * @var boolean     if set to TRUE, it'll be registered in the shutdown function
+     * @var boolean     
      */
     protected $_autoClose   = FALSE;
 
     /**
      * Holds the list of connection profiles for this DAO
-     * @var array       an array of connection profiles where the key is the profile ID and the value is the config array
+     * @var array       
      */
     protected $_profiles    = array( );
 
     /**
      * Hold the current connection profile. Can be changed by calling useProfile( )
-     * @var string      the current connection profile used
+     * @var string      
      */
     protected $_currProfile = '';
 
+    //--------------------------------------------------------------------------
+    /**
+     * Dao constructor to automatically register Dao::close( ) to run once this
+     * object is destroyed.
+     */
     public function __construct( )
     { 
         // if $autoClose is true, register it in the list of stuff to automatically
@@ -84,6 +89,7 @@ abstract class Dao
         }
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Adds a connection profile to the DAO
      * @param string $name  the identifier of the profile
@@ -94,10 +100,12 @@ abstract class Dao
         $this->_profiles[$name] = $conn;
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Switches to a new connection profile
      * @param string $name          the identifier of the profile
-     * @return mixed                returns NULL if $setAsCurrent is FALSE, or returns the connection if it's set to TRUE
+     * @return mixed                returns NULL if $setAsCurrent is FALSE, or 
+     *                              returns the connection if it's set to TRUE
      */
     public function useProfile( $name )
     {
@@ -118,22 +126,22 @@ abstract class Dao
         return $this->_conn;
     }
 
-    /**--------------------------------------------------------------------------------------------------------------------------------------------------
+    /**-------------------------------------------------------------------------
      * lifecycle methods
-     * --------------------------------------------------------------------------------------------------------------------------------------------------
+     * -------------------------------------------------------------------------
      */
     abstract public function init( $profile = '' );
     abstract public function close( );
 
-    /**--------------------------------------------------------------------------------------------------------------------------------------------------
+    /**-------------------------------------------------------------------------
      * direct query/execution methods
-     * --------------------------------------------------------------------------------------------------------------------------------------------------
+     * -------------------------------------------------------------------------
      */
     abstract public function execute( $cmd, $extra = array( ) );
 
-    /**--------------------------------------------------------------------------------------------------------------------------------------------------
+    /**-------------------------------------------------------------------------
      * transactional methods
-     * --------------------------------------------------------------------------------------------------------------------------------------------------
+     * -------------------------------------------------------------------------
      */
     abstract public function start( );
     abstract public function end( $rollback = FALSE );
