@@ -103,6 +103,10 @@ class Router
             $method = strtolower( substr( $uri, 0, $pos ) );
             $uri = trim( substr( $uri, $pos + 1 ) );
         }
+        
+        // Make sure $uri is an array if it's not empty!
+        if ( ! empty( $uri ) && ! is_array( $uri ) )
+            $uri = explode( '/', $uri );
 
         // The URI is ready for processing now. Pass to the appropriate processing
         // function. Maybe in the future we should use a finite state machine
@@ -143,10 +147,6 @@ class Router
     //--------------------------------------------------------------------------
     protected function processHttp( $method, & $uri )
     {
-        // Make sure $uri is an array if it's not empty!
-        if ( ! empty( $uri ) && ! is_array( $uri ) )
-            $uri = explode( '/', $uri );
-        
         // Localize the variables
         $core       = \Painless::app( );
         $module     = '';
@@ -284,9 +284,6 @@ class Router
         if ( empty( $uri ) )
             return FALSE;
 
-        // Split the $uri by backslash
-        $uri = explode( '/', $uri );
-
         // At this point, the URI has been split into an array. Pass it to
         // mapUri to map to the correct module and controller.
         list( $module, $controller, $param, $contentType ) = $this->mapUri( $uri );
@@ -302,7 +299,7 @@ class Router
      * @return array                an array of $module, $controller, $params and
      *                              $contentType
      */
-    protected function mapUri( array $uri )
+    protected function mapUri( array & $uri )
     {
         // Grab dependencies
         $config = \Painless::load( 'system/common/config' );
@@ -320,12 +317,18 @@ class Router
         // Use the default routing if not configured (auto-routing)
         if ( ! is_array( $routes ) )
             $routes = $this->defaultRoute;
-
+        
         // Process the URI list
         $count = count( $uri );
         for( $i = 0; $i < $count; $i++ )
         {
-            if ( empty( $uri[$i] ) ) continue;
+            // If the $uri segment is empty (most probably caused by double
+            // backslashes - //), remove it from the array
+            if ( empty( $uri[$i] ) ) 
+            {
+                unset( $uri[$i] );
+                continue;
+            }
 
             if ( isset( $routes[$i] ) )
             {
