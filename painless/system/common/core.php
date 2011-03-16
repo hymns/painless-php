@@ -142,6 +142,9 @@ class Core
         {
             // Send the router the command to receive a request
             $request = $router->process( $entry, $cmd );
+            
+            // By now $cmd is an array. Change it back to a string
+            $cmd = implode( '/', $cmd );
 
             // Set this request as the active one
             $this->active = $request;
@@ -150,6 +153,14 @@ class Core
             // the router. Use a 500 error response instead of dispatching it.
             if ( FALSE === $request )
                 $response = \Painless::manufacture( 'response', 500, 'Fatal error when trying to process the command in router. See log for more details.' );
+            // If $module is empty in $request, this means that the module is
+            // not mapped properly
+            elseif ( empty( $request->module ) )
+                $response = \Painless::manufacture( 'response', 404, "Module not found for the command: [$cmd]" );
+            // If $controller is empty in $request, this means that the module is
+            // not mapped properly
+            elseif ( empty( $request->controller ) )
+                $response = \Painless::manufacture( 'response', 404, "Controller not found for the command: [$cmd]" );
             // Dispatch the request
             else
                 $response = $router->dispatch( $request );

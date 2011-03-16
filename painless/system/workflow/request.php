@@ -54,6 +54,11 @@ class Request
     const POST      = 'post';
     const PUT       = 'put';
     const DELETE    = 'delete';
+    
+    /* Const to use with Request::param( ) */
+    const SRC_ALL   = 0;
+    const SRC_GET   = 1;
+    const SRC_POST  = 2;
 
     /**
      * Request methods that are automatically handled by workflows themselves
@@ -110,7 +115,7 @@ class Request
     public $paramStyle          = self::PS_PAIR;
 
     //--------------------------------------------------------------------------
-    public function param( $key )
+    public function param( $key, $source = self::SRC_ALL )
     {
         // if the key cannot be found in the parameter array, return $default
         if ( isset( $this->params[$key] ) )
@@ -120,7 +125,7 @@ class Request
     }
 
     //--------------------------------------------------------------------------
-    public function params( $params = NULL, $append = FALSE, $parseStyle = 0 )
+    public function params( $params = NULL, $append = FALSE, $source = self::SRC_ALL, $parseStyle = 0 )
     {
         if ( NULL !== $params )
         {

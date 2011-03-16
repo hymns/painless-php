@@ -40,26 +40,43 @@ namespace Painless\System\Common;
 class Render
 {
     //--------------------------------------------------------------------------
+    /**
+     * Processes the request and response to compile the right output
+     * @param Request $request      a request object
+     * @param Response $response    a response object
+     * @return mixed                an output compiled by the appropriate compiler 
+     */
     public function process( $request, $response )
     {
         // Localize the variables
+        $view           = NULL;
         $method         = $request->method;
         $module         = $request->module;
         $controller     = $request->controller;
         $contentType    = $request->contentType;
         
-        // Load the correct view
-        $view = \Painless::load( "view/$module/$controller" );
-        
-        $view->request  = $request;
-        $view->response = $response;
+        // If $module and $controller exists, find the View controller
+        if ( ! empty( $module ) && ! empty( $controller ) )
+        {
+            // Load the correct view
+            $view = \Painless::load( "view/$module/$controller" );
+            $view->request  = $request;
+            $view->response = $response;
 
-        // Get the output from the view by running the appropriate method. Once
-        // the method has been run, it's safe to assume that $view has properly
-        // post-processed all necessary data and payload, and that now the
-        // compiler should have enough information to render the output
-        if ( $view->pre( ) ) $view->$method( );
-        $view->post( );
+            // Get the output from the view by running the appropriate method. Once
+            // the method has been run, it's safe to assume that $view has properly
+            // post-processed all necessary data and payload, and that now the
+            // compiler should have enough information to render the output
+            if ( $view->pre( ) ) $view->$method( );
+            $view->post( );
+        }
+        // Otherwise, create an empty view controller
+        else
+        {
+            $view = \Painless::load( 'system/view/view', \Painless::LP_LOAD_NEW );
+            $view->request = $request;
+            $view->response = $response;
+        }
 
         // Load the appropriate view compiler
         $compiler = \Painless::load( "system/view/compiler/$contentType" );

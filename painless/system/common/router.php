@@ -89,7 +89,7 @@ class Router
     }
 
     //--------------------------------------------------------------------------
-    public function process( $entry, $uri = '' )
+    public function process( $entry, & $uri = '' )
     {
         // Localize the values
         $method     = '';
@@ -141,8 +141,12 @@ class Router
     }
 
     //--------------------------------------------------------------------------
-    protected function processHttp( $method, $uri )
+    protected function processHttp( $method, & $uri )
     {
+        // Make sure $uri is an array if it's not empty!
+        if ( ! empty( $uri ) && ! is_array( $uri ) )
+            $uri = explode( '/', $uri );
+        
         // Localize the variables
         $core       = \Painless::app( );
         $module     = '';
@@ -203,15 +207,19 @@ class Router
 
         // If the method is GET or POST, merge the arrays into params
         if ( $method === Request::GET )
-            $request->params( $_GET, TRUE, Request::PS_ASSOC );
+        {
+            $request->params( $_GET, TRUE, Request::SRC_ALL, Request::PS_ASSOC );
+        }
         elseif ( $method === Request::POST || $method === Request::PUT )
-            $request->params( $_POST, TRUE, Request::PS_ASSOC );
+        {
+            $request->params( $_POST, TRUE, Request::SRC_ALL, Request::PS_ASSOC );
+        }
 
         return $request;
     }
 
     //--------------------------------------------------------------------------
-    protected function processCli( $method, $uri )
+    protected function processCli( $method, & $uri )
     {
         // Localize the variables
         $module     = '';
@@ -235,15 +243,19 @@ class Router
 
         // If the method is GET or POST, merge the arrays into params
         if ( $method === \Painless\System\Workflow\Request::GET )
-            $request->params( $_GET, TRUE );
+        {
+            $request->params( $_GET, TRUE, Request::SRC_ALL, Request::PS_ASSOC );
+        }
         elseif ( $method === \Painless\System\Workflow\Request::POST || $method === \Painless\System\Workflow\Request::PUT )
-            $request->params( $_POST, TRUE );
+        {
+            $request->params( $_POST, TRUE, Request::SRC_ALL, Request::PS_ASSOC );
+        }
 
         return $request;
     }
 
     //--------------------------------------------------------------------------
-    protected function processApp( $method, $uri )
+    protected function processApp( $method, & $uri )
     {
         // Localize the variables
         $method     = ( ! empty( $method ) ) ?: \Painless\System\Workflow\Request::GET;
@@ -261,7 +273,7 @@ class Router
     }
 
     //--------------------------------------------------------------------------
-    protected function processInternal( $method, $uri )
+    protected function processInternal( $method, & $uri )
     {
         // Localize the variables
         $module     = '';
@@ -378,11 +390,11 @@ class Router
 
         // Ensure that module and controller are defined. If they are not, try to
         // load them from the config file
-        if ( empty( $module ) )
+        if ( empty( $module ) && empty( $uri[0] ) )
         {
             $module = $config->get( 'routes.uri.default.module' );
         }
-        if ( empty( $controller ) )
+        if ( empty( $controller ) && empty( $uri[0] ) )
         {
             $controller = $config->get( 'routes.uri.default.controller' );
         }
