@@ -108,13 +108,13 @@ class Rdb extends Dao
 
         // the line below might throw an exception, which should be caught by
         // the exception handler in the engine, so no point catching it here
-        $this->addProfile( $profile, new PDO( $connString, $user, $pass ) );
+        $this->addProfile( $profile, new \PDO( $connString, $user, $pass ) );
         $this->useProfile( $profile );
 
         // make sure the PDO connection throws an exception during development
         // mode
-        if ( Painless::app( )->env( Core::PROFILE ) === DEV )
-            $this->_conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        if ( \Painless::isProfile( \Painless::DEV ) )
+            $this->_conn->setAttribute( \PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
         return TRUE;
     }
@@ -194,17 +194,17 @@ class Rdb extends Dao
                     break;
 
                 case self::RET_ARRAY :
-                    $stmt->setFetchMode( PDO::FETCH_NUM );
+                    $stmt->setFetchMode( \PDO::FETCH_NUM );
                     $ret = $stmt->fetchAll( );
                     break;
 
                 case self::RET_ASSOC :
-                    $stmt->setFetchMode( PDO::FETCH_ASSOC );
+                    $stmt->setFetchMode( \PDO::FETCH_ASSOC );
                     $ret = $stmt->fetchAll( );
                     break;
 
                 case self::RET_OBJ :
-                    $stmt->setFetchMode( PDO::FETCH_OBJ );
+                    $stmt->setFetchMode( \PDO::FETCH_OBJ );
                     $ret = $stmt->fetchAll( );
                     break;
 
@@ -219,14 +219,14 @@ class Rdb extends Dao
         {
             // Don't forget to log the operation before exiting
             static::log( $log );
-            throw new PainlessPdoException( $e );
+            throw new \ErrorException( $e );
         }
 
         // Close the statement if necessary
-        if ( $closeStmt && ! ( $ret instanceof PDOStatement ) ) $stmt->closeCursor( );
+        if ( $closeStmt && ! ( $ret instanceof \PDOStatement ) ) $stmt->closeCursor( );
 
         // Save the return data if required
-        if ( Painless::app( )->env( Core::PROFILE ) === DEV )
+        if ( \Painless::isProfile( \Painless::DEV ) )
             $log[] = $ret;
 
         static::log( $log );
