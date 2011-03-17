@@ -35,7 +35,6 @@
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
-
 namespace Painless\System\Data\Adapter;
 use Painless\System\Data\Dao as Dao;
 
