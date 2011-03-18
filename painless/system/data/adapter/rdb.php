@@ -108,8 +108,7 @@ class Rdb extends Dao
 
         // the line below might throw an exception, which should be caught by
         // the exception handler in the engine, so no point catching it here
-        $this->addProfile( $profile, new \PDO( $connString, $user, $pass ) );
-        $this->useProfile( $profile );
+        $this->profile( $profile, new \PDO( $connString, $user, $pass ) );
 
         // make sure the PDO connection throws an exception during development
         // mode

@@ -88,44 +88,14 @@ abstract class Dao
             register_shutdown_function( array( $this, 'close' ) );
         }
     }
-
-    //--------------------------------------------------------------------------
-    /**
-     * Adds a connection profile to the DAO
-     * @param string $name  the identifier of the profile
-     * @param mixed $conn   the connection object
-     */
-    public function addProfile( $name, $conn )
-    {
-        $this->_profiles[$name] = $conn;
-    }
-
-    //--------------------------------------------------------------------------
-    /**
-     * Switches to a new connection profile
-     * @param string $name          the identifier of the profile
-     * @return mixed                returns NULL if $setAsCurrent is FALSE, or 
-     *                              returns the connection if it's set to TRUE
-     */
-    public function useProfile( $name )
-    {
-        if ( ! isset( $this->_profiles[$name] ) )
-        {
-            $this->init( $name );
-
-            // If init( ) succeeds without any exceptions, assume that
-            // $this->_profile[$name] already has the connection saved to it. If
-            // this is not the case, throw an exception!
-            if ( ! isset( $this->_profiles[$name] ) && empty( $this->_profiles[$name] ) )
-                throw new \ErrorException( '$this->profiles does not contain the new profile. Please call addProfile( ) to add the requested profile [' . $name . '] to the DAO' );
-        }
-        
-        // Close the current connection
-        $this->close( );
-        $this->_conn = $this->_profiles[$name];
-        return $this->_conn;
-    }
     
+    //--------------------------------------------------------------------------
+    /**
+     * Gets or sets the profile with a connection object
+     * @param string $name  the name of the profile to use
+     * @param object $conn  a connection object
+     * @return object       a connection to the database driver associated with this profile 
+     */
     public function profile( $name, $conn = '' )
     {
         if ( ! empty ( $conn ) )
@@ -145,6 +115,24 @@ abstract class Dao
             $this->close( );
             $this->_conn = $this->_profiles[$name];
         }
+        else
+        {
+            if ( ! isset( $this->_profiles[$name] ) )
+            {
+                $this->init( $name );
+
+                // If init( ) succeeds without any exceptions, assume that
+                // $this->_profile[$name] already has the connection saved to it. If
+                // this is not the case, throw an exception!
+                if ( ! isset( $this->_profiles[$name] ) && empty( $this->_profiles[$name] ) )
+                    throw new \ErrorException( '$this->profiles does not contain the new profile. Please call addProfile( ) to add the requested profile [' . $name . '] to the DAO' );
+            }
+
+            // Close the current connection
+            $this->close( );
+            $this->_conn = $this->_profiles[$name];
+        }
+        
         return $this->_conn;
     }
 
