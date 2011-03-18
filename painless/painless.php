@@ -193,7 +193,7 @@ class Painless
     public static function initApp( $appName, $appPath, $useExtLoader = TRUE )
     {
         // Append a backslash to $implPath if none is provided
-        ( $appPath[count( $appPath ) - 1] !== '/' ) and $appPath .= '/';
+        ( $appPath[strlen( $appPath ) - 1] !== '/' ) and $appPath .= '/';
         
         // Instantiate the Core. Here's the thing - both Core (which contains
         // instances of components, environment variables, etc) and Loader (which
