@@ -97,4 +97,9 @@ class Html extends \Painless\System\View\Compiler\Base
     {
         return \Painless::app( )->env( \Painless::APP_PATH ) . 'view/error-404.tpl';
     }
+    
+    protected function handle500( $request, $response )
+    {
+        return \Painless::app( )->env( \Painless::APP_PATH ) . 'view/error-500.tpl';
+    }
 }

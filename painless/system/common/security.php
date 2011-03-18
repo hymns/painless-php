@@ -76,7 +76,7 @@ class Security
         if ( '' === $matchRoles )
         {
             // get the user identity object
-            $user = $this->getIdentity( );
+            $user = $this->identity( );
             // if user is not logged in
             if ( NULL === $user )
                 $roles = array('public');

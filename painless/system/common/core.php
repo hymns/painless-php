@@ -179,7 +179,7 @@ class Core
         }
         
         // Make sure $response is the correct type
-        if ( ! ( $response instanceof Response ) )
+        if ( ! ( $response instanceof \Painless\System\Workflow\Response ) )
             $response = \Painless::manufacture( 'response', 500, 'Invalid returned response' );
 
         // At this point, save both the request and response to the core's

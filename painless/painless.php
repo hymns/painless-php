@@ -242,6 +242,11 @@ function array_get( $array, $key, $defaultReturn = FALSE )
     return isset( $array[$key] ) ? $array[$key] : $defaultReturn;
 }
 
+function is_empty( $var )
+{
+    return empty( $var );
+}
+
 function dash_to_pascal( $string )
 {
     return preg_replace( '/(^|-)(.)/e', "strtoupper('\\2')", $string );
