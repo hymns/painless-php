@@ -53,13 +53,14 @@ class View extends \Painless\System\Base\WorkUnit
         // check if this is an external path
         if ( stripos( $path, 'http://' ) === FALSE && stripos( $path, 'https://' ) === FALSE )
         {
-            $path = APP_URL . $path;
+            $path = \Painless::app( )->env( \Painless::APP_URL ) . $path;
         }
 
         // rebuild the response
         $response           = & $this->response;
         $response->status   = 302;
         $response->message  = "Redirect";
+        
         $response->assign( self::PATH, $path );
     }
 

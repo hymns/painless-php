@@ -125,6 +125,28 @@ abstract class Dao
         $this->_conn = $this->_profiles[$name];
         return $this->_conn;
     }
+    
+    public function profile( $name, $conn = '' )
+    {
+        if ( ! empty ( $conn ) )
+        {
+            if ( ! isset( $this->_profiles[$name] ) )
+            {
+                $this->init( $name );
+
+                // If init( ) succeeds without any exceptions, assume that
+                // $this->_profile[$name] already has the connection saved to it. If
+                // this is not the case, throw an exception!
+                if ( ! isset( $this->_profiles[$name] ) && empty( $this->_profiles[$name] ) )
+                    throw new \ErrorException( '$this->profiles does not contain the new profile. Please call addProfile( ) to add the requested profile [' . $name . '] to the DAO' );
+            }
+
+            // Close the current connection
+            $this->close( );
+            $this->_conn = $this->_profiles[$name];
+        }
+        return $this->_conn;
+    }
 
     /**-------------------------------------------------------------------------
      * lifecycle methods

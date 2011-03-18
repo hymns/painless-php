@@ -50,8 +50,8 @@ class Json extends \Painless\System\View\Compiler\Base
         $payload    = $response->payload;
 
         // Create the headers
-        header( "HTTP1.1/ $status $message" );
-        header( 'Content-Type: application/json' );
+        //header( "HTTP1.1/ $status $message" );
+        //header( 'Content-Type: application/json' );
 
         $out = $this->handleStatus( $response );
 

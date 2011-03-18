@@ -40,5 +40,8 @@ namespace Painless\System\View\Compiler;
 
 class Debug extends \Painless\System\View\Compiler\Base
 {
-    
+    public function process( $view )
+    {
+        
+    }
 }
