@@ -142,7 +142,7 @@ class Core
         {
             // Send the router the command to receive a request
             $request = $router->process( $entry, $cmd );
-            
+
             // By now $cmd is an array. Change it back to a string
             $cmd = implode( '/', $cmd );
 
@@ -177,6 +177,10 @@ class Core
             // Manufacture a 500 error status response object
             $response = \Painless::manufacture( 'response', 500, 'Invalid entry point' );
         }
+        
+        // Make sure $response is the correct type
+        if ( ! ( $response instanceof Response ) )
+            $response = \Painless::manufacture( 'response', 500, 'Invalid returned response' );
 
         // At this point, save both the request and response to the core's
         // command log, along with the original command

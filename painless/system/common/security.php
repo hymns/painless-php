@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Painless PHP - the painless path to development
  *
@@ -36,24 +35,24 @@
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
-
 namespace Painless\System\Common;
 
 class Security
 {
-    const POLICY_WHITELIST = 'whitelist';
-    const POLICY_BLACKLIST = 'blacklist';
+    /* ACL policies */
+    const POLICY_WHITELIST  = 'whitelist';
+    const POLICY_BLACKLIST  = 'blacklist';
 
-    protected $policy = 'blacklist';
-    protected $acl = array( );
+    protected $policy       = 'blacklist';
+    protected $acl          = array( );
 
-    public $identity = NULL;
+    protected $identity     = NULL;
 
     //--------------------------------------------------------------------------
     /**
      * Loads an ACL from the config by default
      */
-    protected function loadAcl( )
+    protected function load( )
     {
         if ( empty( $this->acl ) )
             $this->acl = \Painless::load( 'system/common/config' )->get( 'acl.*' );
@@ -68,10 +67,9 @@ class Security
      * @param string|array $matchRoles     the role to match with
      * @return boolean
      */
-
-    public function isAllowed( $namespace, $matchRoles = '' )
+    public function allowed( $namespace, $matchRoles = '' )
     {
-        $this->loadAcl( );
+        $this->load( );
         
         $roles = array( );
 
@@ -114,88 +112,62 @@ class Security
     }
 
     //--------------------------------------------------------------------------
-    /*
-     * Check if user is logged in
-     *
-     * @return boolean
-     */
-
-    public function isLoggedIn( )
-    {
-        $user = $this->getIdentity( );
-        return ( $user != NULL );
-    }
-
-    //--------------------------------------------------------------------------
-    /*
-     * Retrieves information about the logged in user.
-     *
-     * @return object
-     */
-
-    public function getIdentity( )
-    {
-        if ( ! empty( $this->identity ) )
-            return $this->identity;
-
-        $user = \Painless::load( 'system/common/session' )->get( 'user' );
-        return $user;
-    }
-
-    //--------------------------------------------------------------------------
     /**
      * A shorthand to retrieve the user ID
-     *
      * @return int the user's ID
      */
-    public function getIdentityId( $key = 'id' )
+    public function identityId( $key = 'id' )
     {
-        $user = $this->getIdentity( );
-        return array_get( $user, $key, 0 );
+        $identity = $this->identity( );
+        return array_get( $identity, $key, 0 );
     }
 
     //--------------------------------------------------------------------------
     /*
-     * Logs the user in. (after checking everything)
-     *
+     * Get or set the identity
      * @return nothing
      */
-
-    public function login( $user )
+    public function identity( $identity = NULL )
     {
-        // remove the salt & password for safety purposes
-        unset( $user['password'] );
-        unset( $user['salt'] );
-
-        \Painless::load( 'system/common/session' )->set( 'user', $user );
-
-        $this->identity = $user;
+        // Set the identity
+        if ( ! empty( $identity ) )
+        {
+            \Painless::load( 'system/common/session' )->set( 'identity', $identity );
+            $this->identity = $identity;
+        }
+        // Get the identity
+        else
+        {
+            // If identity is not loaded, try finding it from the session
+            if ( empty( $this->identity ) )
+            {
+                $identity = \Painless::load( 'system/common/session' )->get( 'identity' );
+                $this->identity = $identity;
+            }
+        }
+        
+        return $this->identity;
     }
 
     //--------------------------------------------------------------------------
     /*
-     * Logout the user.
-     *
+     * Destroys the identity and session
      * @return nothing
      */
-
-    public function logout( )
+    public function destroy( )
     {
         \Painless::load( 'system/common/session' )->destroy( );
-
         $this->identity = NULL;
     }
 
     //--------------------------------------------------------------------------
     /*
-     * Tries a bunch of methods to get entropy in order
-     * of preference and returns as soon as it has something
-     *
+     * Tries a bunch of methods to get entropy in order of preference and returns 
+     * as soon as it has something
      * @param int $size     length of the random string.
-     * @return string
+     * @return string       the entropy string
      */
-
-    public function generateEntropy( $size = 23 )
+    public function entropy( $size = 23 )
     {
         // use mcrypt with urandom if we're on 5.3+
         if ( version_compare( PHP_VERSION, '5.3.0', '>=' ) )
@@ -230,13 +202,13 @@ class Security
         {
             try
             {
-                $com = new COM( 'CAPICOM.Utilities.1' );
+                $com = new \COM( 'CAPICOM.Utilities.1' );
                 $entropy = base64_decode( $com->GetRandom( $size, 0 ) );
                 return $entropy;
             }
             catch ( Exception $e )
             {
-                throw new SecurityException( $e );
+                throw new \ErrorException( $e );
             }
         }
 
@@ -247,24 +219,23 @@ class Security
     //--------------------------------------------------------------------------
     /*
      * Grabs entropy and hashes it to normalize the output
-     *
-     * @param string $algo hash algorithm to use, defaults to whirlpool
+     * @param string $algo      hash algorithm to use, defaults to whirlpool
      * @return string
      */
 
-    public function getUniqueHash( $algo = 'whirlpool' )
+    public function uniqueHash( $algo = 'whirlpool' )
     {
-        $entropy = $this->generateEntropy( );
+        $entropy = $this->entropy( );
         return hash( $algo, $entropy );
     }
 
     //--------------------------------------------------------------------------
     /**
-     * generate a password from a clear text with a salt value
+     * Generate a password from a clear text with a salt value
      *
-     * @param string $password the password to be generated
-     * @param string $salt the salt to be generated
-     * @return string an SHA512 generated 256-digit hexadecimal hash
+     * @param string $password  the password in clear text
+     * @param string $salt      the salt to be associated with this password
+     * @return string           an SHA512 generated 256-digit hexadecimal hash
      */
     public function hashPassword( $password, $salt )
     {
@@ -273,13 +244,11 @@ class Security
 
     //--------------------------------------------------------------------------
     /**
-     * creates a salt hash using a date string
-     * 
-     * @param string $dateStr a date string
-     * @return string a md5 salt hash
+     * Creates a random salt hash
+     * @return string   a 50 character salt hash
      */
-    public function generateSalt( )
+    public function salt( )
     {
-        return substr( $this->getUniqueHash( ), 0, 50 );
+        return substr( $this->uniqueHash( ), 0, 50 );
     }
 }

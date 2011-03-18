@@ -126,7 +126,7 @@ class Session
         $existingSessionData = $_SESSION;
 	session_write_close( );
 	
-	$newSessionId = $security->getUniqueHash( $hashAlgo );
+	$newSessionId = $security->uniqueHash( $hashAlgo );
         session_id( $newSessionId ); // unable to regenerate session ID. Need to re-test this soon.
 	
 	session_start( );

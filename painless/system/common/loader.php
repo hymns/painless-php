@@ -409,8 +409,8 @@ class Loader
         \Painless::load( 'system/data/adapter/base', \Painless::LP_DEF_ONLY );
 
         return array(
-            'extpath' => $this->appPath . 'module/' . $module . '/dao/' . $dao . EXT,
-            'extname'  =>  '\\' . dash_to_pascal( $this->appName ) . '\\Module\\' . dash_to_pascal( $module ) . '\\Dao\\' . dash_to_pascal( $dao ),
+            'extpath' => $this->appPath . 'system/data/adapter/' . $adapter . EXT,
+            'extname'  =>  '\\' . dash_to_pascal( $this->appName ) . '\\System\\Data\\Adapter\\' . dash_to_pascal( $adapter ),
 
             'basepath' => $this->corePath . 'system/data/adapter/' . $adapter . EXT,
             'basename'  => '\\Painless\\System\\Data\\Adapter\\' . dash_to_pascal( $adapter ),
