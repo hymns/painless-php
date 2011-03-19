@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Painless PHP - the painless path to development
  *
@@ -36,7 +35,6 @@
  * @license     BSD 3 Clause (New BSD)
  * @link        http://painless-php.com
  */
-
 namespace Painless\System\View\Compiler;
 
 class Html extends \Painless\System\View\Compiler\Base

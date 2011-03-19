@@ -96,7 +96,7 @@ class View extends \Painless\System\Base\WorkUnit
      * Pre processes the view
      * @return boolean  TRUE if the preProcessing succeeds
      */
-    public function pre( )
+    public function preProcess( )
     {
         return TRUE;
     }
@@ -104,7 +104,7 @@ class View extends \Painless\System\Base\WorkUnit
     /**
      * Post processes the view
      */
-    public function post( )
+    public function postProcess( )
     {
         // Localize the variables
         $request    = $this->request;

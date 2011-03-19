@@ -67,8 +67,8 @@ class Render
             // the method has been run, it's safe to assume that $view has properly
             // post-processed all necessary data and payload, and that now the
             // compiler should have enough information to render the output
-            if ( $view->pre( ) ) $view->$method( );
-            $view->post( );
+            if ( $view->preProcess( ) ) $view->$method( );
+            $view->postProcess( );
         }
         // Otherwise, create an empty view controller
         else
