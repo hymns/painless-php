@@ -106,13 +106,5 @@ class View extends \Painless\System\Base\WorkUnit
      */
     public function postProcess( )
     {
-        // Localize the variables
-        $request    = $this->request;
-        $module     = $request->module;
-        $controller = $request->controller;
-        $method     = $request->method;
-
-        // Construct the PATH value
-        $this->assign( self::PATH, "$module/tpl/$controller.$method.tpl" );
     }
 }

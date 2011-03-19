@@ -47,6 +47,11 @@ class Response
     public $headers     = array( );
 
     //--------------------------------------------------------------------------
+    /**
+     * Set a data in the payload
+     * @param string $key       the name of the key in the payload
+     * @param mixed $data       the data to attach to the key
+     */
     public function set( $key, $data )
     {
         // Initialize the payload array if none available
@@ -59,12 +64,21 @@ class Response
     }
 
     //--------------------------------------------------------------------------
+    /**
+     * Get the data from the payload
+     * @param string $key       the name of the key in the payload
+     * @return mixed            the data that is attached to the key
+     */
     public function get( $key )
     {
         return array_get( $this->payload, $key, FALSE );
     }
 
     //--------------------------------------------------------------------------
+    /**
+     * Adds a header to the response
+     * @param string $header    the header string
+     */
     public function header( $header )
     {
         $this->headers[] = $header;

@@ -109,13 +109,13 @@ class Html extends \Painless\System\View\Compiler\Base
 
     protected function handle301( $request, $response )
     {
-        $response->header( 'Location: ' . $response->get( 'target' ) );
+        $response->header( 'Location: ' . $response->get( \Painless\System\View\View::PATH ) );
         return $response;
     }
 
     protected function handle302( $request, $response )
     {
-        $response->header( 'Location: ' . $response->get( 'target' ) );
+        $response->header( 'Location: ' . $response->get( \Painless\System\View\View::PATH ) );
         return $response;
     }
 

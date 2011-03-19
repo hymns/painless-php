@@ -60,15 +60,28 @@ class Render
         {
             // Load the correct view
             $view = \Painless::load( "view/$module/$controller" );
-            $view->request  = $request;
-            $view->response = $response;
+            
+            // If the view does not exists, return a 404
+            if ( empty( $view ) )
+            {                
+                $view = \Painless::load( 'system/view/view', \Painless::LP_LOAD_NEW );
+                $view->request = $request;
+                
+                // Set the response to 404
+                $view->response = \Painless::manufacture( 'response', 404, 'View not found', $response->payload );
+            }
+            else
+            {
+                $view->request  = $request;
+                $view->response = $response;
 
-            // Get the output from the view by running the appropriate method. Once
-            // the method has been run, it's safe to assume that $view has properly
-            // post-processed all necessary data and payload, and that now the
-            // compiler should have enough information to render the output
-            if ( $view->preProcess( ) ) $view->$method( );
-            $view->postProcess( );
+                // Get the output from the view by running the appropriate method. Once
+                // the method has been run, it's safe to assume that $view has properly
+                // post-processed all necessary data and payload, and that now the
+                // compiler should have enough information to render the output
+                if ( $view->preProcess( ) ) $view->$method( );
+                $view->postProcess( );
+            }
         }
         // Otherwise, create an empty view controller
         else

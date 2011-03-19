@@ -190,8 +190,8 @@ class Core
         $render = \Painless::load( 'system/common/render' );
 
         // Process the request and response to get an output
-        $render->process( $request, $response );
-        
+        $response = $render->process( $request, $response );
+
         // Now we can safely assume that $response has all the necessary headers
         // and payload. We return this to the invoking agent to render it.
         return $response;
