@@ -61,7 +61,7 @@ class View extends \Painless\System\Base\WorkUnit
         $response->status   = 302;
         $response->message  = "Redirect";
         
-        $response->assign( self::PATH, $path );
+        $response->set( self::PATH, $path );
     }
 
     /**

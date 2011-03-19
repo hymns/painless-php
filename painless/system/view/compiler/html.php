@@ -40,32 +40,58 @@
 namespace Painless\System\View\Compiler;
 
 class Html extends \Painless\System\View\Compiler\Base
-{
-    public function process( $view )
+{    
+    const TPL_PATH = '_tpl_path';
+    
+    protected function pre( $view )
     {
         // Localize the data
-        $request    = $view->request;
-        $response   = $view->response;
+        $request    =& $view->request;
+        $response   =& $view->response;
         $status     = $response->status;
         $message    = $response->message;
         $payload    = $response->payload;
 
         // Create the headers
-        header( "HTTP1.1/ $status $message" );
-        header( 'Content-Type: text/html' );
-
+        $response->header( "HTTP1.1/ $status $message" );
+        $response->header( 'Content-Type: text/html' );
+        
+        return $view;
+    }
+    
+    public function process( $view )
+    {
+        $view = $this->pre( $view );
+        
         // See if there's an appropriate status handler for this response code
-        $path = $this->handleStatus( $request, $response );
+        $view->response = $this->handleStatus( $view->request, $view->response );
 
+        return $this->post( $view );
+    }
+    
+    protected function post( $view )
+    {
+        // Localize the variables
+        $response   =& $view->response;
+        $path       = $response->get( self::TPL_PATH );
+        
         // Load the file if it exists in the universe
         if ( file_exists( $path ) )
         {
             ob_start( );
             require $path;
-            return ob_end_flush( );
+            $response->payload = ob_end_flush( );
         }
-
-        return '';
+        
+        return $response;
+    }
+    
+    protected function viewPath( $method, $module, $controller )
+    {
+        $core = \Painless::app( );
+        
+        // GET foo/bar should resolve to APP_PATH/foo/view/bar.get.tpl
+        return $core->env( \Painless::APP_PATH ) . "$module/view/$controller.$method.tpl";
     }
 
     protected function handleStatus( $request, $response )
@@ -77,29 +103,33 @@ class Html extends \Painless\System\View\Compiler\Base
         $controller = $request->controller;
         $method     = $request->method;
 
-        if ( FALSE === $out ) $out = "$module/tpl/$controller.$method.phtml";
+        if ( TRUE === $out ) 
+            $response->set( self::TPL_PATH, $this->viewPath( $method, $module, $controller ) );
 
-        return $out;
+        return $response;
     }
 
     protected function handle301( $request, $response )
     {
-        header( 'Location: ' . $response->get( 'target' ) );
-        return FALSE;
+        $response->header( 'Location: ' . $response->get( 'target' ) );
+        return $response;
     }
 
     protected function handle302( $request, $response )
     {
-        return \Painless::app( )->env( \Painless::APP_PATH ) . 'view/error-301.tpl';
+        $response->header( 'Location: ' . $response->get( 'target' ) );
+        return $response;
     }
 
     protected function handle404( $request, $response )
     {
-        return \Painless::app( )->env( \Painless::APP_PATH ) . 'view/error-404.tpl';
+        $response->set( self::TPL_PATH, \Painless::app( )->env( \Painless::APP_PATH ) . 'view/error-404.tpl' );
+        return $response;
     }
     
     protected function handle500( $request, $response )
     {
-        return \Painless::app( )->env( \Painless::APP_PATH ) . 'view/error-500.tpl';
+        $response->set( self::TPL_PATH, \Painless::app( )->env( \Painless::APP_PATH ) . 'view/error-500.tpl' );
+        return $response;
     }
 }

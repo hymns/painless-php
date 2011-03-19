@@ -50,6 +50,6 @@ abstract class Base
         if ( method_exists( $this, $func ) )
             return $this->$func( $request, $response );
 
-        return FALSE;
+        return TRUE;
     }
 }

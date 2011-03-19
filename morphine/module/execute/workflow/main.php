@@ -57,7 +57,7 @@ class ExecuteMainWorkflow extends PainlessWorkflow
     {
         // Get the list of arguments
         $params = $this->request->getParam( );
-var_dump($params);die;
+
         // Check if there's a help command
         if ( empty( $params ) || ( 'help' === $params[0] || '--help' === $params[0] ) )
         {

@@ -98,42 +98,63 @@ abstract class Dao
      */
     public function profile( $name, $conn = '' )
     {
-        if ( ! empty ( $conn ) )
-        {
-            if ( ! isset( $this->_profiles[$name] ) )
+        // Set the profile
+        if ( ! empty( $conn ) )
+        {            
+            // Check if there's already a profile that exists
+            if ( isset( $this->_profiles[$name] ) )
             {
-                $this->init( $name );
-
-                // If init( ) succeeds without any exceptions, assume that
-                // $this->_profile[$name] already has the connection saved to it. If
-                // this is not the case, throw an exception!
-                if ( ! isset( $this->_profiles[$name] ) && empty( $this->_profiles[$name] ) )
-                    throw new \ErrorException( '$this->profiles does not contain the new profile. Please call addProfile( ) to add the requested profile [' . $name . '] to the DAO' );
+                // If the profile is the current one, close it first and then
+                // replace it with the connection object
+                if ( $name === $this->_currProfile )
+                    $this->close( );
+                else
+                    $this->_currProfile = $name;
+                
+                $this->_profiles[$name] = $conn;
+                $this->_conn            = $conn;
             }
-
-            // Close the current connection
-            $this->close( );
-            $this->_conn = $this->_profiles[$name];
+            // If the profile does not exists, add the connection there and set
+            // it as the current profile
+            else
+            {
+                // Check if there's a connection currently opened. Close it if so
+                if ( ! empty( $this->_conn ) )
+                    $this->close( );
+                
+                $this->_profiles[$name] = $conn;
+                $this->_conn            = $conn;
+                $this->_currProfile     = $name;
+            }
+            
+            return $this->_conn;
         }
+        // Switch to the profile
         else
         {
-            if ( ! isset( $this->_profiles[$name] ) )
+            // If it's already the current profile, and a connection exists there,
+            // do nothing
+            if ( $this->_currProfile === $name && ! is_null( $this->_conn ) )
+            {
+                return $this->_conn;
+            }
+            // Otherwise, if the profile exists but is not the current one, switch
+            // to it
+            elseif( isset( $this->_profiles[$name] ) )
+            {
+                $this->_currProfile = $name;
+                $this->_conn = $this->_profiles[$name];
+                return $this->_conn;
+            }
+            // Finally, if the profile does not exists at all, initialize it
+            else
             {
                 $this->init( $name );
-
-                // If init( ) succeeds without any exceptions, assume that
-                // $this->_profile[$name] already has the connection saved to it. If
-                // this is not the case, throw an exception!
-                if ( ! isset( $this->_profiles[$name] ) && empty( $this->_profiles[$name] ) )
-                    throw new \ErrorException( '$this->profiles does not contain the new profile. Please call addProfile( ) to add the requested profile [' . $name . '] to the DAO' );
+                return $this->_conn;
             }
-
-            // Close the current connection
-            $this->close( );
-            $this->_conn = $this->_profiles[$name];
         }
         
-        return $this->_conn;
+        return FALSE;
     }
 
     /**-------------------------------------------------------------------------

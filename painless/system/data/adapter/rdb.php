@@ -77,34 +77,34 @@ class Rdb extends Dao
     {
         $config = \Painless::load( 'system/common/config' );
         $connParams = array( );
-        $prefix = 'mysql.';
+        $prefix = 'rdb.';
 
         // If profile is not provided, assuming that we're using the profile "default"
         if ( empty( $profile ) )
         {
-            $profile    = 'default';
-            $connParams = $config->get( 'mysql.*' );
+            $connParams = $config->get( 'rdb.*' );
         }
         else
         {
             // Get the list of profiles from the config file
-            $profiles   = $config->get( 'mysql.profiles' );
+            $profiles   = $config->get( 'rdb.profiles' );
             if ( empty( $profiles ) ) throw new \ErrorException( 'Profiles not properly defined in the config file' );
 
             // Only get the profile if there's a match
             if ( ! array_values( $profile ) ) throw new \ErrorException( "The specified profile [$profile] is not defined in the config file" );
-            $connParams = $config->get( "mysql.$profile.*" );
+            $connParams = $config->get( "rdb.$profile.*" );
             $prefix .= $profile . '.';
         }
 
         // get the parameters
-        $host       = array_get( $connParams, $prefix . 'host', FALSE );
+        $driver     = array_get( $connParams, $prefix . 'driver',   FALSE );
+        $host       = array_get( $connParams, $prefix . 'host',     FALSE );
         $db         = array_get( $connParams, $prefix . 'database', FALSE );
         $user       = array_get( $connParams, $prefix . 'username', FALSE );
         $pass       = array_get( $connParams, $prefix . 'password', FALSE );
 
         // try to connect to the database
-        $connString = 'mysql:host=' . $host . ';dbname=' . $db;
+        $connString = "$driver:host=$host;dbname=$db";
 
         // the line below might throw an exception, which should be caught by
         // the exception handler in the engine, so no point catching it here
@@ -113,7 +113,7 @@ class Rdb extends Dao
         // make sure the PDO connection throws an exception during development
         // mode
         if ( \Painless::isProfile( \Painless::DEV ) )
-            $this->_conn->setAttribute( \PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+            $this->_conn->setAttribute( \PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION );
 
         return TRUE;
     }

@@ -89,7 +89,7 @@ class Render
             $compiler = \Painless::load( "system/view/compiler/html" );
         }
 
-        // Return the processed output
+        // Return the processed output as a response;
         return $compiler->process( $view );
     }
 }
