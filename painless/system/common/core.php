@@ -107,7 +107,7 @@ class Core
         return $this;
     }
 
-    public function execute( $entry, $cmd = '', $data = array( ) )
+    public function execute( $entry, $cmd = '', $data = array( ), $role = array( ) )
     {
         // Here we need to determine the entry point. There are only 3 of them:
         // HTTP (includes REST calls), CLI (including cron jobs) and APP. The
@@ -141,7 +141,7 @@ class Core
         if ( \Painless::RUN_HTTP === $entry || \Painless::RUN_CLI === $entry || \Painless::RUN_APP === $entry || \Painless::RUN_INTERNAL )
         {
             // Send the router the command to receive a request
-            $request = $router->process( $entry, $cmd );
+            $request = $router->process( $entry, $cmd, $data, $role );
 
             // By now $cmd is an array. Change it back to a string
             $cmd = implode( '/', $cmd );

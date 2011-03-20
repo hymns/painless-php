@@ -89,7 +89,7 @@ class Router
     }
 
     //--------------------------------------------------------------------------
-    public function process( $entry, & $uri = '' )
+    public function process( $entry, & $uri = '', $data = array( ), $role = array( ) )
     {
         // Localize the values
         $method     = '';
@@ -114,19 +114,19 @@ class Router
         switch( $entry )
         {
             case \Painless::RUN_HTTP :
-                $request = $this->processHttp( $method, $uri );
+                $request = $this->processHttp( $method, $uri, $data, $role );
                 break;
 
             case \Painless::RUN_CLI :
-                $request = $this->processCli( $method, $uri );
+                $request = $this->processCli( $method, $uri, $data, $role );
                 break;
 
             case \Painless::RUN_APP :
-                $request = $this->processApp( $method, $uri );
+                $request = $this->processApp( $method, $uri, $data, $role );
                 break;
 
             case \Painless::RUN_INTERNAL :
-                $request = $this->processInternal( $method, $uri );
+                $request = $this->processInternal( $method, $uri, $data, $role );
                 break;
             
             default :
@@ -145,7 +145,7 @@ class Router
     }
 
     //--------------------------------------------------------------------------
-    protected function processHttp( $method, & $uri )
+    protected function processHttp( $method, & $uri, $data = array( ), $role = array( ) )
     {
         // Localize the variables
         $core       = \Painless::app( );
@@ -219,7 +219,7 @@ class Router
     }
 
     //--------------------------------------------------------------------------
-    protected function processCli( $method, & $uri )
+    protected function processCli( $method, & $uri, $data = array( ), $role = array( ) )
     {
         // Localize the variables
         $module     = '';
@@ -255,7 +255,7 @@ class Router
     }
 
     //--------------------------------------------------------------------------
-    protected function processApp( $method, & $uri )
+    protected function processApp( $method, & $uri, $data = array( ), $role = array( ) )
     {
         // Localize the variables
         $method     = ( ! empty( $method ) ) ?: \Painless\System\Workflow\Request::GET;
@@ -273,7 +273,7 @@ class Router
     }
 
     //--------------------------------------------------------------------------
-    protected function processInternal( $method, & $uri )
+    protected function processInternal( $method, & $uri, $data = array( ), $role = array( ) )
     {
         // Localize the variables
         $module     = '';
@@ -287,6 +287,9 @@ class Router
         // At this point, the URI has been split into an array. Pass it to
         // mapUri to map to the correct module and controller.
         list( $module, $controller, $param, $contentType ) = $this->mapUri( $uri );
+        
+        // Merge the $param array with the $data array
+        $param = array_merge( $param, $data );
 
         return \Painless::manufacture( 'request', $method, $module, $controller, $param, '', 'PainlessPHP Internal [v' . \Painless::VERSION . ']' );
     }

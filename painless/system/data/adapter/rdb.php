@@ -598,6 +598,19 @@ class Rdb extends Dao
 
         return $this->executeDelete( $sql );
     }
+    
+    //--------------------------------------------------------------------------
+    /**
+     * Checks whether a data exists in the database or not
+     * @param string $key   the field name to check for
+     * @param mixed $value  the value to check for
+     * @return boolean      TRUE if it exists, FALSE if otherwise
+     */
+    public function exists( $key, $value )
+    {
+        $dao = $this->find( "`$key` = '$value'" );
+        return ( ! empty( $dao ) );
+    }
 
     //--------------------------------------------------------------------------
     /**

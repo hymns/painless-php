@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Painless PHP - the painless path to development
  *
@@ -40,50 +41,50 @@ namespace Painless\System\Common;
 
 class Email
 {
-    protected $to = array( );
-    protected $cc = array( );
-    protected $bcc = array( );
-    protected $subject = '';
-    protected $content = '';
-    protected $contentType = '';
-    protected $charset = '';
-    protected $contentTransferEncoding = '';
-    protected $identity = '';
+
+    protected $to           = array( );
+    protected $cc           = array( );
+    protected $bcc          = array( );
+    protected $subject      = '';
+    protected $content      = '';
+    protected $contentType  = '';
+    protected $charset      = '';
+    protected $encoding     = '';
+    protected $mailbox      = '';
 
     //--------------------------------------------------------------------------
-    public function init( )
+    protected function init( )
     {
+        // Get the config component
+        $config = \Painless::load( 'system/common/config' );
+        $email  = $config->get( 'email.*' );
+        
         // set the default content type if none specified.
         if ( '' === $this->contentType )
-        {
-            $this->contentType = \Painless::load( 'system/common/config' )->get( 'email.content_type' );
-        }
+            $this->contentType = array_get( $email, 'email.content_type' );
 
         // set the default charset if none specified.
         if ( '' === $this->charset )
-        {
-            $this->charset = \Painless::load( 'system/common/config' )->get( 'email.charset' );
-        }
-        
+            $this->charset = array_get( $email, 'email.charset' );
+
         // set the default content transfer encoding if none specified.
-        if ( '' === $this->contentTransferEncoding )
-        {
-            $this->contentTransferEncoding = \Painless::load( 'system/common/config' )->get( 'email.content_transfer_encoding' );
-        }
+        if ( '' === $this->encoding )
+            $this->encoding = array_get( $email, 'email.content_transfer_encoding' );
     }
 
     //--------------------------------------------------------------------------
-    public function addTo( $name, $address )
+    public function to( $name, $address )
     {
         $this->to[] = array( 'name' => $name, 'address' => $address );
+        return $this;
     }
-    
+
     //--------------------------------------------------------------------------
-    protected function generateFullToString( )
+    protected function generateTo( )
     {
         $toStr = '';
         $count = count( $this->to ) - 1;
-        for ( $i = 0; $i < $count; ++$i)
+        for ( $i = 0; $i < $count; ++$i )
         {
             $toName = $this->to[$i]['name'];
             $toAddress = $this->to[$i]['address'];
@@ -95,22 +96,23 @@ class Email
             $toAddress = $this->to[count( $this->to ) - 1]['address'];
             $toStr .= "$toName <$toAddress>";
         }
-        
+
         return $toStr;
     }
-    
+
     //--------------------------------------------------------------------------
-    public function addCc( $name, $address )
+    public function cc( $name, $address )
     {
         $this->cc[] = array( 'name' => $name, 'address' => $address );
+        return $this;
     }
-    
+
     //--------------------------------------------------------------------------
-    protected function generateFullCcString( )
+    protected function generateCc( )
     {
         $ccStr = '';
         $count = count( $this->cc ) - 1;
-        for ( $i = 0; $i < $count; ++$i)
+        for ( $i = 0; $i < $count; ++$i )
         {
             $ccName = $this->cc[$i]['name'];
             $ccAddress = $this->cc[$i]['address'];
@@ -122,22 +124,23 @@ class Email
             $ccAddress = $this->cc[count( $this->cc ) - 1]['address'];
             $ccStr .= "$ccName <$ccAddress>";
         }
-        
+
         return $ccStr;
     }
 
     //--------------------------------------------------------------------------
-    public function addBcc( $name, $address )
+    public function bcc( $name, $address )
     {
         $this->bcc[] = array( 'name' => $name, 'address' => $address );
+        return $this;
     }
-    
+
     //--------------------------------------------------------------------------
-    protected function generateFullBccString( )
+    protected function generateBcc( )
     {
         $bccStr = '';
         $count = count( $this->bcc ) - 1;
-        for ( $i = 0; $i < $count; ++$i)
+        for ( $i = 0; $i < $count; ++$i )
         {
             $bccName = $this->bcc[$i]['name'];
             $bccAddress = $this->bcc[$i]['address'];
@@ -149,95 +152,95 @@ class Email
             $bccAddress = $this->bcc[count( $this->bcc ) - 1]['address'];
             $bccStr .= "$bccName <$bccAddress>";
         }
-        
+
         return $bccStr;
     }
 
     //--------------------------------------------------------------------------
-    public function setContent( $subject, $content )
+    public function content( $subject, $content )
     {
         $this->subject = $subject;
         $this->content = $content;
+        return $this;
     }
 
     //--------------------------------------------------------------------------
-    public function setContentTemplate( $template )
-    {
-    }
-
-    //--------------------------------------------------------------------------
-    public function setContentType( $contentType )
+    public function contentType( $contentType )
     {
         $this->contentType = $contentType;
+        return $this;
     }
-    
+
     //--------------------------------------------------------------------------
-    public function setCharset( $charset )
+    public function charset( $charset )
     {
         $this->charset = $charset;
+        return $this;
     }
-    
+
     //--------------------------------------------------------------------------
-    public function setContentTransferEncoding( $contentTransferEncoding )
+    public function encoding( $contentTransferEncoding )
     {
-        $this->contentTransferEncoding = $contentTransferEncoding;
+        $this->encoding = $contentTransferEncoding;
+        return $this;
     }
-    
+
     //--------------------------------------------------------------------------
-    public function setIdentity( $identity )
+    public function mailbox( $identity )
     {
-        $this->identity = $identity;
+        $this->mailbox = $identity;
+        return $this;
     }
-    
+
     //--------------------------------------------------------------------------
     /*
      * Sends the e-mail.
-     *
      * @return boolean      TRUE if success, FALSE otherwise.
      */
-	public function send( )
-	{
+    public function send( )
+    {
         $this->init( );
-        
+
         $config = \Painless::load( 'system/common/config' );
-        
+
         $smtpServer = $config->get( 'email.host' );
         $port = $config->get( 'email.port' );
         $timeout = $config->get( 'email.timeout' );
-        
-        $identity = $this->identity;
-        if ( '' === $identity )
+
+        $mailbox = $this->mailbox;
+        if ( '' === $mailbox )
         {
-            $identity = 'default';
+            $mailbox = 'default';
         }
-        
-        $fromName = $config->get( "email.$identity.from_name" );
-        $fromAddress = $config->get( "email.$identity.from_address" );
-        $username = $config->get( "email.$identity.username" );
-        $password = $config->get( "email.$identity.password" );
-        
+
+        // Get the correct email mailbox profile
+        $fromName       = $config->get( "email.$mailbox.from_name" );
+        $fromAddress    = $config->get( "email.$mailbox.from_address" );
+        $username       = $config->get( "email.$mailbox.username" );
+        $password       = $config->get( "email.$mailbox.password" );
+
         // Connect to the host on the specified port
         $smtpConnect = fsockopen( $smtpServer, $port, $errno, $errstr, $timeout );
         fgets( $smtpConnect, 515 );
-        if ( empty( $smtpConnect ) ) 
+        if ( empty( $smtpConnect ) )
         {
             return FALSE;
         }
-        
+
         $newLine = "\r\n";
-        
+
         // Request Auth Login
         fputs( $smtpConnect, "AUTH LOGIN" . $newLine );
         fgets( $smtpConnect, 515 );
-        
+
         // Send username
         fputs( $smtpConnect, base64_encode( $username ) . $newLine );
-        $ret = fgets( $smtpConnect, 515);
+        $ret = fgets( $smtpConnect, 515 );
         if ( stripos( $ret, 'error' ) !== FALSE )
         {
             return FALSE;
         }
-        
+
         // Send password
         fputs( $smtpConnect, base64_encode( $password ) . $newLine );
         $ret = fgets( $smtpConnect, 515 );
@@ -245,61 +248,60 @@ class Email
         {
             return FALSE;
         }
-        
+
         // Say Hello to SMTP
         fputs( $smtpConnect, "HELO $smtpServer" . $newLine );
         fgets( $smtpConnect, 515 );
-        
+
         // Email From
         $from = $fromAddress;
         fputs( $smtpConnect, "MAIL FROM: $from" . $newLine );
         fgets( $smtpConnect, 515 );
-        
-        /* Email To
-         * includes all to, cc, bcc addresses.
-         */
+
+        // Email To
+        // includes all to, cc, bcc addresses.
         $count = count( $this->to );
-        for ( $i = 0; $i < $count; ++$i)
+        for ( $i = 0; $i < $count; ++$i )
         {
             $toAddress = $this->to[$i]['address'];
             fputs( $smtpConnect, "RCPT TO: $toAddress" . $newLine );
-            fgets( $smtpConnect, 515);
+            fgets( $smtpConnect, 515 );
         }
-        
+
         $count = count( $this->cc );
-        for ( $i = 0; $i < $count; ++$i)
+        for ( $i = 0; $i < $count; ++$i )
         {
             $ccAddress = $this->cc[$i]['address'];
             fputs( $smtpConnect, "RCPT TO: $ccAddress" . $newLine );
-            fgets( $smtpConnect, 515);
+            fgets( $smtpConnect, 515 );
         }
-        
+
         $count = count( $this->bcc );
-        for ( $i = 0; $i < $count; ++$i)
+        for ( $i = 0; $i < $count; ++$i )
         {
             $bccAddress = $this->bcc[$i]['address'];
             fputs( $smtpConnect, "RCPT TO: $bccAddress" . $newLine );
-            fgets( $smtpConnect, 515);
+            fgets( $smtpConnect, 515 );
         }
-        
+
         // The Email	
         fputs( $smtpConnect, "DATA" . $newLine );
         fgets( $smtpConnect, 515 );
-        
+
         // if "text/html" is sent, send along a plain text version as well for great compatibility.
         if ( 'text/html' === $this->contentType )
         {
             $randomHash = md5( date( 'r', time( ) ) );
-            
-            $toStr = $this->generateFullToString( );
-            $ccStr = $this->generateFullCcString( );
-            $bccStr = $this->generateFullBccString( );
-            
+
+            $toStr = $this->generateTo( );
+            $ccStr = $this->generateCc( );
+            $bccStr = $this->generateBcc( );
+
             $plainTextContent = strip_tags( $this->content ); // TODO: need better html stripper than this
             $subject = $this->subject;
             $content = $this->content;
             $charset = $this->charset;
-            
+
             // Construct Headers
             $headers = "MIME-Version: 1.0" . $newLine;
             $headers .= "Subject: $subject" . $newLine;
@@ -308,43 +310,45 @@ class Email
             $headers .= "Cc: $ccStr" . $newLine;
             $headers .= "Bcc: $bccStr" . $newLine;
             $headers .= "Content-Type: multipart/alternative; boundary=$randomHash" . $newLine;
-            
+
             $headers .= "--$randomHash" . $newLine;
             $headers .= "Content-Type: text/plain; charset=ISO-8859-1" . $newLine;
             $headers .= "$plainTextContent" . $newLine;
-            
+
             $headers .= "--$randomHash" . $newLine;
             $headers .= "Content-Type: text/html; charset=\"$charset\"" . $newLine;
             $headers .= "$content" . $newLine;
-            
+
             $headers .= "--$randomHash--" . $newLine;
-            
-            fputs( $smtpConnect, "$headers.\n");
+
+            fputs( $smtpConnect, "$headers.\n" );
             fgets( $smtpConnect, 515 );
         }
         else
-        {        
+        {
             // Construct Headers
-            $headers = "MIME-Version: 1.0" . $newLine;
-            $contentType = $this->contentType;
-            $charset = $this->charset;
-            $contentTransferEncoding = $this->contentTransferEncoding;
-            $headers .= "Content-Type: $contentType; charset=\"$charset\"" . $newLine;
-            $headers .= "Content-transfer-encoding: $contentTransferEncoding" . $newLine;
+            $headers        = "MIME-Version: 1.0" . $newLine;
+            $contentType    = $this->contentType;
+            $charset        = $this->charset;
+            $encoding       = $this->encoding;
+            $headers        .= "Content-Type: $contentType; charset=\"$charset\"" . $newLine;
+            $headers        .= "Content-transfer-encoding: $encoding" . $newLine;
+
+            $toStr          = $this->generateTo( );
+            $ccStr          = $this->generateCc( );
+            $bccStr         = $this->generateBcc( );
+            $subject        = $this->subject;
+            $content        = $this->content;
             
-            $toStr = $this->generateFullToString( );
-            $ccStr = $this->generateFullCcString( );
-            $bccStr = $this->generateFullBccString( );
-            $subject = $this->subject;
-            $content = $this->content;
-            fputs( $smtpConnect, "To: $toStr\nCc: $ccStr\nBcc: $bccStr\nFrom: $fromName <$fromAddress>\nSubject: $subject\n$headers\n$content\n.\n");
+            fputs( $smtpConnect, "To: $toStr\nCc: $ccStr\nBcc: $bccStr\nFrom: $fromName <$fromAddress>\nSubject: $subject\n$headers\n$content\n.\n" );
             fgets( $smtpConnect, 515 );
         }
-        
+
         // Say Bye to SMTP
-        fputs( $smtpConnect, "QUIT" . $newLine ); 
+        fputs( $smtpConnect, "QUIT" . $newLine );
         fgets( $smtpConnect, 515 );
-        
+
         return TRUE;
-	}
+    }
+
 }
