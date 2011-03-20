@@ -41,6 +41,8 @@ namespace Painless\System\Common;
 
 class Email
 {
+    const TEXT = '';
+    const HTML = 'text/html';
 
     protected $to           = array( );
     protected $cc           = array( );
@@ -73,9 +75,13 @@ class Email
     }
 
     //--------------------------------------------------------------------------
-    public function to( $name, $address )
+    public function to( $name, $address = '' )
     {
-        $this->to[] = array( 'name' => $name, 'address' => $address );
+        if ( empty( $address ) )
+            $this->to[] = array( 'name' => '', 'address' => $name );
+        else
+            $this->to[] = array( 'name' => $name, 'address' => $address );
+        
         return $this;
     }
 
@@ -155,11 +161,17 @@ class Email
 
         return $bccStr;
     }
-
+    
     //--------------------------------------------------------------------------
-    public function content( $subject, $content )
+    public function subject( $subject )
     {
         $this->subject = $subject;
+        return $this;
+    }
+
+    //--------------------------------------------------------------------------
+    public function content( $content )
+    {
         $this->content = $content;
         return $this;
     }
@@ -289,7 +301,7 @@ class Email
         fgets( $smtpConnect, 515 );
 
         // if "text/html" is sent, send along a plain text version as well for great compatibility.
-        if ( 'text/html' === $this->contentType )
+        if ( self::HTML === $this->contentType )
         {
             $randomHash = md5( date( 'r', time( ) ) );
 

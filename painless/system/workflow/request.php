@@ -166,7 +166,8 @@ class Request
             // Parse the parameter string using PS_CONFIG
             elseif ( $style === self::PS_CONFIG )
             {
-                // load the routes config file
+                // TODO: Finish this part
+                /*// load the routes config file
                 $config = \Painless::load( 'system/common/config' );
                 $routes = $config->get( 'routes.uri.map' );
 
@@ -207,6 +208,8 @@ class Request
                 }
                 unset( $params );
                 $params = $tmp;
+                 
+                 */
             }
             // Parse the parameter string using PS_DEFER
             elseif ( $style === self::PS_DEFER )
@@ -227,5 +230,11 @@ class Request
         }
 
         return $this->params;
+    }
+    
+    //--------------------------------------------------------------------------
+    public function append( $params )
+    {
+        $this->params = array_merge( $this->params, $params );
     }
 }

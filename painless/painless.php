@@ -226,9 +226,9 @@ class Painless
      * @param string $entry         the entry type of the app
      * @param string $cmd           the command to run
      */
-    public static function execute( $entry, $cmd = '' )
+    public static function execute( $entry, $cmd = '', $data = array( ), $roles = array( ) )
     {
-        return static::app( )->execute( $entry, $cmd );
+        return static::app( )->execute( $entry, $cmd, $data, $roles );
     }
 }
 

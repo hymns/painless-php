@@ -114,19 +114,19 @@ class Router
         switch( $entry )
         {
             case \Painless::RUN_HTTP :
-                $request = $this->processHttp( $method, $uri, $data, $role );
+                $request = $this->processHttp( $method, $uri, $data, $roles );
                 break;
 
             case \Painless::RUN_CLI :
-                $request = $this->processCli( $method, $uri, $data, $role );
+                $request = $this->processCli( $method, $uri, $data, $roles );
                 break;
 
             case \Painless::RUN_APP :
-                $request = $this->processApp( $method, $uri, $data, $role );
+                $request = $this->processApp( $method, $uri, $data, $roles );
                 break;
 
             case \Painless::RUN_INTERNAL :
-                $request = $this->processInternal( $method, $uri, $data, $role );
+                $request = $this->processInternal( $method, $uri, $data, $roles );
                 break;
             
             default :
@@ -287,11 +287,15 @@ class Router
         // At this point, the URI has been split into an array. Pass it to
         // mapUri to map to the correct module and controller.
         list( $module, $controller, $param, $contentType ) = $this->mapUri( $uri );
-        
-        // Merge the $param array with the $data array
-        $param = array_merge( $param, $data );
 
-        return \Painless::manufacture( 'request', $method, $module, $controller, $param, '', 'PainlessPHP Internal [v' . \Painless::VERSION . ']' );
+        // Manufacture a request
+        $request = \Painless::manufacture( 'request', $method, $module, $controller, $param, $contentType, 'PainlessPHP Internal [v' . \Painless::VERSION . ']' );
+
+        // Append $data into request if needed
+        if ( ! empty( $data ) )
+            $request->append( $data );
+        
+        return $request;
     }
     
     //--------------------------------------------------------------------------
