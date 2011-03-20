@@ -61,6 +61,20 @@ class Core
     
     //--------------------------------------------------------------------------
     /**
+     * Gets the type of entry point of the LAST operation
+     * @param boolean       set to TRUE to get the first origin instead
+     * @return string       the type of entry point
+     */
+    public function entry( $origin = FALSE )
+    {
+        if ( $origin )
+            return $this->elog[0]['protocol'];
+        
+        return $this->elog[count( $this->elog ) - 1]['protocol'];
+    }
+    
+    //--------------------------------------------------------------------------
+    /**
      * Set or get an environment variable
      * @param string $key   the key of the environment variable
      * @param string $val   the value to set in $this->env[$key]
@@ -107,6 +121,7 @@ class Core
         return $this;
     }
 
+    //--------------------------------------------------------------------------
     public function execute( $entry, $cmd = '', $data = array( ), $role = array( ) )
     {
         // Here we need to determine the entry point. There are only 3 of them:
@@ -197,6 +212,7 @@ class Core
         return $response;
     }
 
+    //--------------------------------------------------------------------------
     public function log( $entry, \Painless\System\Workflow\Request $request, \Painless\System\Workflow\Response $response )
     {
         $this->elog[] = array( 

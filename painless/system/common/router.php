@@ -89,7 +89,7 @@ class Router
     }
 
     //--------------------------------------------------------------------------
-    public function process( $entry, & $uri = '', $data = array( ), $role = array( ) )
+    public function process( $entry, & $uri = '', $data = array( ), $roles = array( ) )
     {
         // Localize the values
         $method     = '';
@@ -145,7 +145,7 @@ class Router
     }
 
     //--------------------------------------------------------------------------
-    protected function processHttp( $method, & $uri, $data = array( ), $role = array( ) )
+    protected function processHttp( $method, & $uri, $data = array( ), $roles = array( ) )
     {
         // Localize the variables
         $core       = \Painless::app( );
@@ -219,7 +219,7 @@ class Router
     }
 
     //--------------------------------------------------------------------------
-    protected function processCli( $method, & $uri, $data = array( ), $role = array( ) )
+    protected function processCli( $method, & $uri, $data = array( ), $roles = array( ) )
     {
         // Localize the variables
         $module     = '';
@@ -255,7 +255,7 @@ class Router
     }
 
     //--------------------------------------------------------------------------
-    protected function processApp( $method, & $uri, $data = array( ), $role = array( ) )
+    protected function processApp( $method, & $uri, $data = array( ), $roles = array( ) )
     {
         // Localize the variables
         $method     = ( ! empty( $method ) ) ?: \Painless\System\Workflow\Request::GET;
@@ -273,7 +273,7 @@ class Router
     }
 
     //--------------------------------------------------------------------------
-    protected function processInternal( $method, & $uri, $data = array( ), $role = array( ) )
+    protected function processInternal( $method, & $uri, $data = array( ), $roles = array( ) )
     {
         // Localize the variables
         $module     = '';
