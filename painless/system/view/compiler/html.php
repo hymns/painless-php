@@ -41,25 +41,24 @@ class Html extends \Painless\System\View\Compiler\Base
 {    
     const TPL_PATH = '_tpl_path';
     
+    //--------------------------------------------------------------------------
     protected function pre( $view )
-    {
-        // Localize the data
-        $request    =& $view->request;
-        $response   =& $view->response;
-        $status     = $response->status;
-        $message    = $response->message;
-        $payload    = $response->payload;
-
-        // Create the headers
-        $response->header( "HTTP1.1/ $status $message" );
-        $response->header( 'Content-Type: text/html' );
-        
+    {        
         return $view;
     }
     
+    //--------------------------------------------------------------------------
     public function process( $view )
     {
         $view = $this->pre( $view );
+        
+        // Localize the variables
+        $status     = $view->response->status;
+        $message    = $view->response->message;
+        
+        // Append the html headers
+        $view->response->header( "HTTP/1.1 $status $message" )
+                       ->header( 'Content Type: text/html' );
         
         // See if there's an appropriate status handler for this response code
         $view->response = $this->handleStatus( $view->request, $view->response );
@@ -67,6 +66,7 @@ class Html extends \Painless\System\View\Compiler\Base
         return $this->post( $view );
     }
     
+    //--------------------------------------------------------------------------
     protected function post( $view )
     {
         // Localize the variables
@@ -84,6 +84,7 @@ class Html extends \Painless\System\View\Compiler\Base
         return $response;
     }
     
+    //--------------------------------------------------------------------------
     protected function viewPath( $method, $module, $controller )
     {
         $core = \Painless::app( );
@@ -92,6 +93,7 @@ class Html extends \Painless\System\View\Compiler\Base
         return $core->env( \Painless::APP_PATH ) . "$module/view/$controller.$method.tpl";
     }
 
+    //--------------------------------------------------------------------------
     protected function handleStatus( $request, $response )
     {
         $out = parent::handleStatus( $request, $response );
@@ -107,24 +109,28 @@ class Html extends \Painless\System\View\Compiler\Base
         return $response;
     }
 
+    //--------------------------------------------------------------------------
     protected function handle301( $request, $response )
     {
         $response->header( 'Location: ' . $response->get( \Painless\System\View\View::PATH ) );
         return $response;
     }
 
+    //--------------------------------------------------------------------------
     protected function handle302( $request, $response )
     {
         $response->header( 'Location: ' . $response->get( \Painless\System\View\View::PATH ) );
         return $response;
     }
 
+    //--------------------------------------------------------------------------
     protected function handle404( $request, $response )
     {
         $response->set( self::TPL_PATH, \Painless::app( )->env( \Painless::APP_PATH ) . 'view/error-404.tpl' );
         return $response;
     }
     
+    //--------------------------------------------------------------------------
     protected function handle500( $request, $response )
     {
         $response->set( self::TPL_PATH, \Painless::app( )->env( \Painless::APP_PATH ) . 'view/error-500.tpl' );

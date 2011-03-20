@@ -42,6 +42,7 @@ class View extends \Painless\System\Base\WorkUnit
 {
     const PATH = '_tpl';
 
+    //--------------------------------------------------------------------------
     /**
      * Redirects either to an external resource or to an internal workflow
      * @param string $path  the path to redirect to
@@ -64,6 +65,7 @@ class View extends \Painless\System\Base\WorkUnit
         $response->set( self::PATH, $path );
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Forward is used when the intended output exists in the same view but different
      * method. For example, it is used for form validation. When a user submits a form,
@@ -82,16 +84,7 @@ class View extends \Painless\System\Base\WorkUnit
         return $this->$method( );
     }
 
-    /**
-     * Assigns a value to the payload
-     * @param string $key   the key to assign to the response's payload
-     * @param mixed $value  the value to assign to the response's payload
-     */
-    protected function assign( $key, $value )
-    {
-        $this->response->set( $key, $value );
-    }
-
+    //--------------------------------------------------------------------------
     /**
      * Pre processes the view
      * @return boolean  TRUE if the preProcessing succeeds
@@ -101,6 +94,7 @@ class View extends \Painless\System\Base\WorkUnit
         return TRUE;
     }
 
+    //--------------------------------------------------------------------------
     /**
      * Post processes the view
      */

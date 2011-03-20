@@ -78,9 +78,12 @@ class Response
     /**
      * Adds a header to the response
      * @param string $header    the header string
+     * @return Response         returns itself so that you can chain header( )
+     *                          calls
      */
     public function header( $header )
     {
         $this->headers[] = $header;
+        return $this;
     }
 }

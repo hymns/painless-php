@@ -41,29 +41,39 @@ namespace Painless\System\View\Compiler;
 
 class Json extends \Painless\System\View\Compiler\Base
 {
+    protected function pre( $view )
+    {        
+        return $view;
+    }
+    
     public function process( $view )
     {
-        // Localize the data
-        $response   = $view->response;
-        $status     = $response->status;
-        $message    = $response->message;
-        $payload    = $response->payload;
-
-        // Create the headers
-        //header( "HTTP1.1/ $status $message" );
-        //header( 'Content-Type: application/json' );
-
-        $out = $this->handleStatus( $response );
-
-        // if there's no handler for that status, simply return the payload
-        if ( FALSE === $out ) $out = $payload;
+        $view = $this->pre( $view );
         
-        return json_encode( $out );
+        // Localize the variables
+        $status     = $view->response->status;
+        $message    = $view->response->message;
+        
+        // Append the html headers
+        $view->response->header( "HTTP/1.1 $status $message" )
+                       ->header( 'Content Type: application/json' );
+        
+        // See if there's an appropriate status handler for this response code
+        $view->response = $this->handleStatus( $view->request, $view->response );
+
+        return $this->post( $view );
+    }
+    
+    protected function post( $view )
+    {        
+        return $view->response;
     }
 
-    protected function handle302( $response )
+    //--------------------------------------------------------------------------
+    protected function handleStatus( $request, $response )
     {
-        header( 'Location: ' . $response->get( PainlessView::PATH ) );
-        return FALSE;
+        // Convert the payload in $response into a json object
+        $response->payload = json_encode( $response->payload );
+        return $response;
     }
 }

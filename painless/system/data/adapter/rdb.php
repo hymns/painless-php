@@ -641,6 +641,21 @@ class Rdb extends Dao
 
         return self::$queryBuilder;
     }
+    
+    //--------------------------------------------------------------------------
+    /**
+     * Returns a stdObject
+     */
+    public function plain( )
+    {
+        $ret = new \stdClass;
+        foreach( $this as $p => $v )
+        {
+            if ( FALSE === strpos( $p, '_' ) )
+                $ret->$p = $v;
+        }
+        return $ret;
+    }
 
     /**-------------------------------------------------------------------------
      * self-sanitization

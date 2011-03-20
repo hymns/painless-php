@@ -61,12 +61,14 @@ class Session
 
     protected $data = array( );
 
+    //--------------------------------------------------------------------------
     public function __construct( )
     {
         // Initialize the namespace
         $this->namespace = \Painless::app( )->env( \Painless::APP_NAME );
     }
 
+    //--------------------------------------------------------------------------
     /**
      * starts the session
      * @return boolean return TRUE if session is craeted successfully
@@ -110,6 +112,7 @@ class Session
         return TRUE;
     }
 
+    //--------------------------------------------------------------------------
     // If got existing session, regenerate the session Id, then start a new session.
     // If no session is created yet, it creates a new session.
     // NOTE: All data WILL be retained.
@@ -137,24 +140,26 @@ class Session
         return $newSessionId;
     }
 
+    //--------------------------------------------------------------------------
     public function get( $key, $isFlashData = FALSE )
     {
         // lazy initialization
         $this->start( );
         if ( isset( $this->data[$key] ) )
         {
-                $data = $this->data[$key];
-                if ( $isFlashData )
-                {
-                        $this->delete( $key );
-                }
+            $data = $this->data[$key];
+            if ( $isFlashData )
+            {
+                $this->delete( $key );
+            }
 
-                return $data;
+            return $data;
         }
 
         return NULL;
     }
 
+    //--------------------------------------------------------------------------
     public function set( $key, $value )
     {
         // lazy initialization
@@ -163,6 +168,7 @@ class Session
         $this->data[$key] = $value;
     }
 
+    //--------------------------------------------------------------------------
     public function delete( $key = '' )
     {
         // lazy initialization
@@ -178,6 +184,7 @@ class Session
         }
     }
 
+    //--------------------------------------------------------------------------
     public function destroy( )
     {
         // destroy the session
@@ -202,6 +209,7 @@ class Session
         $status = session_id( );
     }
 
+    //--------------------------------------------------------------------------
     public function close( )
     {
         session_write_close( );
