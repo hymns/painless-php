@@ -187,14 +187,16 @@ class Session
     //--------------------------------------------------------------------------
     public function destroy( )
     {
-        // destroy the session
+        // Make sure the session is started before destroying it
+        if ( ! $this->start )
+            $this->start( );
+        
+        // Destroy the session
         session_destroy( );
 
-        // regenerate the session ID so that the session is cleaned up
+        // Regenerate the session ID so that the session is cleaned up
         if ( $this->regenIdPerReq )
-        {
-                $this->regenerateSessionId( );
-        }
+            $this->regenerateSessionId( );
 
         if ( $this->useNamespace )
         {

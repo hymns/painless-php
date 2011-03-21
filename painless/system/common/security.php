@@ -67,7 +67,7 @@ class Security
      * @param string|array $matchRoles     the role to match with
      * @return boolean
      */
-    public function allowed( $namespace, $matchRoles = '' )
+    public function allow( $namespace, $matchRoles = '' )
     {
         $this->load( );
         
@@ -78,10 +78,10 @@ class Security
             // get the user identity object
             $user = $this->identity( );
             // if user is not logged in
-            if ( NULL === $user )
+            if ( NULL === $user || ! isset( $user->roles ) )
                 $roles = array('public');
             else
-                $roles = array_keys( $user['roles'] );
+                $roles = array_keys( $user->roles );
         }
         else
         {

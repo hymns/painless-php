@@ -54,7 +54,7 @@ class Render
         $module         = $request->module;
         $controller     = $request->controller;
         $contentType    = $request->contentType;
-        
+
         // If $module and $controller exists, find the View controller
         if ( ! empty( $module ) && ! empty( $controller ) )
         {
