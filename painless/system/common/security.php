@@ -119,7 +119,11 @@ class Security
     public function identityId( $key = 'id' )
     {
         $identity = $this->identity( );
-        return array_get( $identity, $key, 0 );
+        
+        if ( is_array( $identity ) )
+            return array_get( $identity, $key, 0 );
+        elseif ( is_object( $identity ) )
+            return $identity->{$key};
     }
 
     //--------------------------------------------------------------------------

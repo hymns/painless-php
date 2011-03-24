@@ -62,15 +62,7 @@ class Render
             $view = \Painless::load( "view/$module/$controller" );
             
             // If the view does not exists, return a 404
-            if ( empty( $view ) )
-            {                
-                $view = \Painless::load( 'system/view/view', \Painless::LP_LOAD_NEW );
-                $view->request = $request;
-                
-                // Set the response to 404
-                $view->response = \Painless::manufacture( 'response', 404, 'View not found', $response->payload );
-            }
-            else
+            if ( ! empty( $view ) )
             {
                 $view->request  = $request;
                 $view->response = $response;
@@ -83,8 +75,10 @@ class Render
                 $view->postProcess( );
             }
         }
-        // Otherwise, create an empty view controller
-        else
+        
+        // At this point, if the view is NULL, create a default view just to
+        // pacify the angry view compiler.
+        if ( empty( $view ) )
         {
             $view = \Painless::load( 'system/view/view', \Painless::LP_LOAD_NEW );
             $view->request = $request;
